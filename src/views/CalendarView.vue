@@ -1,4 +1,3 @@
-
 <template>
   <main class="calendar">
     <header class="calendar-header">
@@ -7,11 +6,7 @@
         <p v-if="user">Вы вошли как: {{ user.email }}</p>
       </div>
 
-      <button
-        type="button"
-        @click="handleLogout"
-        :disabled="loading"
-      >
+      <button type="button" @click="handleLogout" :disabled="loading">
         {{ loading ? "Выход..." : "Выйти" }}
       </button>
     </header>
@@ -30,44 +25,43 @@
       <h2>Ваш календарь</h2>
 
       <!-- Загрузка -->
-      <p v-if="calendarStore.loading">
-        Загружаем задания...
-      </p>
+      <p v-if="calendarStore.loading">Загружаем задания...</p>
 
       <!-- Нет назначений -->
-      <p v-else-if="calendarTasks.length === 0">
-        Задания пока не назначены.
-      </p>
+      <p v-else-if="calendarTasks.length === 0">Задания пока не назначены.</p>
 
       <!-- Есть назначения -->
       <template v-else>
-        <p>
-          Выполнено:
-          {{ completedCount }} из {{ calendarTasks.length }}
-        </p>
+        <div class="calendar-progress">
+          <div class="progress-header">
+            <span>
+              Выполнено:
+              {{ completedCount }} из {{ calendarTasks.length }}
+            </span>
+
+            <strong> {{ calendarStore.progressPercent }}% </strong>
+          </div>
+
+          <progress :value="completedCount" :max="calendarTasks.length" />
+
+          <p v-if="calendarStore.saving">Сохраняем результат...</p>
+
+          <p v-if="calendarStore.saveError" class="error">
+            {{ calendarStore.saveError }}
+          </p>
+        </div>
 
         <ul class="task-list">
-          <li
-            v-for="assignment in calendarTasks"
-            :key="assignment.id"
-          >
+          <li v-for="assignment in calendarTasks" :key="assignment.id">
             <strong>День {{ assignment.position }}</strong>
 
-            <span v-if="assignment.task">
-              — {{ assignment.task.title }}
-            </span>
+            <span v-if="assignment.task"> — {{ assignment.task.title }} </span>
 
-            <span v-else>
-              — Задание пока закрыто
-            </span>
+            <span v-else> — Задание пока закрыто </span>
 
-            <small>
-              Доступно с: {{ assignment.available_date }}
-            </small>
+            <small> Доступно с: {{ assignment.available_date }} </small>
 
-            <small>
-              Статус: {{ assignment.status }}
-            </small>
+            <small> Статус: {{ statusLabels[assignment.status] }} </small>
           </li>
         </ul>
       </template>
@@ -82,6 +76,7 @@ import { useRouter } from "vue-router";
 
 import { useAuthStore } from "../stores/auth";
 import { useCalendarStore } from "../stores/calendar";
+import type { TaskStatus } from "../types/models";
 
 const router = useRouter();
 
@@ -92,9 +87,13 @@ const { user, loading, error } = storeToRefs(authStore);
 
 const calendarTasks = computed(() => calendarStore.tasks);
 
-const completedCount = computed(
-  () => calendarStore.completedCount
-);
+const completedCount = computed(() => calendarStore.completedCount);
+
+const statusLabels: Record<TaskStatus, string> = {
+  not_started: "Не начато",
+  in_progress: "В процессе",
+  completed: "Выполнено",
+};
 
 // Загрузка календаря
 async function loadCalendar(userId: string | undefined) {
@@ -106,10 +105,7 @@ async function loadCalendar(userId: string | undefined) {
   await calendarStore.loadCalendar(userId);
 
   if (calendarStore.error) {
-    console.error(
-      "Ошибка загрузки календаря:",
-      calendarStore.error
-    );
+    console.error("Ошибка загрузки календаря:", calendarStore.error);
     return;
   }
 
@@ -123,7 +119,7 @@ watch(
   (userId) => {
     void loadCalendar(userId);
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Выход из аккаунта
@@ -181,5 +177,24 @@ button:disabled {
   display: block;
   margin-top: 4px;
   color: #6b7280;
+}
+
+.calendar-progress {
+  margin: 20px 0 28px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.calendar-progress progress {
+  width: 100%;
+  height: 12px;
+  display: block;
+  accent-color: #37866a;
 }
 </style>

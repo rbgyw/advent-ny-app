@@ -52,3 +52,11 @@ export interface CalendarTask extends UserTask {
   task: Task | null;
   response: TaskResponse | null;
 }
+
+
+export interface SaveTaskProgressResult {
+  task_id: number;
+  status: "in_progress" | "completed";
+  completed_at: ISODateTime | null;
+  response: Record<string, unknown>;
+}

@@ -4,6 +4,7 @@ import type {
   UserTask,
   TaskResponse,
   CalendarTask,
+  SaveTaskProgressResult,
 } from "../types/models";
 
 export const calendarService = {
@@ -72,5 +73,27 @@ export const calendarService = {
       task: tasksById.get(assignment.task_id) ?? null,
       response: responsesByTaskId.get(assignment.task_id) ?? null,
     }));
+  },
+
+  async saveTaskProgress(
+    taskId: number,
+    response: Record<string, unknown>,
+    complete = false,
+  ): Promise<SaveTaskProgressResult> {
+    const { data, error } = await supabase.rpc("save_task_progress", {
+      p_task_id: taskId,
+      p_response: response,
+      p_complete: complete,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error("Сервер не вернул результат сохранения");
+    }
+
+    return data as SaveTaskProgressResult;
   },
 };
