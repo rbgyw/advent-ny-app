@@ -59,9 +59,9 @@
 
             <span v-else> — Задание пока закрыто </span>
 
-            <small> Доступно с: {{ assignment.available_date }} </small>
+            <small> Доступно с: {{ formatDate(assignment.available_date) }} </small>
 
-            <small> Статус: {{ statusLabels[assignment.status] }} </small>
+            <small> Статус: {{ taskStatusLabels[assignment.status] }} </small>
           </li>
         </ul>
       </template>
@@ -76,7 +76,8 @@ import { useRouter } from "vue-router";
 
 import { useAuthStore } from "../stores/auth";
 import { useCalendarStore } from "../stores/calendar";
-import type { TaskStatus } from "../types/models";
+import { formatDate } from "../utils/date";
+import { taskStatusLabels } from "../const/task_status";
 
 const router = useRouter();
 
@@ -88,12 +89,6 @@ const { user, loading, error } = storeToRefs(authStore);
 const calendarTasks = computed(() => calendarStore.tasks);
 
 const completedCount = computed(() => calendarStore.completedCount);
-
-const statusLabels: Record<TaskStatus, string> = {
-  not_started: "Не начато",
-  in_progress: "В процессе",
-  completed: "Выполнено",
-};
 
 // Загрузка календаря
 async function loadCalendar(userId: string | undefined) {
