@@ -6,17 +6,29 @@ import {
 
 import { useAuthStore } from '../stores/auth'
 
+import SplashView from '../views/SplashView.vue'
+import RulesView from '../views/RulesView.vue'
+
 import AuthView from '../views/AuthView.vue'
 import CalendarView from '../views/CalendarView.vue'
 import TaskView from '../views/TaskView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(_to, _from, savedPosition) {
+    return savedPosition ?? { top: 0 }
+  },
 
   routes: [
     {
+      path: '/rules',
+      name: 'rules',
+      component: RulesView,
+    },
+    {
       path: '/',
-      redirect: '/calendar',
+      name: 'splash',
+      component: SplashView,
     },
     {
       path: '/auth',

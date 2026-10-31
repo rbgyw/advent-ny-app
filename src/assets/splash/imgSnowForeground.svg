@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="393.16" height="77.4103" viewBox="0 0 393.16 77.4103" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="snow-foreground">
+<path id="Vector" d="M0.111412 15.4103C42.1114 -1.25641 87.7781 -2.25641 137.111 12.4103C186.445 27.0769 229.778 27.0769 267.111 12.4103C304.445 -2.25641 346.445 -3.92308 393.111 7.41026V77.4103H0.111412V15.4103Z" fill="url(#paint0_linear_0_4)"/>
+<path id="Vector_2" d="M0.111412 43.4103C68.1114 23.4103 133.111 23.077 195.111 42.4103C257.111 61.7436 323.111 59.4103 393.111 35.4103V77.4103H0.111412V43.4103Z" fill="#FFFAEE"/>
+<path id="Vector_3" opacity="0.65" d="M143.111 77.4103L184.111 16.4103H209.111L250.111 77.4103H143.111Z" fill="#F2C084"/>
+<path id="Vector_4" d="M0.111412 50C46.7781 39.3333 95.1114 38.3333 145.111 47M251.111 49C297.778 37.6666 345.111 34.3333 393.111 39" stroke="#E8D1AC"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_4" x1="0.111412" y1="0" x2="29.4678" y2="149.038" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFFDF5"/>
+<stop offset="1" stop-color="#F7E8CB"/>
+</linearGradient>
+</defs>
+</svg>

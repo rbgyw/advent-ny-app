@@ -111,14 +111,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { useAuthStore } from "../stores/auth";
 
 type AuthMode = "login" | "register";
 
-const mode = ref<AuthMode>("login");
+const route = useRoute();
+const mode = ref<AuthMode>(route.query.mode === "register" ? "register" : "login");
 
 const email = ref("");
 const password = ref("");
@@ -126,7 +127,6 @@ const passwordRepeat = ref("");
 const localError = ref<string | null>(null);
 const confirmationEmail = ref<string | null>(null);
 
-const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
@@ -136,6 +136,10 @@ function switchMode(newMode: AuthMode) {
   authStore.error = null;
   passwordRepeat.value = "";
 }
+
+watch(() => route.query.mode, (value) => {
+  switchMode(value === "register" ? "register" : "login");
+});
 
 async function handleSubmit() {
   localError.value = null;
