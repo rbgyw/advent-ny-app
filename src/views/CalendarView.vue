@@ -1,195 +1,217 @@
+<script setup lang="ts">
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { useCalendarStore } from '../stores/calendar'
+import { campaignDate, shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds } from '../utils/calendar'
+import '../assets/calendar/calendar-fonts.css'
+import completedCircle from '../assets/calendar/451730f3-8fe7-403b-be98-c03b022d0574.svg'
+import completedCheck from '../assets/calendar/e284dc00-d9d6-4583-a830-d4c8f80ee1c9.svg'
+import todayOutline from '../assets/calendar/3fa47fbb-be3a-4dbf-b56a-851ff9e456ee.svg'
+import todayBadge from '../assets/calendar/2365cce0-774a-4a72-b2a8-f3f1535ce46f.svg'
+import dailyButton from '../assets/calendar/17cfb417-a7e1-4f43-be07-25f27aeb5c8b.svg'
+import progressCard from '../assets/calendar/c091ccf8-b6c4-4c45-9388-7fac77a07874.svg'
+import legendDone from '../assets/calendar/4eebe128-1262-4932-9be2-8fbf6ffa71f0.svg'
+import legendCheck from '../assets/calendar/1572eb8a-5093-4691-96ce-6e66ff6e7a22.svg'
+import legendToday from '../assets/calendar/b538f0f8-28c8-44e9-9a04-d7a9bec04f46.svg'
+import legendSoon from '../assets/calendar/bd28fbb2-2dc6-4874-8e24-a7793b940428.svg'
+import progressTrack from '../assets/calendar/4460766a-65d8-43d4-adfa-3815be36befc.svg'
+import progressFill from '../assets/calendar/91922ebb-c2f8-4f13-9e88-bae94e5c002f.svg'
+
+const CalendarIllustration = defineAsyncComponent(() => import('../components/CalendarIllustration.vue'))
+const router = useRouter()
+const authStore = useAuthStore()
+const calendarStore = useCalendarStore()
+const { user, loading, error } = storeToRefs(authStore)
+const today = ref(campaignDate())
+const layout = ref<HTMLElement | null>(null)
+const menu = ref<HTMLDetailsElement | null>(null)
+const scale = ref(1)
+const assignments = computed(() => new Map(calendarStore.tasks.map(task => [task.position, task])))
+const windows = computed(() => Array.from({ length: 25 }, (_, index) => {
+  const day = index + 1
+  const assignment = assignments.value.get(day)
+  return {
+    day, assignment, bounds: calendarWindowBounds(day),
+    completed: assignment?.status === 'completed',
+    isToday: assignment?.available_date === today.value,
+    available: canOpenAssignment(assignment, today.value),
+    label: calendarWindowLabel(day, assignment, today.value),
+  }
+}))
+const dailyAssignment = computed(() => {
+  const available = calendarStore.tasks.filter(task => canOpenAssignment(task, today.value))
+  return available.find(task => task.available_date === today.value)
+    ?? available.find(task => task.status !== 'completed')
+    ?? available[available.length - 1]
+})
+const dailyLabel = computed(() => {
+  if (calendarStore.loading) return 'Загружаем задание дня…'
+  const assignment = dailyAssignment.value
+  if (assignment) return `${shortCalendarDate(assignment.available_date)} · Открыть задание дня →`
+  const next = [...calendarStore.tasks].sort((a, b) => a.available_date.localeCompare(b.available_date))[0]
+  return next ? `Первое окошко — ${shortCalendarDate(next.available_date)}` : 'Задания появятся здесь'
+})
+const total = computed(() => calendarStore.totalCount || 25)
+let observer: ResizeObserver | undefined
+let clock: ReturnType<typeof setInterval> | undefined
+
+function refreshDate() {
+  const current = campaignDate()
+  if (current !== today.value) {
+    today.value = current
+    // Fetch tasks that server policies have made visible after midnight.
+    void loadCalendar(user.value?.id)
+  }
+}
+function closeMenu() {
+  if (menu.value?.open) {
+    menu.value.open = false
+    menu.value.querySelector('summary')?.focus()
+  }
+}
+function openWindow(day: number) {
+  if (canOpenAssignment(assignments.value.get(day), today.value)) {
+    void router.push({ name: 'task', params: { id: day } })
+  }
+}
+async function loadCalendar(userId: string | undefined) {
+  if (!userId) { calendarStore.reset(); return }
+  await calendarStore.loadCalendar(userId)
+}
+async function handleLogout() {
+  if (await authStore.logout()) {
+    calendarStore.reset()
+    await router.replace({ name: 'auth' })
+  }
+}
+watch(() => user.value?.id, userId => { void loadCalendar(userId) }, { immediate: true })
+onMounted(() => {
+  observer = new ResizeObserver(entries => {
+    const width = entries[0]?.contentRect.width
+    if (width) scale.value = width / 393
+  })
+  if (layout.value) observer.observe(layout.value)
+  clock = setInterval(refreshDate, 60_000)
+  document.addEventListener('visibilitychange', refreshDate)
+})
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  if (clock) clearInterval(clock)
+  document.removeEventListener('visibilitychange', refreshDate)
+})
+</script>
+
 <template>
-  <main class="calendar">
-    <header class="calendar-header">
-      <div>
-        <h1>Адвент-календарь</h1>
-        <p v-if="user">Вы вошли как: {{ user.email }}</p>
-      </div>
+  <main class="calendar-page" @keydown.esc="closeMenu">
+    <div ref="layout" class="calendar-layout" :style="{ '--calendar-scale': scale }">
+      <h1 class="sr-only">Новогодний адвент ГЕРОФАРМ</h1>
+      <section class="calendar-stage" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
+        <div class="calendar-canvas">
+          <CalendarIllustration />
+          <RouterLink class="calendar-brand-link" to="/" aria-label="ГЕРОФАРМ — на главную" />
+          <p class="calendar-intro">Каждый день — маленькое праздничное чудо.<br />Нажмите на окошко и откройте задание.</p>
+          <button class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
+            <img :src="dailyButton" alt="" width="197" height="21" />
+            <span>{{ dailyLabel }}</span>
+          </button>
 
-      <button type="button" @click="handleLogout" :disabled="loading">
-        {{ loading ? "Выход..." : "Выйти" }}
-      </button>
-    </header>
+          <details ref="menu" class="calendar-menu">
+            <summary aria-label="Открыть меню"><span class="sr-only">Меню</span></summary>
+            <nav class="calendar-menu-panel" aria-label="Меню календаря">
+              <p v-if="user?.email" class="calendar-account">{{ user.email }}</p>
+              <RouterLink to="/rules">Правила участия</RouterLink>
+              <button type="button" :disabled="loading" @click="handleLogout">{{ loading ? 'Выходим…' : 'Выйти из аккаунта' }}</button>
+            </nav>
+          </details>
 
-    <!-- Ошибки авторизации -->
-    <p v-if="error" class="error">
-      {{ error }}
-    </p>
-
-    <!-- Ошибки календаря -->
-    <p v-if="calendarStore.error" class="error">
-      {{ calendarStore.error }}
-    </p>
-
-    <section>
-      <h2>Ваш календарь</h2>
-
-      <!-- Загрузка -->
-      <p v-if="calendarStore.loading">Загружаем задания...</p>
-
-      <!-- Нет назначений -->
-      <p v-else-if="calendarTasks.length === 0">Задания пока не назначены.</p>
-
-      <!-- Есть назначения -->
-      <template v-else>
-        <div class="calendar-progress">
-          <div class="progress-header">
-            <span>
-              Выполнено:
-              {{ completedCount }} из {{ calendarTasks.length }}
+          <button v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25 }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
+            <template v-if="window.isToday">
+              <img class="calendar-today-outline" :src="todayOutline" alt="" width="70.3" height="61.3" />
+              <span class="calendar-today-badge"><img :src="todayBadge" alt="" width="48" height="14" />Сегодня</span>
+            </template>
+            <span v-if="window.completed" class="calendar-completed" aria-hidden="true">
+              <img :src="completedCircle" alt="" width="12" height="12" />
+              <img :src="completedCheck" alt="" width="6.3" height="4.8" />
             </span>
+          </button>
 
-            <strong> {{ calendarStore.progressPercent }}% </strong>
-          </div>
-
-          <progress :value="completedCount" :max="calendarTasks.length" />
-
-          <p v-if="calendarStore.saving">Сохраняем результат...</p>
-
-          <p v-if="calendarStore.saveError" class="error">
-            {{ calendarStore.saveError }}
-          </p>
+          <div v-if="calendarStore.loading" class="calendar-notice" role="status">Загружаем задания…</div>
+          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><button type="button" @click="loadCalendar(user?.id)">Попробовать ещё раз</button></div>
+          <p v-else-if="!calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
+          <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>
+      </section>
 
-        <ul class="task-list">
-          <li v-for="assignment in calendarTasks" :key="assignment.id">
-            <strong>День {{ assignment.position }}</strong>
-
-            <span v-if="assignment.task"> — {{ assignment.task.title }} </span>
-
-            <span v-else> — Задание пока закрыто </span>
-
-            <small> Доступно с: {{ formatDate(assignment.available_date) }} </small>
-
-            <small> Статус: {{ taskStatusLabels[assignment.status] }} </small>
-          </li>
+      <section class="calendar-progress" aria-label="Ваш прогресс">
+        <img class="calendar-progress-background" :src="progressCard" alt="" width="361" height="98" />
+        <ul class="calendar-legend" aria-label="Состояния окошек">
+          <li><span class="legend-completed"><img :src="legendDone" alt="" width="10" height="10" /><img :src="legendCheck" alt="" width="6" height="4.3" /></span>Выполнено</li>
+          <li><img :src="legendToday" alt="" width="12" height="12" />Сегодня</li>
+          <li><img :src="legendSoon" alt="" width="8" height="8" />Скоро</li>
         </ul>
-      </template>
-    </section>
+        <div class="calendar-progress-heading"><span>Зажигаем праздник вместе</span><strong>{{ calendarStore.loading ? '…' : `${calendarStore.completedCount} из ${total}` }}</strong></div>
+        <div class="calendar-progress-track" role="progressbar" :aria-valuenow="calendarStore.completedCount" :aria-valuemax="total" :aria-valuemin="0" aria-label="Выполнено заданий">
+          <img :src="progressTrack" alt="" width="333" height="4" />
+          <span :style="{ width: `${calendarStore.progressPercent}%` }"><img :src="progressFill" alt="" width="333" height="4" /></span>
+        </div>
+        <p class="calendar-date">Сегодня · {{ shortCalendarDate(today) }}</p>
+      </section>
+    </div>
   </main>
 </template>
 
-<script setup lang="ts">
-import { computed, watch } from "vue";
-import { storeToRefs } from "pinia";
-import { useRouter } from "vue-router";
-
-import { useAuthStore } from "../stores/auth";
-import { useCalendarStore } from "../stores/calendar";
-import { formatDate } from "../utils/date";
-import { taskStatusLabels } from "../const/task_status";
-
-const router = useRouter();
-
-const authStore = useAuthStore();
-const calendarStore = useCalendarStore();
-
-const { user, loading, error } = storeToRefs(authStore);
-
-const calendarTasks = computed(() => calendarStore.tasks);
-
-const completedCount = computed(() => calendarStore.completedCount);
-
-// Загрузка календаря
-async function loadCalendar(userId: string | undefined) {
-  if (!userId) {
-    calendarStore.reset();
-    return;
-  }
-
-  await calendarStore.loadCalendar(userId);
-
-  if (calendarStore.error) {
-    console.error("Ошибка загрузки календаря:", calendarStore.error);
-    return;
-  }
-
-  console.log("Назначения:", calendarTasks.value);
-  console.log("Выполнено:", completedCount.value);
-}
-
-// Следим за авторизованным пользователем
-watch(
-  () => user.value?.id,
-  (userId) => {
-    void loadCalendar(userId);
-  },
-  { immediate: true },
-);
-
-// Выход из аккаунта
-async function handleLogout() {
-  const success = await authStore.logout();
-
-  if (success) {
-    calendarStore.reset();
-    await router.replace({ name: "auth" });
-  }
-}
-</script>
-
 <style scoped>
-.calendar {
-  padding: 24px;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-button {
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #dc2626;
-}
-
-.task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-left: 20px;
-}
-
-.task-list li {
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-}
-
-.task-list small {
-  display: block;
-  margin-top: 4px;
-  color: #6b7280;
-}
-
-.calendar-progress {
-  margin: 20px 0 28px;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.calendar-progress progress {
-  width: 100%;
-  height: 12px;
-  display: block;
-  accent-color: #37866a;
-}
+@font-face { font-family:'Calendar Inter'; src:url('../assets/splash/Inter.ttf') format('truetype'); font-weight:100 900; font-display:swap; }
+:global(#app:has(.calendar-page)) { width:100%; border:0; }
+.calendar-page { min-height:100svh; background:linear-gradient(135deg,#110c08,#8b3e16 55%,#ff941f); color:#fff0d0; font:400 12px/1.3 'Calendar Inter',sans-serif; letter-spacing:0; color-scheme:light; }
+.calendar-layout { max-width:393px; margin:0 auto; padding-bottom:12px; overflow:hidden; background:linear-gradient(135deg,#110c08,#803711 55%,#ff941f); }
+.calendar-stage { position:relative; width:100%; aspect-ratio:393 / 838; }
+.calendar-canvas { position:absolute; width:393px; height:1018px; left:0; top:0; transform:scale(var(--calendar-scale)); transform-origin:top left; }
+.calendar-intro { position:absolute; top:138px; left:77px; width:239px; font-size:10px; line-height:12px; font-weight:500; text-align:center; margin:0; }
+.calendar-brand-link { position:absolute; left:22px; top:10px; width:112px; height:44px; }
+.calendar-daily { position:absolute; top:162px; left:88px; width:217px; min-height:44px; padding:0; border:0; background:transparent; color:#68381f; font:700 9px/11px 'Calendar Inter',sans-serif; cursor:pointer; display:grid; place-items:center; }
+.calendar-daily > img { position:absolute; left:10px; top:12px; pointer-events:none; }
+.calendar-daily > span { position:relative; white-space:nowrap; }
+.calendar-daily:disabled { cursor:default; }
+.calendar-menu { position:absolute; right:19px; top:9px; z-index:5; }
+.calendar-menu summary { width:44px; height:44px; list-style:none; cursor:pointer; border-radius:50%; }
+.calendar-menu summary::-webkit-details-marker { display:none; }
+.calendar-menu-panel { position:absolute; top:49px; right:0; width:228px; box-sizing:border-box; padding:10px; border:1px solid #dfbc7f; border-radius:16px; background:#fff3da; color:#68381f; box-shadow:0 12px 35px #160a0666; text-align:left; }
+.calendar-menu-panel a,.calendar-menu-panel button { display:flex; align-items:center; min-height:44px; width:100%; box-sizing:border-box; padding:10px; color:inherit; background:none; border:0; border-radius:8px; text-decoration:none; font:500 13px/20px 'Calendar Inter',sans-serif; text-align:left; cursor:pointer; }
+.calendar-menu-panel a:hover,.calendar-menu-panel button:hover { background:#f2dfbd; }
+.calendar-account { padding:8px 10px 12px; margin:0; overflow-wrap:anywhere; color:#846443; font-size:11px; }
+.calendar-window { position:absolute; padding:0; border:0; background:transparent; border-radius:36px 36px 0 0; cursor:pointer; -webkit-tap-highlight-color:#fff0d033; }
+.calendar-window:disabled { cursor:default; }
+.calendar-window:not(:disabled):hover { box-shadow:inset 0 0 18px #fff2ce70; }
+.calendar-window:focus-visible,.calendar-daily:focus-visible,.calendar-brand-link:focus-visible,.calendar-menu summary:focus-visible,.calendar-menu-panel :focus-visible { outline:3px solid #2c624c; outline-offset:3px; }
+.calendar-completed { position:absolute; right:7.7px; bottom:5.9px; width:12px; height:12px; pointer-events:none; }
+.calendar-completed img { position:absolute; left:0; top:0; }
+.calendar-completed img + img { left:2.45px; top:3px; }
+.calendar-today-outline { position:absolute; left:.27px; top:1.05px; pointer-events:none; }
+.calendar-today-badge { position:absolute; width:48px; height:14px; top:-3.3px; left:11.9px; color:#fff8e1; font-size:9px; line-height:14px; font-weight:700; text-align:center; isolation:isolate; z-index:1; }
+.calendar-today-badge img { position:absolute; inset:0; z-index:-1; }
+.is-door .calendar-today-outline { display:none; }
+.is-door.is-today { box-shadow:inset 0 0 0 2px #315d44; }
+.is-door .calendar-today-badge { left:26px; }
+.calendar-notice { position:absolute; z-index:4; top:244px; left:38px; width:317px; box-sizing:border-box; padding:18px; border:1px solid #e3c58d; border-radius:16px; color:#68381f; background:#fff4e5f5; box-shadow:0 8px 28px #4d1c0c33; text-align:center; font-size:13px; line-height:20px; }
+.calendar-notice button { min-height:44px; padding:8px 14px; margin-top:12px; border:0; border-radius:12px; background:#a7280b; color:#fff3dd; font:600 12px/18px 'Calendar Inter',sans-serif; cursor:pointer; }
+.calendar-auth-error { top:354px; }
+.calendar-progress { position:relative; width:calc(100% - 32px); height:98px; margin:0 16px; box-sizing:border-box; padding:13px 14px 10px; color:#68381f; isolation:isolate; }
+.calendar-progress-background { position:absolute; inset:0; width:100%; height:98px; z-index:-1; }
+.calendar-legend { display:flex; align-items:center; gap:29px; list-style:none; padding:0; margin:0; font-size:12px; line-height:15px; }
+.calendar-legend li { display:flex; align-items:center; gap:5px; white-space:nowrap; }
+.legend-completed { position:relative; width:10px; height:10px; }
+.legend-completed img { position:absolute; left:0; top:0; }
+.legend-completed img + img { left:2px; top:2.7px; }
+.calendar-progress-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; font-size:12px; line-height:15px; white-space:nowrap; }
+.calendar-progress-heading strong { font-weight:700; }
+.calendar-progress-track { position:relative; height:4px; margin-top:8px; overflow:hidden; border-radius:2px; }
+.calendar-progress-track > img { position:absolute; width:100%; height:4px; left:0; top:0; }
+.calendar-progress-track span { position:absolute; inset:0 auto 0 0; overflow:hidden; }
+.calendar-progress-track span img { display:block; width:333px; height:4px; }
+.calendar-date { margin:8px 0 0; text-align:center; color:#846443; font-size:10.5px; line-height:13px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+@media (max-width:360px) { .calendar-legend { gap:18px; font-size:11px; } .calendar-progress-heading { font-size:10.5px; } }
 </style>

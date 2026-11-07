@@ -1,0 +1,29 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="52" height="193" viewBox="0 0 52 193" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame">
+<g id="Vector">
+<path d="M26 128.937V178.403Z" fill="black"/>
+<path d="M26 128.937V178.403" stroke-width="0.8" stroke="#FFE8AE"/>
+</g>
+<path id="Vector_2" d="M26 74.605L29.25 94.8782L43.0625 82.7143L32.5 98.9328L51.1875 102.987L32.5 106.231L43.0625 122.45L29.25 110.286L26 131.37L22.75 110.286L8.9375 122.45L19.5 106.231L0.8125 102.987L19.5 98.9328L8.9375 82.7143L22.75 94.8782L26 74.605Z" fill="url(#paint0_linear_0_15)" stroke-width="0.7" stroke="#FFF3C5"/>
+<g id="Vector_3">
+<path d="M26 78.6597V127.315ZM4.875 102.987H47.125ZM13 87.5798L39 118.395ZM39 87.5798L13 118.395Z" fill="black"/>
+<path d="M26 78.6597V127.315M4.875 102.987H47.125M13 87.5798L39 118.395M39 87.5798L13 118.395" stroke-width="0.7" stroke="#B67C36" stroke-opacity="0.55"/>
+</g>
+<path id="Vector_4" opacity="0.7" d="M26 78.6597L29.25 98.9328L26 102.987L22.75 98.9328L26 78.6597ZM4.875 102.987L22.75 99.7437L26 102.987L22.75 106.231L4.875 102.987ZM26 127.315L22.75 107.042L26 102.987L29.25 107.042L26 127.315Z" fill="#FFF7D5"/>
+<path id="Vector_5" d="M26 105.42C27.3462 105.42 28.4375 104.331 28.4375 102.987C28.4375 101.644 27.3462 100.555 26 100.555C24.6538 100.555 23.5625 101.644 23.5625 102.987C23.5625 104.331 24.6538 105.42 26 105.42Z" fill="#FFF9DC"/>
+<path id="Vector_6" d="M26 136.235L30.0625 142.723L26 149.21L21.9375 142.723L26 136.235Z" stroke="#FFE7A8"/>
+<path id="Vector_7" d="M26 160.563C26.8975 160.563 27.625 159.837 27.625 158.941C27.625 158.045 26.8975 157.319 26 157.319C25.1025 157.319 24.375 158.045 24.375 158.941C24.375 159.837 25.1025 160.563 26 160.563Z" fill="#FFE7A8"/>
+<path id="Vector_8" d="M26 172.727L29.25 177.592L26 183.269L22.75 177.592L26 172.727Z" fill="#FFE7A8"/>
+<g id="Vector_9">
+<path d="M5.6875 68V76.1092ZM1.625 72.0546H9.75ZM45.5 147.471V153.958ZM42.25 150.714H48.75Z" fill="black"/>
+<path d="M5.6875 68V76.1092M1.625 72.0546H9.75M45.5 147.471V153.958M42.25 150.714H48.75" stroke-width="0.8" stroke="#FFF0BE"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_15" x1="0.8125" y1="74.605" x2="57.1748" y2="124.623" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFF8D5"/>
+<stop offset="0.5" stop-color="#FFDE93"/>
+<stop offset="1" stop-color="#E8B862"/>
+</linearGradient>
+</defs>
+</svg>
