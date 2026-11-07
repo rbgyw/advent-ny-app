@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import type { User } from "@supabase/supabase-js";
 import { authService } from "../services/auth.service";
+import type { RegistrationDetails } from "../types/registration";
 
 type RegisterResult = {
   success: boolean;
@@ -74,12 +75,12 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async register(email: string, password: string): Promise<RegisterResult> {
+    async register(email: string, password: string, details?: RegistrationDetails): Promise<RegisterResult> {
       this.loading = true;
       this.error = null;
 
       try {
-        const { data, error } = await authService.register(email, password);
+        const { data, error } = await authService.register(email, password, details);
 
         if (error) {
           this.error = error.message;

@@ -1,0 +1,40 @@
+@font-face { font-family: 'Advent Inter'; src: url('./splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('./splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
+:global(#app:has(.auth-page)) { width: 100%; border: 0; }
+.auth-page { min-height: 100svh; color: #624631; color-scheme: light; background: radial-gradient(ellipse at 75% 70%, #ffbc55, transparent 65%), linear-gradient(125deg, #bb3008, #fc801d 60%, #ff9a30); font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.auth-layout { width: 100%; max-width: 393px; padding: 0 16px 24px; box-sizing: border-box; margin: 0 auto; }
+.auth-header { position: relative; height: 94px; box-sizing: border-box; padding-top: 29px; color: #f9e8ba; text-align: center; }
+.auth-header p { margin: 0; font-size: 18px; line-height: 22px; letter-spacing: .6px; }
+.auth-back { display: grid; place-items: center; position: absolute; top: 17px; left: -4px; width: 44px; height: 44px; color: inherit; }
+.auth-back span { width: 10px; height: 10px; border: solid currentColor; border-width: 0 0 1.5px 1.5px; transform: rotate(45deg); }
+.auth-card { padding: 16px 24px 32px; background: #fdf6e3; border-radius: 24px; }
+.auth-card h1 { margin: 0 0 8px; font: 600 28px/35px 'Advent STIX', serif; letter-spacing: 0; color: inherit; }
+.auth-intro { margin: 0 0 19px; line-height: 20px; color: #866e55; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.auth-field { display: flex; flex-direction: column; gap: 7px; }
+.auth-field label { font-weight: 700; line-height: 17px; }
+.auth-field input, .auth-field select { box-sizing: border-box; width: 100%; min-width: 0; height: 52px; border: 1px solid #dcd0b7; border-radius: 14px; background: #fdf9ef; padding: 0 13px; color: #624631; font: 400 14px/20px 'Advent Inter', sans-serif; box-shadow: 0 -1px 1px #e7dcc5; }
+.auth-field input::placeholder, .auth-field select.placeholder { color: #9b907e; opacity: 1; }
+.auth-field option { color: #624631; }
+.name-field { margin-bottom: 25px; }
+.email-field { margin-bottom: 27px; }
+.auth-hint { margin: 3px 0 0; font-size: 12px; line-height: 16px; color: #866e55; }
+.workplace-field, .password-field { margin-bottom: 23px; }
+.password-repeat-field { margin-bottom: 23px; }
+.auth-select { position: relative; }
+.auth-select select { appearance: none; padding-right: 34px; cursor: pointer; }
+.auth-select::after { content: ''; pointer-events: none; position: absolute; right: 22px; top: 21px; width: 6px; height: 6px; border: solid #866e55; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.auth-consent { min-height: 153px; box-sizing: border-box; padding: 15px 13px 14px; background: #f6ecd6; border: 1px solid #e6dac1; border-radius: 15px; }
+.auth-consent-label { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 11px; cursor: pointer; font-size: 12px; line-height: 18px; }
+.auth-consent-label input { appearance: none; box-sizing: border-box; width: 20px; height: 20px; margin: 0; border: 1px solid #ccbea6; border-radius: 4px; background: #fdf9ef; cursor: pointer; display: grid; place-items: center; }
+.auth-consent-label input:checked { background: #ac2809; border-color: #ac2809; }
+.auth-consent-label input:checked::after { content: ''; width: 9px; height: 5px; border: solid #fff5df; border-width: 0 0 2px 2px; transform: translateY(-1px) rotate(-45deg); }
+.auth-consent-hint { margin: 10px 0 0 31px; font-size: 10px; line-height: 15px; color: #a95032; }
+.auth-submit { display: block; width: 100%; min-height: 54px; border: 0; border-radius: 15px; margin-top: 21px; padding: 12px; background: #ac2809; color: #fff5df; font: 700 14px/18px 'Advent Inter', sans-serif; cursor: pointer; }
+.auth-submit:hover { background: #962107; }
+.auth-error { margin: 16px 0 0; color: #a7280b; font-size: 13px; overflow-wrap: anywhere; }
+.auth-login { display: block; margin: 16px auto 0; padding: 6px; border: 0; background: transparent; color: #fff5df; font: inherit; text-decoration: underline; cursor: pointer; }
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #a95032; outline-offset: 3px; }
+fieldset:disabled { opacity: .65; }
+fieldset:disabled input, fieldset:disabled select, fieldset:disabled button { cursor: wait; }
+@media (max-width: 359px) { .auth-layout { padding-inline: 12px; } .auth-card { padding-inline: 20px; } }
