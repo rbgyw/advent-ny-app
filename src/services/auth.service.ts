@@ -31,6 +31,16 @@ export const authService = {
     return supabase.auth.signOut();
   },
 
+  async verifyEmailCode(email: string, token: string) {
+    return supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(), token, type: 'email',
+    });
+  },
+
+  async resendEmailCode(email: string) {
+    return supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
+  },
+
   onAuthStateChange(
     callback: (event: AuthChangeEvent, session: Session | null) => void,
   ) {

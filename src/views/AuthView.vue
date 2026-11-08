@@ -1,6 +1,18 @@
 <template>
+  <VerificationCodeForm
+    v-if="confirmationEmail"
+    :loading="authStore.loading"
+    :resending="resending"
+    :error="authStore.error"
+    :invalid-code="invalidCode"
+    :resend-succeeded="resendSucceeded"
+    @submit="handleVerification"
+    @resend="handleResend"
+    @back="switchMode('login')"
+    @edit="clearVerificationError"
+  />
   <RegistrationForm
-    v-if="mode === 'register' && !confirmationEmail"
+    v-else-if="mode === 'register'"
     :loading="authStore.loading"
     :error="authStore.error"
     @submit="handleRegistration"
@@ -12,14 +24,7 @@
         <RouterLink to="/rules" class="auth-back" aria-label="Вернуться к правилам"><span aria-hidden="true"></span></RouterLink>
         <p>ГЕРОФАРМ</p>
       </header>
-      <section class="auth-card" :aria-labelledby="confirmationEmail ? 'confirmation-title' : 'login-title'">
-        <template v-if="confirmationEmail">
-          <h1 id="confirmation-title">Проверьте почту</h1>
-          <p class="auth-intro">Мы отправили письмо для подтверждения регистрации на <strong class="confirmation-email">{{ confirmationEmail }}</strong>.</p>
-          <p class="auth-intro">Перейдите по ссылке в письме, чтобы активировать аккаунт.</p>
-          <button class="auth-submit" type="button" @click="switchMode('login')">Перейти ко входу</button>
-        </template>
-        <template v-else>
+      <section class="auth-card" aria-labelledby="login-title">
           <h1 id="login-title">Вход</h1>
           <p class="auth-intro">Войдите в новогодний адвент-календарь с корпоративной почтой и паролем.</p>
           <form @submit.prevent="handleLogin" :aria-busy="authStore.loading">
@@ -36,9 +41,8 @@
               <button class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</button>
             </fieldset>
           </form>
-        </template>
       </section>
-      <button v-if="!confirmationEmail" class="auth-login" type="button" :disabled="authStore.loading" @click="switchMode('register')">Нет аккаунта? Зарегистрироваться</button>
+      <button class="auth-login" type="button" :disabled="authStore.loading" @click="switchMode('register')">Нет аккаунта? Зарегистрироваться</button>
     </div>
   </main>
 </template>
@@ -48,6 +52,7 @@ import { ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import RegistrationForm from '../components/RegistrationForm.vue';
+import VerificationCodeForm from '../components/VerificationCodeForm.vue';
 import type { RegistrationFormData } from '../types/registration';
 
 type AuthMode = 'login' | 'register';
@@ -57,13 +62,44 @@ const authStore = useAuthStore();
 const mode = ref<AuthMode>(route.query.mode === 'register' ? 'register' : 'login');
 const email = ref('');
 const password = ref('');
-const confirmationEmail = ref<string | null>(null);
+const pendingEmailKey = 'advent.pending-confirmation-email';
+const confirmationEmail = ref<string | null>(sessionStorage.getItem(pendingEmailKey));
+const resending = ref(false);
+const invalidCode = ref(false);
+const resendSucceeded = ref(0);
+
+function clearVerificationError() {
+  authStore.error = null;
+  invalidCode.value = false;
+}
+
+async function handleVerification(code: string) {
+  if (!confirmationEmail.value || authStore.loading || resending.value) return;
+  const result = await authStore.verifyEmailCode(confirmationEmail.value, code);
+  invalidCode.value = result.invalidCode;
+  if (result.success) {
+    sessionStorage.removeItem(pendingEmailKey);
+    confirmationEmail.value = null;
+    await goToDestination();
+  }
+}
+
+async function handleResend() {
+  if (!confirmationEmail.value || authStore.loading || resending.value) return;
+  resending.value = true;
+  invalidCode.value = false;
+  try {
+    if (await authStore.resendEmailCode(confirmationEmail.value)) resendSucceeded.value++;
+  } finally { resending.value = false; }
+}
 
 function resetMode(newMode: AuthMode) {
   mode.value = newMode;
   authStore.error = null;
   password.value = '';
   confirmationEmail.value = null;
+  sessionStorage.removeItem(pendingEmailKey);
+  invalidCode.value = false;
 }
 
 function switchMode(newMode: AuthMode) {
@@ -99,6 +135,8 @@ async function handleRegistration(data: RegistrationFormData) {
   email.value = data.email;
   if (result.needsEmailConfirmation) {
     confirmationEmail.value = data.email;
+    password.value = '';
+    sessionStorage.setItem(pendingEmailKey, data.email);
     return;
   }
   await goToDestination();
@@ -106,6 +144,3 @@ async function handleRegistration(data: RegistrationFormData) {
 </script>
 
 <style scoped src="../assets/auth-form.css"></style>
-<style scoped>
-.confirmation-email { overflow-wrap: anywhere; }
-</style>

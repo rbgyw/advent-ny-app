@@ -133,6 +133,49 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
+    async verifyEmailCode(email: string, token: string) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const { data, error } = await authService.verifyEmailCode(email, token);
+        if (error) {
+          const invalidCode = error.code === 'otp_expired';
+          this.error = invalidCode
+            ? 'Неверный код. Проверьте цифры и попробуйте ещё раз.'
+            : 'Не удалось проверить код. Попробуйте ещё раз.';
+          return { success: false, invalidCode };
+        }
+        if (!data.session) {
+          this.error = 'Не удалось подтвердить вход. Запросите новый код.';
+          return { success: false, invalidCode: false };
+        }
+        this.user = data.session.user;
+        return { success: true, invalidCode: false };
+      } catch {
+        this.error = 'Не удалось проверить код. Проверьте подключение и попробуйте ещё раз.';
+        return { success: false, invalidCode: false };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async resendEmailCode(email: string) {
+      this.error = null;
+      try {
+        const { error } = await authService.resendEmailCode(email);
+        if (error) {
+          this.error = error.status === 429
+            ? 'Слишком много запросов. Подождите минуту и попробуйте ещё раз.'
+            : 'Не удалось отправить код. Попробуйте ещё раз.';
+          return false;
+        }
+        return true;
+      } catch {
+        this.error = 'Не удалось отправить код. Проверьте подключение и попробуйте ещё раз.';
+        return false;
+      }
+    },
+
     async logout() {
       this.loading = true;
       this.error = null;
