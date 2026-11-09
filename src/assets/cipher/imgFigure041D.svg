@@ -1,0 +1,33 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20.24" height="35.995" viewBox="0 0 20.24 35.995" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="figure-041D">
+<path id="limb-12-0" d="M2.07 2.07H4.37C5.75 6.36333 7.66667 8.58667 10.12 8.74C12.5733 8.43333 14.49 6.21 15.87 2.07H18.17" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint0_linear_0_213)"/>
+<path id="limb-12-1" d="M10.12 8.74V25.3" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint1_linear_0_213)"/>
+<path id="limb-12-2" d="M2.99 33.12C3.91 28.52 6.28667 26.1433 10.12 25.99C14.1067 26.2967 16.4833 28.6733 17.25 33.12" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint2_linear_0_213)"/>
+<path id="Vector" d="M10.12 35.995C11.8348 35.995 13.225 34.6048 13.225 32.89C13.225 31.1752 11.8348 29.785 10.12 29.785C8.40516 29.785 7.015 31.1752 7.015 32.89C7.015 34.6048 8.40516 35.995 10.12 35.995Z" fill="url(#paint3_radial_0_213)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_213" x1="6.67" y1="-0.46" x2="16.1" y2="35.65" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_213" x1="-4.88" y1="-0.46" x2="-2.57152" y2="37.974" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<linearGradient id="paint2_linear_0_213" x1="6.67" y1="-0.46" x2="16.1" y2="35.65" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<radialGradient id="paint3_radial_0_213" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(8.7538 30.9028) scale(5.589)">
+<stop stop-color="#91CBFF"/>
+<stop offset="0.4" stop-color="#3FA2FF"/>
+<stop offset="1" stop-color="#006CED"/>
+</radialGradient>
+</defs>
+</svg>

@@ -1,11 +1,15 @@
 <template>
-  <section class="attachments">
-    <h3>Фотографии</h3>
+  <section class="attachments" :class="{ 'attachments-memory': variant === 'memory' }">
+    <h3 v-if="variant !== 'memory'">Фотографии</h3>
 
-    <p>До 3 фотографий. JPG, PNG или WebP, до 5 МБ каждая.</p>
+    <p :class="{ 'memory-file-hint': variant === 'memory' }">До 3 фотографий. JPG, PNG или WebP, до 5 МБ каждая.</p>
+
+    <button v-if="variant === 'memory'" class="memory-attach-button" type="button" :disabled="readonly || busy || disabled || !listLoaded" @click="fileInput?.click()">＋ Прикрепить фотографии</button>
 
     <input
       v-if="!readonly"
+      ref="fileInput"
+      :class="{ 'memory-file-input': variant === 'memory' }"
       type="file"
       accept="image/jpeg,image/png,image/webp"
       multiple
@@ -24,7 +28,7 @@
       Обновить фотографии
     </button>
 
-    <div class="photos">
+    <div v-if="variant !== 'memory' || photos.length" class="photos">
       <figure v-for="photo in photos" :key="photo.id">
         <img v-if="photo.url" :src="photo.url" :alt="photo.file_name" />
         <p v-else>Не удалось загрузить предпросмотр.</p>
@@ -53,7 +57,7 @@
       </figure>
     </div>
 
-    <p v-if="listLoaded && !busy && photos.length === 0">
+    <p v-if="variant !== 'memory' && listLoaded && !busy && photos.length === 0">
       Фотографии пока не добавлены.
     </p>
   </section>
@@ -68,11 +72,12 @@ import {
   type TaskAttachment,
 } from "../services/attachments.service";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   taskId: number;
   readonly: boolean;
   disabled: boolean;
-}>();
+  variant?: 'default' | 'memory';
+}>(), { variant: 'default' });
 
 const emit = defineEmits<{
   busy: [value: boolean];
@@ -81,6 +86,7 @@ const emit = defineEmits<{
 type Photo = TaskAttachment & { url: string | null };
 
 const photos = ref<Photo[]>([]);
+const fileInput = ref<HTMLInputElement | null>(null);
 const busy = ref(false);
 const listLoaded = ref(false);
 const errorMessage = ref("");
@@ -391,4 +397,16 @@ figcaption {
   gap: 8px;
   margin: 12px 0;
 }
+
+.attachments-memory { margin: 19px 0 0; font: inherit; color: #836045; }
+.memory-file-hint, .memory-file-input { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.memory-attach-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; height: 52px; margin: 0; padding: 0 16px; border: 1px solid #dcc8a8; border-radius: 13px; background: #fffaf0; color: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; cursor: pointer; }
+.memory-attach-button:disabled { opacity: 1; -webkit-text-fill-color: currentColor; cursor: default; }
+.memory-attach-button:focus-visible { outline: 2px solid #623c28; outline-offset: 0; }
+.attachments-memory .photos { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.attachments-memory .photos img { height: 140px; background: #f8e8c8; }
+.attachments-memory .photos figcaption { font-size: 12px; line-height: 18px; }
+.attachments-memory .photos button, .attachments-memory > button:not(.memory-attach-button) { padding: 8px 10px; border: 1px solid #dcc8a8; border-radius: 8px; background: #fffaf0; color: #a7280b; font: inherit; cursor: pointer; }
+.attachments-memory .photos button:disabled { opacity: .6; cursor: default; }
+.attachments-memory .replacement { font-size: 12px; }
 </style>

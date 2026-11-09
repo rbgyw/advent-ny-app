@@ -1,0 +1,33 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="19.5503" height="36.225" viewBox="0 0 19.5503 36.225" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="figure-041B">
+<path id="limb-10-0" d="M2.07 2.07H4.6C4.90667 5.90333 6.9 8.20333 10.58 8.97H17.02V13.11" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint0_linear_0_139)"/>
+<path id="limb-10-1" d="M10.58 8.97V25.3" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint1_linear_0_139)"/>
+<path id="limb-10-2" d="M3.68 33.12C4.14 28.6733 6.44 26.2967 10.58 25.99C14.5667 26.45 16.8667 28.8267 17.48 33.12" stroke-width="4.14" stroke-linecap="round" stroke-linejoin="round" stroke="url(#paint2_linear_0_139)"/>
+<path id="Vector" d="M10.58 36.225C12.2948 36.225 13.685 34.8348 13.685 33.12C13.685 31.4052 12.2948 30.015 10.58 30.015C8.86516 30.015 7.475 31.4052 7.475 33.12C7.475 34.8348 8.86516 36.225 10.58 36.225Z" fill="url(#paint3_radial_0_139)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_139" x1="7.13" y1="-0.69" x2="16.56" y2="35.42" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_139" x1="-4.42" y1="-0.69" x2="-2.11152" y2="37.744" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<linearGradient id="paint2_linear_0_139" x1="7.13" y1="-0.690002" x2="16.56" y2="35.42" gradientUnits="userSpaceOnUse">
+<stop stop-color="#80C2FF"/>
+<stop offset="0.3" stop-color="#64B2FF"/>
+<stop offset="0.6" stop-color="#1A8DFF"/>
+<stop offset="1" stop-color="#006CED"/>
+</linearGradient>
+<radialGradient id="paint3_radial_0_139" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(9.2138 31.1328) scale(5.589)">
+<stop stop-color="#91CBFF"/>
+<stop offset="0.4" stop-color="#3FA2FF"/>
+<stop offset="1" stop-color="#006CED"/>
+</radialGradient>
+</defs>
+</svg>

@@ -1,5 +1,143 @@
 <template>
-  <main class="task-page">
+  <FirstTaskScreen
+    v-if="day === 1"
+    :assignment="assignment"
+    :loading="calendarStore.loading"
+    :error="calendarStore.error"
+    :total="calendarStore.totalCount"
+    @back="goBack"
+    @retry="reloadFirstTask"
+  />
+  <SecondTaskScreen
+    v-else-if="isCipherTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solveCipher"
+    @edit="calendarStore.saveError = null"
+  />
+  <ThirdTaskScreen
+    v-else-if="isMemoryTask"
+    v-model="answer"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :user-id="authStore.user?.id"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="shareMemory"
+    @busy="attachmentsBusy = $event"
+    @edit="calendarStore.saveError = null"
+  />
+  <FourthTaskScreen
+    v-else-if="isCrosswordTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :user-id="authStore.user?.id"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solveCrossword"
+    @edit="calendarStore.saveError = null"
+  />
+  <FifthTaskScreen
+    v-else-if="isPairsTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :user-id="authStore.user?.id"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solvePairs"
+    @edit="calendarStore.saveError = null"
+  />
+  <SixthTaskScreen
+    v-else-if="isTarotTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :user-id="authStore.user?.id"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @draw="drawTarot"
+    @edit="calendarStore.saveError = null"
+  />
+  <EighthTaskScreen
+    v-else-if="isGratitudeTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :error="calendarStore.error"
+    :send="sendLetter"
+    @back="goBack"
+    @retry="reloadFirstTask"
+  />
+  <EleventhTaskScreen
+    v-else-if="isStereogramTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solveStereogram"
+    @edit="calendarStore.saveError = null"
+  />
+  <TwelfthTaskScreen
+    v-else-if="isFilmTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="recommendFilm"
+    @edit="calendarStore.saveError = null"
+  />
+  <ThirteenthTaskScreen
+    v-else-if="isWishTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @confirm="makeWish"
+    @edit="calendarStore.saveError = null"
+  />
+  <main v-else class="task-page">
     <button type="button" @click="goBack">← Назад к календарю</button>
 
     <h1>День {{ day }}</h1>
@@ -114,7 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../lib/supabase";
 
@@ -123,6 +261,21 @@ import { useCalendarStore } from "../stores/calendar";
 import { formatDate } from "../utils/date";
 import { taskStatusLabels } from "../const/task_status";
 import TaskAttachments from "../components/TaskAttachments.vue";
+import { sendGratitude } from '../services/gratitude.service';
+import type { GratitudeLetter } from '../utils/gratitude';
+import type { FilmRecommendation } from '../utils/film';
+import FirstTaskScreen from "../components/FirstTaskScreen.vue";
+import { memorySubmissionOpen } from "../utils/memory";
+import type { CrosswordValues } from "../utils/crossword";
+const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
+const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTaskScreen.vue"));
+const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
+const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
+const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
+const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
+const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
+const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
+const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
 
 const route = useRoute();
 const router = useRouter();
@@ -148,6 +301,86 @@ const assignment = computed(() =>
     ? calendarStore.tasks.find((task) => task.position === day.value)
     : undefined,
 );
+
+// Match task identity: personalised calendars may place it in another window.
+const isCipherTask = computed(() => assignment.value?.task?.slug === 'task-02' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 2 || day.value === 2)));
+const isMemoryTask = computed(() => assignment.value?.task?.slug === 'task-03' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 3 || day.value === 3)));
+const isCrosswordTask = computed(() => assignment.value?.task?.slug === 'task-04' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 4 || day.value === 4)));
+const isPairsTask = computed(() => assignment.value?.task?.slug === 'task-05' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 5 || day.value === 5)));
+const isTarotTask = computed(() => assignment.value?.task?.slug === 'task-06' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 6 || day.value === 6)));
+
+const isGratitudeTask = computed(() => assignment.value?.task?.slug === 'task-08' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 8 || day.value === 8)));
+
+const isStereogramTask = computed(() => assignment.value?.task?.slug === 'task-11' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 11 || day.value === 11)));
+
+async function solveStereogram(letters: string[]) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeStereogramTask(assignment.value.task_id, letters);
+}
+
+const isFilmTask = computed(() => assignment.value?.task?.slug === 'task-12' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 12 || day.value === 12)));
+
+async function recommendFilm(recommendation: FilmRecommendation) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeFilmTask(assignment.value.task_id, recommendation);
+}
+
+const isWishTask = computed(() => assignment.value?.task?.slug === 'task-13' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 13 || day.value === 13)));
+
+async function makeWish() {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeWishTask(assignment.value.task_id);
+}
+
+async function sendLetter(letter: GratitudeLetter, requestId: string) {
+  const current = assignment.value;
+  const userId = authStore.user?.id;
+  if (!current?.task || current.task.slug !== 'task-08' || !userId) throw new Error('Задание недоступно. Обновите страницу.');
+  await sendGratitude(current.task_id, letter, requestId);
+  if (authStore.user?.id === userId) {
+    current.status = 'completed';
+    current.completed_at = new Date().toISOString();
+  }
+}
+
+async function drawTarot(cardId: number) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.drawTarotTask(assignment.value.task_id, cardId);
+}
+
+async function solvePairs(pairs: number[]) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completePairsTask(assignment.value.task_id, pairs);
+}
+
+async function solveCrossword(values: CrosswordValues) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeCrosswordTask(assignment.value.task_id, values);
+}
+
+async function shareMemory() {
+  if (!isMemoryTask.value || !assignment.value?.task || isCompleted.value ||
+    calendarStore.saving || attachmentsBusy.value || !answer.value.trim()) return;
+  if (!memorySubmissionOpen(assignment.value.available_date)) {
+    calendarStore.saveError = 'Приём воспоминаний завершён 10 декабря.';
+    return;
+  }
+  await calendarStore.completeTask(assignment.value.task_id, { text: answer.value.trim() });
+}
+
+async function solveCipher(letters: string[]) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeCipherTask(assignment.value.task_id, letters);
+}
 
 watch(
   () => authStore.user?.id,
@@ -299,6 +532,10 @@ async function saveCompletedEdit() {
 
 async function goBack() {
   await router.push({ name: "calendar" });
+}
+
+async function reloadFirstTask() {
+  if (authStore.user?.id) await calendarStore.loadCalendar(authStore.user.id);
 }
 </script>
 
