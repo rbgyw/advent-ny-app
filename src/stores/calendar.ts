@@ -9,6 +9,7 @@ import { tarotService } from "../services/tarot.service";
 import { isStereogramSolution } from '../utils/stereogram';
 import { filmError, filmSubmissionOpen, normalizeFilm, type FilmRecommendation } from '../utils/film';
 import { isRaskobkiSolution, type RaskobkiAnswer } from '../content/raskobki';
+import { isNonogramSolution, type CellMark } from '../content/nonogram';
 
 interface CalendarState {
   tasks: CalendarTask[];
@@ -109,7 +110,7 @@ export const useCalendarStore = defineStore("calendar", {
       }
 
       if (
-        ["task-02", "task-04", "task-05", "task-11", "task-14"].includes(assignment.task.slug) &&
+        ["task-02", "task-04", "task-05", "task-11", "task-14", "task-21"].includes(assignment.task.slug) &&
         (!complete ||
           response.solved !== true ||
           Object.keys(response).length !== 1)
@@ -249,6 +250,13 @@ export const useCalendarStore = defineStore("calendar", {
     async completeRaskobkiTask(taskId: number, answers: readonly RaskobkiAnswer[]): Promise<boolean> {
       const assignment = this.tasks.find(item => item.task_id === taskId);
       if (assignment?.task?.slug !== 'task-14' || !isRaskobkiSolution(answers)) return false;
+      if (assignment.status === 'completed') return true;
+      return this.saveProgress(taskId, { solved: true }, true);
+    },
+
+    async completeNonogramTask(taskId: number, cells: readonly CellMark[]): Promise<boolean> {
+      const assignment = this.tasks.find(item => item.task_id === taskId);
+      if (assignment?.task?.slug !== 'task-21' || !isNonogramSolution(cells)) return false;
       if (assignment.status === 'completed') return true;
       return this.saveProgress(taskId, { solved: true }, true);
     },

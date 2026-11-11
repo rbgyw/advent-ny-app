@@ -151,6 +151,20 @@
     @submit="solveRaskobki"
     @edit="calendarStore.saveError = null"
   />
+  <TwentyFirstTaskScreen
+    v-else-if="isNonogramTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solveNonogram"
+    @edit="calendarStore.saveError = null"
+  />
   <main v-else class="task-page">
     <button type="button" @click="goBack">← Назад к календарю</button>
 
@@ -282,6 +296,7 @@ import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
 import type { RaskobkiAnswer } from '../content/raskobki';
+import type { CellMark } from '../content/nonogram';
 const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
 const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTaskScreen.vue"));
 const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
@@ -292,6 +307,7 @@ const EleventhTaskScreen = defineAsyncComponent(() => import('../components/Elev
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
 const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
 const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
+const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
 
 const route = useRoute();
 const router = useRouter();
@@ -363,6 +379,14 @@ const isRaskobkiTask = computed(() => assignment.value?.task?.slug === 'task-14'
 async function solveRaskobki(answers: RaskobkiAnswer[]) {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeRaskobkiTask(assignment.value.task_id, answers);
+}
+
+const isNonogramTask = computed(() => assignment.value?.task?.slug === 'task-21' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 21 || day.value === 21)));
+
+async function solveNonogram(cells: CellMark[]) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeNonogramTask(assignment.value.task_id, cells);
 }
 
 async function sendLetter(letter: GratitudeLetter, requestId: string) {
