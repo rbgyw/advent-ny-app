@@ -137,6 +137,20 @@
     @confirm="makeWish"
     @edit="calendarStore.saveError = null"
   />
+  <FourteenthTaskScreen
+    v-else-if="isRaskobkiTask"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @submit="solveRaskobki"
+    @edit="calendarStore.saveError = null"
+  />
   <main v-else class="task-page">
     <button type="button" @click="goBack">← Назад к календарю</button>
 
@@ -267,6 +281,7 @@ import type { FilmRecommendation } from '../utils/film';
 import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
+import type { RaskobkiAnswer } from '../content/raskobki';
 const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
 const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTaskScreen.vue"));
 const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
@@ -276,6 +291,7 @@ const EighthTaskScreen = defineAsyncComponent(() => import('../components/Eighth
 const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
 const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
+const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
 
 const route = useRoute();
 const router = useRouter();
@@ -339,6 +355,14 @@ const isWishTask = computed(() => assignment.value?.task?.slug === 'task-13' ||
 async function makeWish() {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeWishTask(assignment.value.task_id);
+}
+
+const isRaskobkiTask = computed(() => assignment.value?.task?.slug === 'task-14' ||
+  (!assignment.value?.task && (assignment.value?.task_id === 14 || day.value === 14)));
+
+async function solveRaskobki(answers: RaskobkiAnswer[]) {
+  if (!assignment.value?.task || calendarStore.saving) return;
+  await calendarStore.completeRaskobkiTask(assignment.value.task_id, answers);
 }
 
 async function sendLetter(letter: GratitudeLetter, requestId: string) {
