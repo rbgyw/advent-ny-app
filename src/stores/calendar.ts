@@ -110,7 +110,7 @@ export const useCalendarStore = defineStore("calendar", {
       }
 
       if (
-        ["task-02", "task-04", "task-05", "task-11", "task-14", "task-21"].includes(assignment.task.slug) &&
+        ["task-02", "task-04", "task-05", "task-11", "task-14", "task-21", "task-25"].includes(assignment.task.slug) &&
         (!complete ||
           response.solved !== true ||
           Object.keys(response).length !== 1)
@@ -257,6 +257,13 @@ export const useCalendarStore = defineStore("calendar", {
     async completeNonogramTask(taskId: number, cells: readonly CellMark[]): Promise<boolean> {
       const assignment = this.tasks.find(item => item.task_id === taskId);
       if (assignment?.task?.slug !== 'task-21' || !isNonogramSolution(cells)) return false;
+      if (assignment.status === 'completed') return true;
+      return this.saveProgress(taskId, { solved: true }, true);
+    },
+
+    async completeFortuneTask(taskId: number): Promise<boolean> {
+      const assignment = this.tasks.find(item => item.task_id === taskId);
+      if (assignment?.task?.slug !== 'task-25') return false;
       if (assignment.status === 'completed') return true;
       return this.saveProgress(taskId, { solved: true }, true);
     },
