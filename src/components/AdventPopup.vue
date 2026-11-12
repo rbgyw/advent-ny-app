@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, useId } from 'vue';
+import { ref, useId } from 'vue';
+import PopupDialog from './PopupDialog.vue';
 import popupArt from '../assets/film/popup.svg';
 import popupButton from '../assets/film/popup-button.svg';
 import closeArt from '../assets/film/close.svg';
@@ -7,61 +8,22 @@ import closeArt from '../assets/film/close.svg';
 // Based on the existing December 12 popup artwork and layout.
 defineProps<{ title: string; message: string; buttonText: string }>();
 const emit = defineEmits<{ action: []; close: [] }>();
-const dialog = ref<HTMLDialogElement>();
+const dialog = ref<InstanceType<typeof PopupDialog>>();
 const id = useId();
 const cssUrl = (url: string) => `url("${url}")`;
-let previousOverflow: string | undefined;
-let previousScroll = 0;
-let disposed = false;
-let requestedOpen = false;
-
-function unlockScroll() {
-  if (previousOverflow === undefined) return;
-  document.documentElement.style.overflow = previousOverflow;
-  previousOverflow = undefined;
-  window.scrollTo({ top: previousScroll, behavior: 'instant' });
-}
-
-async function showModal() {
-  requestedOpen = true;
-  await nextTick();
-  if (disposed || !requestedOpen || !dialog.value?.isConnected || dialog.value.open) return;
-  dialog.value.showModal();
-  previousOverflow = document.documentElement.style.overflow;
-  previousScroll = window.scrollY;
-  document.documentElement.style.overflow = 'hidden';
-}
-
-function close() {
-  requestedOpen = false;
-  dialog.value?.close();
-  unlockScroll();
-}
-
-function onClose() {
-  // A close event can arrive after the dialog has already been reopened.
-  if (dialog.value?.open) return;
-  requestedOpen = false;
-  unlockScroll();
-  emit('close');
-}
-
-function action() {
-  close();
-  emit('action');
-}
-
-onBeforeUnmount(() => { disposed = true; close(); });
+function showModal() { return dialog.value?.showModal(); }
+function close() { dialog.value?.close(); }
+function action() { close(); emit('action'); }
 defineExpose({ showModal, close });
 </script>
 
 <template>
-  <dialog ref="dialog" class="advent-popup" :style="{ '--popup-art': cssUrl(popupArt) }" :aria-labelledby="`${id}-title`" :aria-describedby="`${id}-copy`" @close="onClose">
+  <PopupDialog ref="dialog" class="advent-popup" :style="{ '--popup-art': cssUrl(popupArt) }" :aria-labelledby="`${id}-title`" :aria-describedby="`${id}-copy`" @close="emit('close')">
     <button class="advent-popup-close" type="button" aria-label="Закрыть окно" @click="close"><img :src="closeArt" alt="" /></button>
     <h2 :id="`${id}-title`">{{ title }}</h2>
     <p :id="`${id}-copy`" class="advent-popup-copy">{{ message }}</p>
     <button class="advent-popup-action" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="action">{{ buttonText }}</button>
-  </dialog>
+  </PopupDialog>
 </template>
 
 <style scoped>

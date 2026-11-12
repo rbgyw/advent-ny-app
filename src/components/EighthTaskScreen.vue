@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import { shortCalendarDate } from '../utils/calendar';
@@ -31,7 +32,7 @@ const emit = defineEmits<{ back: []; retry: [] }>();
 const form = reactive<GratitudeLetter>({ anonymous: false, senderName: '', recipient: '', message: '' });
 const sending = ref(false), sent = ref(false), sendError = ref('');
 const invalidField = ref('');
-const formElement = ref<HTMLFormElement>(), dialog = ref<HTMLDialogElement>();
+const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof PopupDialog>>();
 const background = ref<HTMLElement>(), ratio = ref(1529 / 393);
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
@@ -45,22 +46,12 @@ const confetti = [
   { src: confetti9, x: 112, y: 346, size: 35 },
 ];
 let observer: ResizeObserver | undefined;
-let previousOverflow: string | undefined;
-let previousScroll = 0;
 let lastPayload = '', requestId = '', identityVersion = 0;
 function edit() { sendError.value = ''; invalidField.value = ''; sent.value = false; }
-function unlockScroll() {
-  if (previousOverflow !== undefined) { document.documentElement.style.overflow = previousOverflow; previousOverflow = undefined; window.scrollTo({ top: previousScroll, behavior: 'instant' }); }
-}
-function closePopup() { dialog.value?.close(); unlockScroll(); }
+function closePopup() { dialog.value?.close(); }
 async function showPopup() {
   await nextTick();
-  if (!dialog.value || dialog.value.open) return;
-  previousOverflow = document.documentElement.style.overflow;
-  previousScroll = window.scrollY;
-  window.scrollTo({ top: 0, behavior: 'instant' });
-  document.documentElement.style.overflow = 'hidden';
-  dialog.value.showModal();
+  await dialog.value?.showModal();
 }
 async function submit() {
   if (sending.value || props.loading || !props.assignment?.task || props.error) return;
@@ -140,8 +131,8 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
       </article>
       <footer class="gratitude-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
-      <div v-if="sent" class="gratitude-envelope">
+    <PopupDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy">
+      <div v-if="sent" class="gratitude-scene"><div class="gratitude-envelope">
         <img class="envelope-back" :src="envelopeBack" alt="" />
         <img class="envelope-letter" :src="letterArt" alt="" />
         <button class="gratitude-close" type="button" aria-label="Закрыть окно «Письмо отправлено»" @click="closePopup">×</button>
@@ -155,8 +146,8 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
         </div>
         <img class="envelope-front" :src="envelopeFront" alt="" />
         <button class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</button>
-      </div>
-    </dialog>
+      </div></div>
+    </PopupDialog>
   </main>
 </template>
 
@@ -211,6 +202,7 @@ button { font-family: inherit; cursor: pointer; }
 .gratitude-notice { min-height: 120px; color: #836045; }
 .gratitude-popup { position: fixed; top: clamp(16px, calc(50svh - 257px), 169px); left: 50%; transform: translateX(-50%); width: 345px; height: 462px; max-width: calc(100vw - 16px); max-height: calc(100svh - 32px); margin: 0; padding: 0; border: 0; border-radius: 28px; background: #a7280b; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; text-align: center; letter-spacing: 0; overflow: auto; }
 .gratitude-popup::backdrop { background: rgb(82 42 22 / 60%); }
+.gratitude-scene { width: 100%; height: 462px; overflow: hidden; }
 .gratitude-envelope { position: relative; width: 345px; height: 462px; overflow: hidden; }
 .envelope-back { position: absolute; left: 0; top: 0; }
 .envelope-letter { position: absolute; left: 12px; top: 12px; }
@@ -228,7 +220,7 @@ button { font-family: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid #623c28; outline-offset: -3px; }
 @keyframes gratitude-confetti-out { from { transform: translate(var(--from-x), var(--from-y)) scale(.35) rotate(var(--turn)); opacity: 0; } 12% { opacity: 1; } 78% { transform: translate(0, -8px) scale(1.04) rotate(-4deg); opacity: 1; } to { transform: translate(0, 0) scale(1) rotate(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .confetti-piece { animation: none; } }
-@media (max-width: 360px) { .gratitude-layout { padding-inline: 12px; } .gratitude-panel { padding-inline: 18px; } .gratitude-popup { width: 304px; height: 407.1px; } .gratitude-envelope { transform: scale(.88115942); transform-origin: top left; } }
+@media (max-width: 360px) { .gratitude-layout { padding-inline: 12px; } .gratitude-panel { padding-inline: 18px; } .gratitude-popup { width: 304px; height: 407.1px; } .gratitude-scene { height: 407.1px; } .gratitude-envelope { transform: scale(.88115942); transform-origin: top left; } }
 @media (min-width: 768px) { .gratitude-layout { padding-inline: 32px; } .gratitude-panel { padding-inline: 32px; } }
 @media (max-height: 520px) { .gratitude-popup { top: 16px; } }
 </style>

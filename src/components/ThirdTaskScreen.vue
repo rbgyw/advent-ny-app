@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
 import { shortCalendarDate } from '../utils/calendar'
@@ -27,7 +28,6 @@ const emit = defineEmits<{
 }>()
 const gradient = ref<HTMLElement | null>(null)
 const textarea = ref<HTMLTextAreaElement | null>(null)
-const dialog = ref<HTMLDialogElement | null>(null)
 const attachmentsBusy = ref(false)
 const validation = ref('')
 const popupOpen = ref(false)
@@ -40,7 +40,6 @@ const date = computed(() => props.assignment ? shortCalendarDate(props.assignmen
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
 let timer: ReturnType<typeof setInterval> | undefined
-let previousOverflow: string | undefined
 function cssUrl(url: string) { return `url("${url}")` }
 function refreshClock() { now.value = Date.now() }
 function input(event: Event) {
@@ -59,19 +58,8 @@ function submit() {
   }
   validation.value = ''; emit('submit')
 }
-function unlockScroll() {
-  if (previousOverflow !== undefined) { document.documentElement.style.overflow = previousOverflow; previousOverflow = undefined }
-}
 watch(() => props.assignment?.id, () => { validation.value = ''; popupOpen.value = false; setAttachmentsBusy(false) })
 watch(completed, (value, previous) => { if (value && previous === false) popupOpen.value = true })
-watch(popupOpen, async value => {
-  await nextTick()
-  if (value) {
-    if (previousOverflow === undefined) previousOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-    if (!dialog.value?.open) dialog.value?.showModal()
-  } else { dialog.value?.close(); unlockScroll() }
-})
 onMounted(() => {
   observer = new ResizeObserver(entries => {
     const size = entries[0]?.contentRect
@@ -84,7 +72,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   observer?.disconnect(); clearInterval(timer)
   document.removeEventListener('visibilitychange', refreshClock)
-  dialog.value?.close(); unlockScroll(); emit('busy', false)
+  emit('busy', false)
 })
 </script>
 
@@ -124,12 +112,12 @@ onBeforeUnmount(() => {
       </article>
       <footer class="memory-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy" @close="popupOpen = false" @cancel="popupOpen = false">
+    <PopupDialog v-model:open="popupOpen" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy">
       <button class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</button>
       <h2 id="memory-thanks-title">Спасибо,<br />что поделились!</h2>
       <p id="memory-thanks-copy">В конце адвента соберём воспоминания коллег в праздничную подборку.</p>
       <button class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></button>
-    </dialog>
+    </PopupDialog>
   </main>
 </template>
 
@@ -175,7 +163,7 @@ onBeforeUnmount(() => {
 .memory-close { position: absolute; top: 0; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
 .memory-thanks h2 { margin: 0 0 22px; color: #623c28; font: 500 24px/28px 'Advent STIX', serif; letter-spacing: 0; }
 .memory-thanks > p { margin: 0; color: #836045; }
-.memory-calendar { width: 297px; min-width: 297px; max-width: 297px; margin-top: 23px; }
+.memory-calendar { width: 100%; min-width: 0; max-width: 100%; margin-top: 23px; }
 .memory-calendar span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, #fff0d2 72.836%, #efc087 99.465%); }
 @media (min-width: 768px) { .memory-layout { padding-inline: 32px; } .memory-card { padding-inline: 32px; } }
 </style>
