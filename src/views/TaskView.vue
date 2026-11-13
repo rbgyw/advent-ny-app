@@ -84,6 +84,23 @@
     @draw="drawTarot"
     @edit="calendarStore.saveError = null"
   />
+  <SeventhTaskScreen
+    v-else-if="isSportTask"
+    :key="assignment?.id ?? day"
+    v-model="answer"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @choose="saveSportLevel"
+    @submit="submitSportPhoto"
+    @edit="calendarStore.saveError = null"
+  />
   <EighthTaskScreen
     v-else-if="isGratitudeTask"
     :assignment="assignment"
@@ -309,6 +326,7 @@ import type { FilmRecommendation } from '../utils/film';
 import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
+import { isSportLevel, isTeamPose, type SportLevel, type SportSubmission } from '../content/sport-task';
 import type { RaskobkiAnswer } from '../content/raskobki';
 import type { CellMark } from '../content/nonogram';
 const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
@@ -316,6 +334,7 @@ const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTa
 const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
 const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
 const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
+const SeventhTaskScreen = defineAsyncComponent(() => import('../components/SeventhTaskScreen.vue'));
 const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
 const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
@@ -360,6 +379,8 @@ const isPairsTask = computed(() => assignment.value?.task?.slug === 'task-05' ||
   (!assignment.value?.task && (assignment.value?.task_id === 5 || day.value === 5)));
 const isTarotTask = computed(() => assignment.value?.task?.slug === 'task-06' ||
   (!assignment.value?.task && (assignment.value?.task_id === 6 || day.value === 6)));
+const isSportTask = computed(() => assignment.value?.task?.slug === 'task-07' ||
+  (!assignment.value?.task && (assignment.value?.task_id ?? day.value) === 7));
 
 const isGratitudeTask = computed(() => assignment.value?.task?.slug === 'task-08' ||
   (!assignment.value?.task && (assignment.value?.task_id === 8 || day.value === 8)));
@@ -448,6 +469,29 @@ async function shareMemory() {
   await calendarStore.completeTask(assignment.value.task_id, { text: answer.value.trim() });
 }
 
+async function saveSportLevel(level: SportLevel) {
+  const current = assignment.value;
+  const response = current?.response?.response;
+  if (current?.task?.slug !== 'task-07' || current.status === 'completed' ||
+    calendarStore.saving || isSportLevel(response?.level) || response?.submitted_for_review === true) return;
+  await calendarStore.saveDraft(current.task_id, { level, text: answer.value });
+}
+
+async function submitSportPhoto({ attachmentId, teamPose }: SportSubmission) {
+  const current = assignment.value;
+  const response = current?.response?.response;
+  if (current?.task?.slug !== 'task-07' || current.status === 'completed' ||
+    calendarStore.saving || !isSportLevel(response?.level) || response.submitted_for_review === true ||
+    !attachmentId || (response.level === 'team' && !isTeamPose(teamPose))) return;
+  await calendarStore.saveDraft(current.task_id, {
+    level: response.level,
+    text: response.level === 'team' ? '' : answer.value.trim(),
+    attachment_id: attachmentId,
+    ...(response.level === 'team' && { team_pose: teamPose }),
+    submitted_for_review: true,
+  });
+}
+
 async function solveCipher(letters: string[]) {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeCipherTask(assignment.value.task_id, letters);
@@ -487,7 +531,7 @@ watch(
 const isCompleted = computed(() => assignment.value?.status === "completed");
 
 const supportsPhotos = computed(() =>
-  [7, 17].includes(assignment.value?.task_id ?? -1),
+  assignment.value?.task_id === 17,
 );
 
 watch(
