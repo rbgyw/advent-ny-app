@@ -86,7 +86,7 @@
   />
   <SeventhTaskScreen
     v-else-if="isSportTask"
-    :key="assignment?.id ?? day"
+    :key="`task-07:${assignment?.id ?? day}`"
     v-model="answer"
     :assignment="assignment"
     :day="day"
@@ -103,7 +103,7 @@
   />
   <FifteenthTaskScreen
     v-else-if="matchesTask(15)"
-    :key="assignment?.id ?? day"
+    :key="`task-15:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -118,7 +118,7 @@
   />
   <NinthTaskScreen
     v-else-if="matchesTask(9)"
-    :key="assignment?.id ?? day"
+    :key="`task-09:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -133,7 +133,7 @@
   />
   <TenthTaskScreen
     v-else-if="matchesTask(10)"
-    :key="assignment?.id ?? day"
+    :key="`task-10:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -148,7 +148,7 @@
   />
   <SixteenthTaskScreen
     v-else-if="matchesTask(16)"
-    :key="assignment?.id ?? day"
+    :key="`task-16:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -163,7 +163,7 @@
   />
   <SeventeenthTaskScreen
     v-else-if="matchesTask(17)"
-    :key="assignment?.id ?? day"
+    :key="`task-17:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -178,7 +178,7 @@
   />
   <EighteenthTaskScreen
     v-else-if="matchesTask(18)"
-    :key="assignment?.id ?? day"
+    :key="`task-18:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
