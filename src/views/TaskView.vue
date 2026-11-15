@@ -286,6 +286,20 @@
     @retry="reloadFirstTask"
     @save="saveDecemberTask(23, $event)"
   />
+  <TwentyFourthTaskScreen
+    v-else-if="matchesTask(24)"
+    :key="`task-24:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(24, $event)"
+  />
   <TwentyFifthTaskScreen
     v-else-if="isFortuneTask"
     :assignment="assignment"
@@ -453,6 +467,7 @@ const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/Th
 const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
 const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
 const TwentyThirdTaskScreen = defineAsyncComponent(() => import('../components/TwentyThirdTaskScreen.vue'));
+const TwentyFourthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFourthTaskScreen.vue'));
 const TwentyFifthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFifthTaskScreen.vue'));
 
 const route = useRoute();
