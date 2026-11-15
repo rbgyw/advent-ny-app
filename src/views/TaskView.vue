@@ -146,6 +146,21 @@
     @save="saveDecemberTask(10, $event)"
     @edit="calendarStore.saveError = null"
   />
+  <SixteenthTaskScreen
+    v-else-if="matchesTask(16)"
+    :key="assignment?.id ?? day"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(16, $event)"
+    @edit="calendarStore.saveError = null"
+  />
   <EighthTaskScreen
     v-else-if="isGratitudeTask"
     :assignment="assignment"
@@ -384,6 +399,7 @@ const SeventhTaskScreen = defineAsyncComponent(() => import('../components/Seven
 const FifteenthTaskScreen = defineAsyncComponent(() => import('../components/FifteenthTaskScreen.vue'));
 const NinthTaskScreen = defineAsyncComponent(() => import('../components/NinthTaskScreen.vue'));
 const TenthTaskScreen = defineAsyncComponent(() => import('../components/TenthTaskScreen.vue'));
+const SixteenthTaskScreen = defineAsyncComponent(() => import('../components/SixteenthTaskScreen.vue'));
 const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
 const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));

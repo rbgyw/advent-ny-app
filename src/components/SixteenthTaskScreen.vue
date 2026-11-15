@@ -1,0 +1,99 @@
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import DecemberTaskLayout from './DecemberTaskLayout.vue';
+import PopupDialog from './PopupDialog.vue';
+import envelope from '../assets/dec-16/envelope.svg';
+import stamp from '../assets/dec-16/stamp.svg';
+import type { DecemberTaskProps, DecemberTaskEvents } from '../types/december';
+
+const props = defineProps<DecemberTaskProps>();
+const emit = defineEmits<DecemberTaskEvents>();
+const email = ref('');
+const letter = ref('');
+const emailInput = ref<HTMLInputElement>();
+const letterInput = ref<HTMLTextAreaElement>();
+const addressError = ref(false);
+const letterError = ref(false);
+const success = ref(false);
+const completed = computed(() => props.assignment?.status === 'completed');
+watch(completed, (done, before) => {
+  if (done && before === false) {
+    letter.value = '';
+    email.value = '';
+    success.value = true;
+  }
+});
+
+function send() {
+  if (props.saving || completed.value) return;
+  const address = email.value.trim().toLowerCase();
+  addressError.value = !/^[a-z0-9_+-]+(?:\.[a-z0-9_+-]+)*@geropharm\.com$/.test(address);
+  letterError.value = !letter.value.trim();
+  if (addressError.value) {
+    emailInput.value?.focus();
+    return;
+  }
+  if (letterError.value) {
+    letterInput.value?.focus();
+    return;
+  }
+  emit('save', { response: { email: address, text: letter.value.trim(), deliver_on: '2027-12-31' }, complete: true });
+}
+</script>
+
+<template>
+  <DecemberTaskLayout v-bind="props" :task-number="16" title="Письмо себе в будущее" @back="emit('back')" @retry="emit('retry')">
+    <img class="future-envelope" :src="envelope" alt="" />
+    <div class="december-copy">
+      <p>Представьте: проходит год, вы готовитесь встречать 2028-й — и вдруг получаете письмо от себя из сегодняшнего дня.</p>
+      <p>О чем вам хочется напомнить будущему себе? Что сохранить, даже если за год многое изменится? На чем держать фокус и какую мечту не откладывать?</p>
+      <p>Напишите себе послание. Расскажите, чем живете сейчас, за что себя благодарите и к чему хотите прийти. Может быть, это будет что-то амбициозное — то, на что вы давно не решались. Или обещание внимательнее заботиться о здоровье и наконец завести полезную привычку. А может, напоминание о любимом деле, для которого хочется сохранить побольше времени.</p>
+      <p>Укажите свою корпоративную почту — в канун 2028 года письмо вернется к вам. Возможно, оно напомнит о чем-то важном в нужный момент.</p>
+    </div>
+    <div v-if="completed" class="december-stack future-form">
+      <p role="status">Письмо сохранено.</p>
+      <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+    </div>
+    <form v-else class="december-stack future-form" novalidate @submit.prevent="send">
+      <label class="december-field">
+        Моя корпоративная почта
+        <input ref="emailInput" v-model="email" type="email" autocomplete="email" maxlength="254" placeholder="ivan.ivanov@geropharm.com"
+          aria-describedby="future-email-help" :aria-invalid="addressError" :disabled="saving" required
+          @input="addressError = false; emit('edit')" />
+      </label>
+      <p id="future-email-help">Укажите свою корпоративную почту ГЕРОФАРМ. На другие адреса волшебное письмо отправить не получится.</p>
+      <p v-if="addressError" class="december-error" role="alert">Проверьте адрес: нужна ваша корпоративная почта ГЕРОФАРМ.</p>
+      <label class="december-field">
+        Письмо себе в будущее
+        <span class="future-paper">
+          <span aria-hidden="true">СЕБЕ · В КАНУН 2028 ГОДА</span>
+          <img :src="stamp" alt="" />
+          <textarea ref="letterInput" v-model="letter" :aria-invalid="letterError" :disabled="saving"
+            placeholder="О чем хотите напомнить себе через год?" maxlength="6000" required
+            @input="letterError = false; emit('edit')" />
+        </span>
+      </label>
+      <p v-if="letterError" class="december-error" role="alert">Напишите письмо перед отправкой.</p>
+      <p v-if="saveError" class="december-error" role="alert">{{ saveError }}</p>
+      <button class="december-button" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
+    </form>
+    <PopupDialog v-model:open="success" class="december-dialog" aria-labelledby="future-success-title">
+      <div class="december-stack">
+        <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="success = false">×</button>
+        <h2 id="future-success-title">Письмо отправилось в будущее!</h2>
+        <p>Письмо сохранено для отправки на указанную корпоративную почту в канун 2028 года.</p>
+        <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+      </div>
+    </PopupDialog>
+  </DecemberTaskLayout>
+</template>
+
+<style scoped>
+.future-envelope { display: block; max-width: 100%; height: auto; margin: 34px auto; }
+.future-form { margin-top: 24px; }
+#future-email-help { margin-top: -7px; font-size: 12px; line-height: 17px; }
+.future-paper { display: block; position: relative; }
+.future-paper > span { position: absolute; top: 15px; left: 15px; color: #9b6746; font-size: 10px; font-weight: 400; pointer-events: none; }
+.future-paper > img { position: absolute; top: 15px; right: 16px; pointer-events: none; }
+.future-paper textarea { display: block; min-height: 320px; padding-top: 74px; resize: vertical; }
+</style>
