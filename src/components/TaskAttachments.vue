@@ -12,7 +12,7 @@
       :disabled="busy || disabled || !listLoaded"
       :aria-describedby="hintId"
       @click="fileInput?.click()"
-    >{{ variant === 'sport' ? 'Загрузить фотографию' : '＋ Прикрепить фотографии' }}</button>
+    >{{ uploadLabel ?? (variant === 'sport' ? 'Загрузить фотографию' : '＋ Прикрепить фотографии') }}</button>
 
     <input
       v-if="!readonly"
@@ -87,6 +87,7 @@ const props = withDefaults(defineProps<{
   readonly: boolean;
   disabled: boolean;
   variant?: 'default' | 'memory' | 'sport';
+  uploadLabel?: string;
 }>(), { variant: 'default' });
 
 const emit = defineEmits<{
