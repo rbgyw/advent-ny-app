@@ -40,7 +40,8 @@
     @edit="calendarStore.saveError = null"
   />
   <FourthTaskScreen
-    v-else-if="isCrosswordTask"
+    v-else-if="isMemoryTask"
+    v-model="answer"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -51,7 +52,8 @@
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
-    @submit="solveCrossword"
+    @submit="shareMemory"
+    @busy="attachmentsBusy = $event"
     @edit="calendarStore.saveError = null"
   />
   <FifthTaskScreen
@@ -303,26 +305,50 @@ import { useCalendarStore } from "../stores/calendar";
 import { formatDate } from "../utils/date";
 import { taskStatusLabels } from "../const/task_status";
 import TaskAttachments from "../components/TaskAttachments.vue";
-import { sendGratitude } from '../services/gratitude.service';
-import type { GratitudeLetter } from '../utils/gratitude';
-import type { FilmRecommendation } from '../utils/film';
+import { sendGratitude } from "../services/gratitude.service";
+import type { GratitudeLetter } from "../utils/gratitude";
+import type { FilmRecommendation } from "../utils/film";
 import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
-import type { RaskobkiAnswer } from '../content/raskobki';
-import type { CellMark } from '../content/nonogram';
-const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
-const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTaskScreen.vue"));
-const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
-const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
-const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
-const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
-const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
-const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
-const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
-const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
-const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
-const TwentyFifthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFifthTaskScreen.vue'));
+import type { RaskobkiAnswer } from "../content/raskobki";
+import type { CellMark } from "../content/nonogram";
+const SecondTaskScreen = defineAsyncComponent(
+  () => import("../components/SecondTaskScreen.vue"),
+);
+const ThirdTaskScreen = defineAsyncComponent(
+  () => import("../components/ThirdTaskScreen.vue"),
+);
+const FourthTaskScreen = defineAsyncComponent(
+  () => import("../components/FourthTaskScreen.vue"),
+);
+const FifthTaskScreen = defineAsyncComponent(
+  () => import("../components/FifthTaskScreen.vue"),
+);
+const SixthTaskScreen = defineAsyncComponent(
+  () => import("../components/SixthTaskScreen.vue"),
+);
+const EighthTaskScreen = defineAsyncComponent(
+  () => import("../components/EighthTaskScreen.vue"),
+);
+const EleventhTaskScreen = defineAsyncComponent(
+  () => import("../components/EleventhTaskScreen.vue"),
+);
+const TwelfthTaskScreen = defineAsyncComponent(
+  () => import("../components/TwelfthTaskScreen.vue"),
+);
+const ThirteenthTaskScreen = defineAsyncComponent(
+  () => import("../components/ThirteenthTaskScreen.vue"),
+);
+const FourteenthTaskScreen = defineAsyncComponent(
+  () => import("../components/FourteenthTaskScreen.vue"),
+);
+const TwentyFirstTaskScreen = defineAsyncComponent(
+  () => import("../components/TwentyFirstTaskScreen.vue"),
+);
+const TwentyFifthTaskScreen = defineAsyncComponent(
+  () => import("../components/TwentyFifthTaskScreen.vue"),
+);
 
 const route = useRoute();
 const router = useRouter();
@@ -350,62 +376,113 @@ const assignment = computed(() =>
 );
 
 // Match task identity: personalised calendars may place it in another window.
-const isCipherTask = computed(() => assignment.value?.task?.slug === 'task-02' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 2 || day.value === 2)));
-const isMemoryTask = computed(() => assignment.value?.task?.slug === 'task-03' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 3 || day.value === 3)));
-const isCrosswordTask = computed(() => assignment.value?.task?.slug === 'task-04' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 4 || day.value === 4)));
-const isPairsTask = computed(() => assignment.value?.task?.slug === 'task-05' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 5 || day.value === 5)));
-const isTarotTask = computed(() => assignment.value?.task?.slug === 'task-06' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 6 || day.value === 6)));
+const isCipherTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-02" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 2 || day.value === 2)),
+);
+const isMemoryTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-03" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 3 || day.value === 3)),
+);
+const isCrosswordTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-04" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 4 || day.value === 4)),
+);
+const isPairsTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-05" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 5 || day.value === 5)),
+);
+const isTarotTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-06" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 6 || day.value === 6)),
+);
 
-const isGratitudeTask = computed(() => assignment.value?.task?.slug === 'task-08' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 8 || day.value === 8)));
+const isGratitudeTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-08" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 8 || day.value === 8)),
+);
 
-const isStereogramTask = computed(() => assignment.value?.task?.slug === 'task-11' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 11 || day.value === 11)));
+const isStereogramTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-11" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 11 || day.value === 11)),
+);
 
 async function solveStereogram(letters: string[]) {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeStereogramTask(assignment.value.task_id, letters);
 }
 
-const isFilmTask = computed(() => assignment.value?.task?.slug === 'task-12' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 12 || day.value === 12)));
+const isFilmTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-12" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 12 || day.value === 12)),
+);
 
 async function recommendFilm(recommendation: FilmRecommendation) {
   if (!assignment.value?.task || calendarStore.saving) return;
-  await calendarStore.completeFilmTask(assignment.value.task_id, recommendation);
+  await calendarStore.completeFilmTask(
+    assignment.value.task_id,
+    recommendation,
+  );
 }
 
-const isWishTask = computed(() => assignment.value?.task?.slug === 'task-13' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 13 || day.value === 13)));
+const isWishTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-13" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 13 || day.value === 13)),
+);
 
 async function makeWish() {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeWishTask(assignment.value.task_id);
 }
 
-const isRaskobkiTask = computed(() => assignment.value?.task?.slug === 'task-14' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 14 || day.value === 14)));
+const isRaskobkiTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-14" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 14 || day.value === 14)),
+);
 
 async function solveRaskobki(answers: RaskobkiAnswer[]) {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeRaskobkiTask(assignment.value.task_id, answers);
 }
 
-const isNonogramTask = computed(() => assignment.value?.task?.slug === 'task-21' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 21 || day.value === 21)));
+const isNonogramTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-21" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 21 || day.value === 21)),
+);
 
 async function solveNonogram(cells: CellMark[]) {
   if (!assignment.value?.task || calendarStore.saving) return;
   await calendarStore.completeNonogramTask(assignment.value.task_id, cells);
 }
 
-const isFortuneTask = computed(() => assignment.value?.task?.slug === 'task-25' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 25 || day.value === 25)));
+const isFortuneTask = computed(
+  () =>
+    assignment.value?.task?.slug === "task-25" ||
+    (!assignment.value?.task &&
+      (assignment.value?.task_id === 25 || day.value === 25)),
+);
 
 async function completeFortune() {
   if (!assignment.value?.task || calendarStore.saving) return;
@@ -415,10 +492,11 @@ async function completeFortune() {
 async function sendLetter(letter: GratitudeLetter, requestId: string) {
   const current = assignment.value;
   const userId = authStore.user?.id;
-  if (!current?.task || current.task.slug !== 'task-08' || !userId) throw new Error('Задание недоступно. Обновите страницу.');
+  if (!current?.task || current.task.slug !== "task-08" || !userId)
+    throw new Error("Задание недоступно. Обновите страницу.");
   await sendGratitude(current.task_id, letter, requestId);
   if (authStore.user?.id === userId) {
-    current.status = 'completed';
+    current.status = "completed";
     current.completed_at = new Date().toISOString();
   }
 }
@@ -439,13 +517,22 @@ async function solveCrossword(values: CrosswordValues) {
 }
 
 async function shareMemory() {
-  if (!isMemoryTask.value || !assignment.value?.task || isCompleted.value ||
-    calendarStore.saving || attachmentsBusy.value || !answer.value.trim()) return;
+  if (
+    !isMemoryTask.value ||
+    !assignment.value?.task ||
+    isCompleted.value ||
+    calendarStore.saving ||
+    attachmentsBusy.value ||
+    !answer.value.trim()
+  )
+    return;
   if (!memorySubmissionOpen(assignment.value.available_date)) {
-    calendarStore.saveError = 'Приём воспоминаний завершён 10 декабря.';
+    calendarStore.saveError = "Приём воспоминаний завершён 10 декабря.";
     return;
   }
-  await calendarStore.completeTask(assignment.value.task_id, { text: answer.value.trim() });
+  await calendarStore.completeTask(assignment.value.task_id, {
+    text: answer.value.trim(),
+  });
 }
 
 async function solveCipher(letters: string[]) {
