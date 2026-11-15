@@ -101,6 +101,21 @@
     @submit="submitSportPhoto"
     @edit="calendarStore.saveError = null"
   />
+  <FifteenthTaskScreen
+    v-else-if="matchesTask(15)"
+    :key="assignment?.id ?? day"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(15, $event)"
+    @edit="calendarStore.saveError = null"
+  />
   <EighthTaskScreen
     v-else-if="isGratitudeTask"
     :assignment="assignment"
@@ -325,6 +340,7 @@ import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
 import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
+import type { DecemberTaskSave } from '../types/december';
 import type { CrosswordValues } from "../utils/crossword";
 import { isSportLevel, isTeamPose, type SportLevel, type SportSubmission } from '../content/sport-task';
 import type { RaskobkiAnswer } from '../content/raskobki';
@@ -335,6 +351,7 @@ const FourthTaskScreen = defineAsyncComponent(() => import("../components/Fourth
 const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
 const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
 const SeventhTaskScreen = defineAsyncComponent(() => import('../components/SeventhTaskScreen.vue'));
+const FifteenthTaskScreen = defineAsyncComponent(() => import('../components/FifteenthTaskScreen.vue'));
 const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
 const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
@@ -490,6 +507,19 @@ async function submitSportPhoto({ attachmentId, teamPose }: SportSubmission) {
     ...(response.level === 'team' && { team_pose: teamPose }),
     submitted_for_review: true,
   });
+}
+
+function matchesTask(number: number) {
+  const current = assignment.value;
+  return current?.task
+    ? current.task.slug === `task-${String(number).padStart(2, '0')}`
+    : (current?.task_id ?? day.value) === number;
+}
+
+async function saveDecemberTask(number: number, { response, complete }: DecemberTaskSave) {
+  const current = assignment.value;
+  if (!current?.task || !matchesTask(number) || calendarStore.saving || current.status === 'completed') return;
+  await calendarStore.saveProgress(current.task_id, response, complete);
 }
 
 async function solveCipher(letters: string[]) {
