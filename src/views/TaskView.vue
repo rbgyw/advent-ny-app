@@ -555,9 +555,15 @@ async function solveNonogram(cells: CellMark[]) {
 const isFortuneTask = computed(() => assignment.value?.task?.slug === 'task-25' ||
   (!assignment.value?.task && (assignment.value?.task_id === 25 || day.value === 25)));
 
-async function completeFortune() {
+async function completeFortune(
+  fortuneIndex: number
+) {
   if (!assignment.value?.task || calendarStore.saving) return;
-  await calendarStore.completeFortuneTask(assignment.value.task_id);
+
+  await calendarStore.completeFortuneTask(
+    assignment.value.task_id,
+    fortuneIndex,
+  );
 }
 
 async function sendLetter(letter: GratitudeLetter, requestId: string) {

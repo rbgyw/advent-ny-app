@@ -18,9 +18,33 @@ const props = defineProps<{
   error: string | null;
   saveError: string | null;
 }>();
-const emit = defineEmits<{ back: []; retry: []; complete: []; edit: [] }>();
+const emit = defineEmits<{
+  back: [];
+  retry: [];
+  complete: [fortuneIndex: number];
+  edit: [];
+}>();
 
-const fortuneIndex = ref<number | null>(null);
+const fortuneIndex = computed<number | null>(() => {
+  if (props.assignment?.status !== 'completed') {
+    return null;
+  }
+
+  const value =
+    props.assignment.response?.response?.fortune_index;
+
+  if (
+    typeof value !== 'number' ||
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value >= fortunes.length
+  ) {
+    return null;
+  }
+
+  return value;
+});
+
 const opening = ref(false);
 const animateCard = ref(false);
 const exporting = ref(false);
@@ -29,8 +53,11 @@ const result = ref<HTMLElement>();
 const resultHeading = ref<HTMLElement>();
 
 const completed = computed(() => props.assignment?.status === 'completed');
-const fortune = computed(() => fortuneIndex.value === null ? null : fortunes[fortuneIndex.value]);
-const stage = computed(() => opening.value ? 'opening' : fortune.value ? 'open' : 'closed');
+const fortune = computed(() =>
+  fortuneIndex.value === null
+    ? null
+    : fortunes[fortuneIndex.value]
+);const stage = computed(() => opening.value ? 'opening' : fortune.value ? 'open' : 'closed');
 const date = computed(() => props.assignment
   ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
   : '25 ДЕКАБРЯ');
@@ -40,41 +67,16 @@ const storageKey = computed(() => {
 });
 const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
 
-function readFortune(key: string) {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved !== null && /^\d+$/.test(saved)) {
-      const index = Number(saved);
-      if (index < fortunes.length) return index;
+watch(
+  [completed, fortuneIndex],
+  ([done, index], [previousDone, previousIndex]) => {
+    if (done !== previousDone || index !== previousIndex) {
+      opening.value = false;
+      animateCard.value = false;  
+      actionMessage.value = '';
     }
-  } catch {
-    // The cookie can still be opened when browser storage is disabled.
-  }
-  return null;
-}
-
-function drawFortune(key: string) {
-  const saved = readFortune(key);
-  if (saved !== null) return saved;
-
-  const index = Math.floor(Math.random() * fortunes.length);
-  try {
-    localStorage.setItem(key, String(index));
-  } catch {
-    // Keep this draw for the current visit.
-  }
-  return index;
-}
-
-watch([storageKey, completed], ([key, done], [previousKey]) => {
-  if (key !== previousKey) {
-    fortuneIndex.value = key ? readFortune(key) : null;
-    opening.value = false;
-    animateCard.value = false;
-    actionMessage.value = '';
-  }
-  if (key && done && fortuneIndex.value === null) fortuneIndex.value = drawFortune(key);
-}, { immediate: true });
+  },
+);
 
 function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -89,28 +91,23 @@ async function showFortune() {
 }
 
 function openCookie() {
-  const key = storageKey.value;
-  if (!key || !ready.value || props.saving || stage.value !== 'closed') return;
+  if (
+    !ready.value ||
+    props.saving ||
+    completed.value ||
+    stage.value !== 'closed'
+  ) return;
 
-  const animate = !reducedMotion();
-  opening.value = animate;
-  animateCard.value = animate;
-  fortuneIndex.value = drawFortune(key);
+  const index = Math.floor(Math.random() * fortunes.length);
+
   emit('edit');
-  if (!completed.value) emit('complete');
-  if (!animate) void showFortune();
+  emit('complete', index);
 }
 
 function reveal() {
   if (!opening.value) return;
   opening.value = false;
   void showFortune();
-}
-
-function retrySave() {
-  if (props.saving || completed.value || !fortune.value) return;
-  emit('edit');
-  emit('complete');
 }
 
 async function saveCard() {
@@ -211,9 +208,6 @@ async function shareCard() {
             </div>
             <p v-if="actionMessage" class="fortune-message" role="status">{{ actionMessage }}</p>
             <p v-if="saveError" class="fortune-message" role="alert">{{ saveError }}</p>
-            <button v-if="!completed && !saving" class="fortune-action fortune-retry" type="button" @click="retrySave">
-              Сохранить отметку о выполнении
-            </button>
           </div>
         </template>
       </article>
