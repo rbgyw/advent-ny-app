@@ -33,10 +33,13 @@ describe('zoomable image board', () => {
     const view = board();
     await view.get('.search-viewport').trigger('keydown', { key: 'ArrowRight' });
     await view.get('.search-viewport').trigger('keydown', { key: 'Enter' });
-    expect(view.emitted('choose')).toEqual([[{ x: 0.52, y: 0.5 }, 626, 838]]);
+    expect(view.emitted('choose')).toEqual([
+      [{ x: 0.52, y: 0.5 }, 626, 838],
+      [{ x: 0.52, y: 0.5 }, 626, 838],
+    ]);
     await view.setProps({ disabled: true });
     await view.get('.search-picture').trigger('click', { clientX: 50, clientY: 50 });
     await view.get('.search-viewport').trigger('keydown', { key: 'Enter' });
-    expect(view.emitted('choose')).toHaveLength(1);
+    expect(view.emitted('choose')).toHaveLength(2);
   });
 });

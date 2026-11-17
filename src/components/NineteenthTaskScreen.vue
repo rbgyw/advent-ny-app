@@ -4,7 +4,7 @@ import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import ImageSearchBoard from './ImageSearchBoard.vue';
 import type { DecemberTaskEvents, DecemberTaskProps } from '../types/december';
 import { freshSearch, isSearchHit, remainingSearchSeconds, restoreSearch, searchAttempts, settleSearch, startSearch, type SearchPoint, type SearchProgress } from '../utils/podzhik';
-import { podzhikBounds } from '../content/podzhik';
+import { podzhikBounds, podzhikTarget } from '../content/podzhik';
 import sample from '../assets/dec-19/podzhik-sample.png';
 import found from '../assets/dec-19/podzhik-found.png';
 import scene from '../assets/dec-19/search-scene.png';
@@ -14,6 +14,7 @@ const emit = defineEmits<DecemberTaskEvents>();
 const progress = ref<SearchProgress>(freshSearch());
 const now = ref(Date.now());
 const feedback = ref('');
+const selection = ref<SearchPoint | null>(null);
 const storageWarning = ref(false);
 const sceneReady = ref(false);
 const targetReady = ref(false);
@@ -52,6 +53,7 @@ function tick() {
   if (settled !== progress.value) {
     persist(settled);
     feedback.value = '';
+    selection.value = null;
   }
 }
 
@@ -66,6 +68,7 @@ function sendSuccess() {
 watch([progressKey, completed], async ([key, done]) => {
   awaitingSave.value = false;
   feedback.value = '';
+  selection.value = null;
   storageWarning.value = false;
   progress.value = freshSearch();
   now.value = Date.now();
@@ -125,6 +128,7 @@ async function begin() {
   if (next.found || next.attemptsLeft === 0) return;
   persist(next);
   feedback.value = '';
+  selection.value = null;
   emit('edit');
   const key = progressKey.value;
   await nextTick();
@@ -133,10 +137,18 @@ async function begin() {
   board.value?.focus({ preventScroll: true });
 }
 
-function choose(point: SearchPoint, width: number, height: number) {
+function choose(point: SearchPoint) {
   tick();
   if (!ready.value || !active.value || props.saving || seconds.value === 0) return;
-  if (!isSearchHit(point, podzhikBounds, width, height)) {
+  selection.value = point;
+  feedback.value = 'Метка поставлена. Нажмите «Проверить выбор».';
+}
+
+function checkSelection() {
+  tick();
+  const selected = selection.value;
+  if (!ready.value || !active.value || props.saving || seconds.value === 0 || !selected) return;
+  if (!isSearchHit(selected, podzhikTarget)) {
     feedback.value = 'Здесь Поджика нет. Продолжайте искать!';
     return;
   }
@@ -191,7 +203,9 @@ function retryImage() {
           <div><p>Осталось попыток</p><strong>{{ progress.attemptsLeft }} / {{ searchAttempts }}</strong></div>
         </div>
         <ImageSearchBoard :src="sceneSource" :target-src="found" :target="podzhikBounds" :disabled="saving || !imagesReady" @choose="choose" />
+        <button class="december-button podzhik-check" type="button" :disabled="saving || !imagesReady || !selection" @click="checkSelection">Проверить выбор</button>
         <p v-if="feedback" class="podzhik-feedback" role="status">{{ feedback }}</p>
+        <p v-else class="podzhik-note">Сначала выберите точку на картинке.</p>
         <p class="podzhik-note">Таймер продолжает идти, даже если свернуть или перезагрузить страницу. Промахи не расходуют попытку.</p>
       </div>
 
@@ -218,7 +232,7 @@ function retryImage() {
           <ol>
             <li>Запомните, как выглядит Поджик на образце, и нажмите «Начать».</li>
             <li>Появится картинка и запустится таймер — на поиски есть 60 секунд.</li>
-            <li>Найдите Поджика и нажмите на него до окончания времени.</li>
+            <li>Найдите Поджика, нажмите на него и затем на кнопку «Проверить выбор» до окончания времени.</li>
             <li>Если время закончится, можно попробовать снова. Картинка останется прежней — используйте то, что уже успели рассмотреть!</li>
           </ol>
         </section>
@@ -253,6 +267,7 @@ function retryImage() {
 .podzhik-stats p { font-size: 12px; line-height: 16px; }
 .podzhik-stats output, .podzhik-stats strong { display: block; margin-top: 3px; color: var(--dec-red); font-size: 22px; line-height: 27px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .podzhik-game { scroll-margin-top: 16px; }
+.podzhik-check { margin-top: 20px; }
 .podzhik-feedback { min-height: 40px; margin-top: 16px; color: var(--dec-red); }
 .podzhik-note { margin-top: 16px; font-size: 12px; line-height: 18px; }
 .podzhik-result h2 { font-size: 22px; line-height: 27px; font-weight: 600; }

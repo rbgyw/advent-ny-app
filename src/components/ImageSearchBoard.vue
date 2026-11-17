@@ -51,7 +51,7 @@ function keydown(event: KeyboardEvent) {
   if (step) {
     event.preventDefault();
     const point = marker.value ?? { x: 0.5, y: 0.5 };
-    marker.value = { x: Math.max(0, Math.min(1, point.x + step.x)), y: Math.max(0, Math.min(1, point.y + step.y)) };
+    choose({ x: Math.max(0, Math.min(1, point.x + step.x)), y: Math.max(0, Math.min(1, point.y + step.y)) });
   } else if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     choose(marker.value ?? { x: 0.5, y: 0.5 });
@@ -66,7 +66,7 @@ function keydown(event: KeyboardEvent) {
       <output aria-live="polite">{{ percent }}%</output>
       <button type="button" :disabled="disabled || zoom === 3" aria-label="Увеличить изображение" @click="changeZoom(0.5)">+</button>
     </div>
-    <p id="search-board-help" class="search-board-help">Увеличивайте и прокручивайте картинку. Найдите Поджика и нажмите на него.</p>
+    <p id="search-board-help" class="search-board-help">Увеличивайте и прокручивайте картинку. Поставьте метку на Поджике и нажмите «Проверить выбор».</p>
     <div ref="viewport" class="search-viewport" tabindex="0" aria-label="Поиск Поджика на зимней картинке"
       aria-describedby="search-board-help search-keyboard-help" :aria-disabled="disabled" @keydown="!disabled && keydown($event)">
       <div ref="picture" class="search-picture" :style="{ width: `${percent}%` }"
@@ -77,7 +77,7 @@ function keydown(event: KeyboardEvent) {
         <span v-if="marker" class="search-marker" :style="{ left: `${marker.x * 100}%`, top: `${marker.y * 100}%` }" aria-hidden="true"></span>
       </div>
     </div>
-    <p id="search-keyboard-help" class="search-keyboard-help">С клавиатуры: перемещайте метку стрелками, нажмите Enter для выбора.</p>
+    <p id="search-keyboard-help" class="search-keyboard-help">С клавиатуры: перемещайте метку стрелками, нажмите Enter для выбора точки. Затем перейдите к кнопке «Проверить выбор».</p>
   </div>
 </template>
 

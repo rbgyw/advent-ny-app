@@ -31,6 +31,9 @@ async function choose(view: Screen, point = hit) {
   view.getComponent(ImageSearchBoard).vm.$emit('choose', point, 313, 419);
   await nextTick();
 }
+async function check(view: Screen) {
+  await view.get('.podzhik-check').trigger('click');
+}
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-12-19T09:00:00Z'));
@@ -75,6 +78,8 @@ describe('19 December game', () => {
     await begin(view);
     await vi.advanceTimersByTimeAsync(10_000);
     await choose(view, { x: 0.1, y: 0.1 });
+    expect(view.text()).not.toContain('Здесь Поджика нет.');
+    await check(view);
     expect(view.text()).toContain('Здесь Поджика нет. Продолжайте искать!');
     expect(view.get('[role="timer"]').text()).toBe('00:50');
     expect(JSON.parse(localStorage.getItem(key)!).attemptsLeft).toBe(5);
@@ -125,6 +130,9 @@ describe('19 December game', () => {
     const view = screen();
     await begin(view);
     await choose(view);
+    expect(view.emitted('save')).toBeUndefined();
+    expect(view.findComponent(ImageSearchBoard).exists()).toBe(true);
+    await check(view);
     expect(view.emitted('save')).toEqual([[{ response: { solved: true }, complete: true }]]);
     expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ attemptsLeft: 5, deadline: null, found: true });
     expect(view.text()).not.toContain('Обязательное задание выполнено');
@@ -133,11 +141,12 @@ describe('19 December game', () => {
     expect(localStorage.getItem(key)).toBeNull();
   });
 
-  it('rejects a target tap at or after the deadline even before the next timer tick', async () => {
+  it('rejects checking a previously selected target after the deadline, even before the next tick', async () => {
     const view = screen();
     await begin(view);
-    vi.setSystemTime(Date.now() + 60_000);
     await choose(view);
+    vi.setSystemTime(Date.now() + 60_000);
+    await check(view);
     expect(view.emitted('save')).toBeUndefined();
     expect(view.text()).toContain('Время вышло');
   });
@@ -146,6 +155,7 @@ describe('19 December game', () => {
     const view = screen();
     await begin(view);
     await choose(view);
+    await check(view);
     await view.setProps({ saving: true });
     await view.setProps({ saving: false, saveError: 'Нет соединения' });
     expect(view.get('[role="alert"]').text()).toBe('Нет соединения');
@@ -183,6 +193,25 @@ describe('19 December game', () => {
     expect(view.get('[role="timer"]').text()).toBe('01:00');
     expect(view.text()).toContain('Браузер не разрешил сохранить прогресс');
     await choose(view);
+    await check(view);
     expect(view.emitted('save')).toHaveLength(1);
+  });
+
+  it('keeps the check button available after repeated misses and checks the latest marker', async () => {
+    const view = screen();
+    await begin(view);
+    expect(view.get<HTMLButtonElement>('.podzhik-check').element.disabled).toBe(true);
+    await choose(view, { x: 0.1, y: 0.1 });
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await check(view);
+      expect(view.get<HTMLButtonElement>('.podzhik-check').element.disabled).toBe(false);
+      expect(view.text()).toContain('Здесь Поджика нет. Продолжайте искать!');
+      expect(view.emitted('save')).toBeUndefined();
+    }
+    expect(JSON.parse(localStorage.getItem(key)!).attemptsLeft).toBe(5);
+    await choose(view);
+    expect(view.emitted('save')).toBeUndefined();
+    await check(view);
+    expect(view.emitted('save')).toEqual([[{ response: { solved: true }, complete: true }]]);
   });
 });

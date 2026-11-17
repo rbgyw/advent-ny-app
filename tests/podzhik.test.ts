@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { freshSearch, isSearchHit, remainingSearchSeconds, restoreSearch, settleSearch, startSearch } from '../src/utils/podzhik';
-import { podzhikBounds } from '../src/content/podzhik';
+import { podzhikBounds, podzhikTarget } from '../src/content/podzhik';
 
 describe('Podzhik local progress', () => {
   it('starts with five attempts and an absolute 60-second deadline', () => {
@@ -49,16 +49,29 @@ describe('Podzhik local progress', () => {
   });
 });
 
-describe('phone hit tolerance', () => {
-  const center = { x: (podzhikBounds.left + podzhikBounds.right) / 2, y: (podzhikBounds.top + podzhikBounds.bottom) / 2 };
-  it.each([313, 626, 939])('recognizes the same target at image width %s', width => {
-    expect(isSearchHit(center, podzhikBounds, width, width * 838 / 626)).toBe(true);
-    expect(isSearchHit({ x: podzhikBounds.right + 8 / width, y: center.y }, podzhikBounds, width, width * 838 / 626)).toBe(true);
-    expect(isSearchHit({ x: podzhikBounds.right + 20 / width, y: center.y }, podzhikBounds, width, width * 838 / 626)).toBe(false);
+describe('20 px circular hit area in the design image', () => {
+  const point = (x: number, y: number) => ({ x: x / 316, y: y / 419 });
+  it('uses the specified image coordinates and centers the character there', () => {
+    expect(podzhikTarget).toEqual({ x: 153, y: 65, radius: 20, width: 316, height: 419 });
+    expect(isSearchHit(point(153, 65), podzhikTarget)).toBe(true);
+    expect((podzhikBounds.left + podzhikBounds.right) / 2).toBeCloseTo(153 / 316);
+    expect((podzhikBounds.top + podzhikBounds.bottom) / 2).toBeCloseTo(65 / 419);
   });
-  it('rejects distant clicks, invalid coordinates, and unloaded geometry', () => {
-    expect(isSearchHit({ x: 0.1, y: 0.1 }, podzhikBounds, 313, 419)).toBe(false);
-    expect(isSearchHit({ x: NaN, y: 0.6 }, podzhikBounds, 313, 419)).toBe(false);
-    expect(isSearchHit(center, podzhikBounds, 0, 0)).toBe(false);
+  it.each([[173, 65], [133, 65], [153, 85], [153, 45], [165, 81]])('accepts the radius boundary at (%s, %s)', (x, y) => {
+    expect(isSearchHit(point(x, y), podzhikTarget)).toBe(true);
+  });
+  it.each([[173.01, 65], [153, 85.01], [168, 80], [192, 511]])('rejects points outside the circle at (%s, %s)', (x, y) => {
+    expect(isSearchHit(point(x, y), podzhikTarget)).toBe(false);
+  });
+  it.each([0.75, 1, 1.5, 2, 3])('keeps the same acceptance area at display scale %s', scale => {
+    const renderedWidth = 316 * scale;
+    const renderedHeight = 419 * scale;
+    const selected = { x: (163 * scale) / renderedWidth, y: (75 * scale) / renderedHeight };
+    expect(isSearchHit(selected, podzhikTarget)).toBe(true);
+  });
+  it('rejects distant clicks and invalid coordinates', () => {
+    expect(isSearchHit({ x: 0.1, y: 0.1 }, podzhikTarget)).toBe(false);
+    expect(isSearchHit({ x: NaN, y: 0.6 }, podzhikTarget)).toBe(false);
+    expect(isSearchHit({ x: -0.1, y: 0.6 }, podzhikTarget)).toBe(false);
   });
 });

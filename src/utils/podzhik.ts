@@ -9,6 +9,13 @@ export interface SearchProgress {
 
 export interface SearchPoint { x: number; y: number }
 export interface SearchBounds { left: number; top: number; right: number; bottom: number }
+export interface SearchCircle {
+  x: number;
+  y: number;
+  radius: number;
+  width: number;
+  height: number;
+}
 
 export function freshSearch(): SearchProgress {
   return { attemptsLeft: searchAttempts, deadline: null, found: false };
@@ -46,12 +53,12 @@ export function remainingSearchSeconds(progress: SearchProgress, now = Date.now(
   return progress.deadline === null ? 0 : Math.max(0, Math.ceil((progress.deadline - now) / 1000));
 }
 
-// Coordinates are relative to the entire, uncropped scene; padding stays small at every zoom level.
-export function isSearchHit(point: SearchPoint, bounds: SearchBounds, width: number, height: number): boolean {
-  if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || width <= 0 || height <= 0 ||
+// Convert a normalized selection to the design image's pixels, so the circular
+// acceptance area follows the image at every viewport size and zoom level.
+export function isSearchHit(point: SearchPoint, target: SearchCircle): boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y) ||
     point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) return false;
-  const paddingX = Math.min(12 / width, 0.035);
-  const paddingY = Math.min(12 / height, 0.035);
-  return point.x >= bounds.left - paddingX && point.x <= bounds.right + paddingX &&
-    point.y >= bounds.top - paddingY && point.y <= bounds.bottom + paddingY;
+  const dx = point.x * target.width - target.x;
+  const dy = point.y * target.height - target.y;
+  return Math.hypot(dx, dy) <= target.radius + 1e-9;
 }
