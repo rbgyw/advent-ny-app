@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { fortuneSky } from '../content/fortune-sky';
-import { fortuneHeading, fortuneSignature, fortunes } from '../content/fortunes';
+import { fortuneHeading, fortunes } from '../content/fortunes';
 import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import { downloadFortuneCard } from '../utils/fortune-card';
@@ -58,6 +58,7 @@ const assignmentKey = computed(() => {
   return assignment ? `${assignment.user_id}:${assignment.id}:${assignment.task_id}` : null;
 });
 const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
+const openingBusy = computed(() => opening.value || props.saving || requesting.value);
 
 watch(assignmentKey, () => {
   pendingIndex.value = null;
@@ -133,25 +134,6 @@ async function saveCard() {
   }
 }
 
-async function shareCard() {
-  if (!fortune.value) return;
-  actionMessage.value = '';
-  const text = `${fortuneHeading}\n\n${fortune.value}\n\n${fortuneSignature}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: fortuneHeading, text });
-      return;
-    }
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') return;
-  }
-  try {
-    await navigator.clipboard.writeText(text);
-    actionMessage.value = 'Пожелание скопировано.';
-  } catch {
-    actionMessage.value = 'Не удалось поделиться. Можно скачать пожелание.';
-  }
-}
 </script>
 
 <template>
@@ -202,24 +184,22 @@ async function shareCard() {
             v-if="stage !== 'open'"
             class="fortune-action fortune-open-button"
             type="button"
-            :disabled="opening || saving || requesting"
+            :disabled="openingBusy"
             @click="openCookie"
           >
             <span aria-hidden="true">✦</span>
-            {{ saving || requesting ? 'Сохраняем пожелание…' : opening ? 'Открываем печеньку…' : saveError ? 'Попробовать снова' : 'Открыть печеньку' }}
+            {{ openingBusy ? 'Открываем печеньку…' : saveError ? 'Попробовать снова' : 'Открыть печеньку' }}
             <span aria-hidden="true">✦</span>
           </button>
           <div v-else-if="fortune" ref="result" class="fortune-result" :class="{ 'is-revealing': animateCard }">
             <section class="fortune-card" aria-labelledby="fortune-result-title">
               <h2 id="fortune-result-title" ref="resultHeading" tabindex="-1">{{ fortuneHeading }}</h2>
               <p class="fortune-text">{{ fortune }}</p>
-              <p class="fortune-signature">{{ fortuneSignature }}</p>
             </section>
             <div class="fortune-actions">
               <button class="fortune-action" type="button" :disabled="exporting" @click="saveCard">
                 {{ exporting ? 'Готовим открытку…' : 'Сохранить пожелание' }}
               </button>
-              <button class="fortune-action" type="button" @click="shareCard">Поделиться пожеланием</button>
               <button class="fortune-action fortune-calendar-button" type="button" @click="emit('back')">К календарю</button>
             </div>
             <p v-if="actionMessage" class="fortune-message" role="status">{{ actionMessage }}</p>
