@@ -182,3 +182,33 @@ describe('Supabase fortune progress', () => {
     expect(store.tasks[0]?.status).toBe('not_started');
   });
 });
+
+describe('Podzhik success persistence', () => {
+  function gameStore() {
+    const store = readyStore();
+    const game = assignment({ task_id: 19, position: 19 });
+    game.task = { ...game.task!, id: 19, slug: 'task-19' };
+    store.tasks = [game];
+    return store;
+  }
+
+  it('saves only a successful completion flag through the existing calendar RPC service', async () => {
+    const store = gameStore();
+    vi.mocked(calendarService.getUserCalendar).mockResolvedValue([{ ...store.tasks[0]!, status: 'completed' }]);
+    expect(await store.saveProgress(19, { solved: true }, true)).toBe(true);
+    expect(calendarService.saveTaskProgress).toHaveBeenCalledExactlyOnceWith(19, { solved: true }, true);
+    expect(store.completedCount).toBe(1);
+  });
+
+  it.each([
+    { response: { solved: true }, complete: false },
+    { response: { solved: false }, complete: true },
+    { response: { solved: true, attemptsLeft: 3 }, complete: true },
+    { response: { solved: true, deadline: 1234 }, complete: true },
+    { response: { solved: true, x: 0.5, y: 0.6 }, complete: true },
+  ])('keeps unsuccessful progress and local game details out of Supabase: %j', async ({ response, complete }) => {
+    const store = gameStore();
+    expect(await store.saveProgress(19, response, complete)).toBe(false);
+    expect(calendarService.saveTaskProgress).not.toHaveBeenCalled();
+  });
+});

@@ -32,7 +32,7 @@ const date = computed(() => props.assignment
         <button class="december-back" type="button" @click="emit('back')">← К календарю</button>
       </header>
       <article class="december-card" aria-labelledby="december-title">
-        <img v-if="mandatory" class="december-wreath" :src="wreath" alt="" />
+        <slot name="decoration"><img v-if="mandatory" class="december-wreath" :src="wreath" alt="" /></slot>
         <p class="december-date">{{ date }}</p>
         <h1 id="december-title">{{ title }}</h1>
         <p v-if="mandatory" class="december-badge">Обязательное задание</p>

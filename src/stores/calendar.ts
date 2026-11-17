@@ -127,6 +127,7 @@ export const useCalendarStore = defineStore("calendar", {
           "task-05",
           "task-11",
           "task-14",
+          "task-19",
           "task-21",
         ].includes(assignment.task.slug) &&
         (!complete ||
