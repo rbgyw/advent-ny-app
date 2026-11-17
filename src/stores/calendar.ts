@@ -15,6 +15,7 @@ import {
 } from "../utils/film";
 import { isRaskobkiSolution, type RaskobkiAnswer } from "../content/raskobki";
 import { isNonogramSolution, type CellMark } from "../content/nonogram";
+import { isFortuneIndex } from "../utils/fortune";
 
 interface CalendarState {
   tasks: CalendarTask[];
@@ -27,6 +28,13 @@ interface CalendarState {
 
   currentUserId: string | null;
   loadVersion: number;
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return typeof error === "object" && error !== null &&
+    "message" in error && typeof error.message === "string"
+    ? error.message
+    : fallback;
 }
 
 export const useCalendarStore = defineStore("calendar", {
@@ -63,6 +71,7 @@ export const useCalendarStore = defineStore("calendar", {
 
       this.currentUserId = userId;
       this.loading = true;
+      this.saving = false;
       this.error = null;
       this.saveError = null;
       this.tasks = [];
@@ -77,10 +86,7 @@ export const useCalendarStore = defineStore("calendar", {
       } catch (error) {
         if (version !== this.loadVersion) return;
 
-        this.error =
-          error instanceof Error
-            ? error.message
-            : "Не удалось загрузить календарь";
+        this.error = errorMessage(error, "Не удалось загрузить календарь");
       } finally {
         if (version === this.loadVersion) {
           this.loading = false;
@@ -137,9 +143,7 @@ export const useCalendarStore = defineStore("calendar", {
         if (
           !complete ||
           response.solved !== true ||
-          typeof index !== "number" ||
-          !Number.isInteger(index) ||
-          index < 0 ||
+          !isFortuneIndex(index) ||
           Object.keys(response).length !== 2
         ) {
           this.saveError = "Некорректные данные пожелания";
@@ -204,10 +208,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError =
-            error instanceof Error
-              ? error.message
-              : "Не удалось сохранить задание";
+          this.saveError = errorMessage(error, "Не удалось сохранить задание");
         }
 
         return false;
@@ -329,18 +330,28 @@ export const useCalendarStore = defineStore("calendar", {
 
       if (assignment?.task?.slug !== "task-25") return false;
 
-      if (assignment.status === "completed") return true;
+      if (assignment.status === "completed") {
+        return isFortuneIndex(assignment.response?.response.fortune_index);
+      }
 
-      if (!Number.isInteger(fortuneIndex) || fortuneIndex < 0) {
+      if (!isFortuneIndex(fortuneIndex)) {
         this.saveError = "Некорректное пожелание";
         return false;
       }
 
-      return this.saveProgress(
+      const saved = await this.saveProgress(
         taskId,
         { solved: true, fortune_index: fortuneIndex },
         true,
       );
+      if (!saved) return false;
+
+      const updated = this.tasks.find((item) => item.task_id === taskId);
+      if (updated?.status !== "completed" || !isFortuneIndex(updated.response?.response.fortune_index)) {
+        this.saveError = "Не удалось загрузить сохранённое пожелание. Попробуйте ещё раз.";
+        return false;
+      }
+      return true;
     },
 
     async drawTarotTask(taskId: number, candidate: number): Promise<boolean> {
@@ -384,10 +395,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError =
-            error instanceof Error
-              ? error.message
-              : "Не удалось сохранить карту.";
+          this.saveError = errorMessage(error, "Не удалось сохранить карту.");
         }
 
         return false;

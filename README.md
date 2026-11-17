@@ -4,6 +4,10 @@ This template should help get you started developing with Vue 3 and TypeScript i
 
 Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
 
+## Проверка изменений
+
+`npm test` запускает регрессионные тесты задания 25, хранилища прогресса и сервиса календаря. Запросы Supabase в тестах заменены моками: реальная БД не изменяется. `npm run typecheck` проверяет типы приложения, `npm run build` собирает весь проект.
+
 ## Публикация историй на 23 декабря
 
 `public/collections/memories.json` содержит массив историй. Укажите `name` и `text`. Поля `photoUrl` и `photoAlt` для фотографии и её описания необязательны.
