@@ -212,3 +212,29 @@ describe('Podzhik success persistence', () => {
     expect(calendarService.saveTaskProgress).not.toHaveBeenCalled();
   });
 });
+
+describe('guiding-star wish persistence', () => {
+  function wishStore() {
+    const store = readyStore();
+    const task = assignment({ task_id: 20, position: 20 });
+    task.task = { ...task.task!, id: 20, slug: 'task-20' };
+    store.tasks = [task];
+    return store;
+  }
+  it('saves only the wish confirmation', async () => {
+    const store = wishStore();
+    vi.mocked(calendarService.getUserCalendar).mockResolvedValue([{ ...store.tasks[0]!, status: 'completed' }]);
+    expect(await store.saveProgress(20, { wish_made: true }, true)).toBe(true);
+    expect(calendarService.saveTaskProgress).toHaveBeenCalledExactlyOnceWith(20, { wish_made: true }, true);
+  });
+  it.each([
+    { response: { wish_made: true }, complete: false },
+    { response: { wish_made: false }, complete: true },
+    { response: { wish_made: true, requiredClicks: 4 }, complete: true },
+    { response: { wish_made: true, checkedStars: ['star-01'] }, complete: true },
+  ])('keeps search details and unsuccessful attempts out of Supabase: %j', async ({ response, complete }) => {
+    const store = wishStore();
+    expect(await store.saveProgress(20, response, complete)).toBe(false);
+    expect(calendarService.saveTaskProgress).not.toHaveBeenCalled();
+  });
+});

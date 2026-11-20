@@ -176,7 +176,7 @@ export const useCalendarStore = defineStore("calendar", {
       }
 
       if (
-        assignment.task.slug === "task-13" &&
+        ["task-13", "task-20"].includes(assignment.task.slug) &&
         (!complete ||
           response.wish_made !== true ||
           Object.keys(response).length !== 1)
