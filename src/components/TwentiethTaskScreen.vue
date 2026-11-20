@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import PopupDialog from './PopupDialog.vue';
 import type { DecemberTaskEvents, DecemberTaskProps } from '../types/december';
 import { guidingSky, guidingStars, guidingStarOverlay, guidingStarExhaustedText, guidingStarFoundText, guidingStarHints, guidingStarWishText } from '../content/guiding-star';
-import { chooseGuidingStar, createGuidingStarProgress, guidingStarAttempts, guidingStarPhase, makeGuidingStarWish, restoreGuidingStarProgress } from '../utils/guiding-star';
+import { chooseGuidingStar, createGuidingStarProgress, guidingStarPhase, restoreGuidingStarProgress, serializeGuidingStarProgress, type GuidingStarResult } from '../utils/guiding-star';
 const sky = new URL('../assets/dec-20/sky.png', import.meta.url).href;
 
 const props = defineProps<DecemberTaskProps>();
@@ -20,9 +20,12 @@ const popupOpen = ref(false);
 const animatedStar = ref<string | null>(null);
 const storageWarning = ref(false);
 const awaitingSave = ref(false);
-const completed = computed(() => props.assignment?.status === 'completed');
-const phase = computed(() => completed.value ? 'wished' : guidingStarPhase(progress.value));
-const remaining = computed(() => Math.max(0, guidingStarAttempts - progress.value.checkedStars.length));
+const serverResult = computed<GuidingStarResult | null>(() => props.assignment?.status === 'completed'
+  ? props.assignment.response?.response.search_exhausted === true ? 'exhausted' : 'wished'
+  : null);
+// A submitted result stays in memory while saving; only Supabase confirms completion.
+const pendingResult = ref<GuidingStarResult | null>(null);
+const phase = computed(() => serverResult.value ?? pendingResult.value ?? guidingStarPhase(progress.value));
 const checked = computed(() => new Set(progress.value.checkedStars));
 const winningStar = computed(() => progress.value.checkedStars[progress.value.requiredClicks - 1]);
 const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
@@ -38,45 +41,56 @@ const storageKey = computed(() => props.assignment?.task
 
 function persist() {
   if (!storageKey.value) return;
-  try { localStorage.setItem(storageKey.value, JSON.stringify(progress.value)); }
+  try { localStorage.setItem(storageKey.value, serializeGuidingStarProgress(progress.value)); }
+  catch { storageWarning.value = true; }
+}
+function clearStoredSearch() {
+  if (!storageKey.value) return;
+  try { localStorage.removeItem(storageKey.value); }
   catch { storageWarning.value = true; }
 }
 function saveCompletion() {
-  if (!ready.value || completed.value || !progress.value.wishMade || props.saving || awaitingSave.value) return;
+  if (!ready.value || serverResult.value || !pendingResult.value || props.saving || awaitingSave.value) return;
   awaitingSave.value = true;
   emit('edit');
-  // The search threshold, attempts, checked stars and private wish stay in the browser.
-  emit('save', { response: { wish_made: true }, complete: true });
+  emit('save', { response: pendingResult.value === 'wished' ? { wish_made: true } : { search_exhausted: true }, complete: true });
 }
 
-watch([storageKey, completed], async ([key, done], [previousKey]) => {
-  if (key !== previousKey) {
-    popupOpen.value = false;
-    animatedStar.value = null;
-  }
+watch(storageKey, key => {
+  popupOpen.value = false;
+  animatedStar.value = null;
+  pendingResult.value = null;
   awaitingSave.value = false;
   storageWarning.value = false;
   progress.value = createGuidingStarProgress(identity.value, starIds.length);
   if (!key) return;
+  if (serverResult.value) { clearStoredSearch(); return; }
   try { progress.value = restoreGuidingStarProgress(localStorage.getItem(key), identity.value, starIds); }
   catch { storageWarning.value = true; }
-  if (!done) persist();
-  if (!done && progress.value.wishMade) {
-    await nextTick();
-    if (key === storageKey.value) saveCompletion();
-  }
+  persist();
 }, { immediate: true });
 
+watch([serverResult, ready, storageKey], ([result, isReady]) => {
+  if (!result || !isReady) return;
+  clearStoredSearch();
+  pendingResult.value = null;
+  awaitingSave.value = false;
+  popupOpen.value = true;
+}, { immediate: true });
 watch([() => props.saving, () => props.saveError], ([saving, error]) => {
   if (!saving || error) awaitingSave.value = false;
 });
-watch(phase, (current, previous, onCleanup) => {
-  if (current === 'searching' || current === 'exhausted') { popupOpen.value = false; return; }
-  if (previous === 'found' && current === 'wished') { popupOpen.value = true; return; }
+watch([phase, ready, storageKey], ([current, isReady], _, onCleanup) => {
+  if (!isReady || current === 'searching') { popupOpen.value = false; return; }
+  if (serverResult.value) { popupOpen.value = true; return; }
+  if (current === 'exhausted') {
+    pendingResult.value = 'exhausted';
+    saveCompletion();
+  }
   // Let the selected star twinkle before showing the result.
-  const timeout = window.setTimeout(() => { popupOpen.value = true; }, current === 'found' ? 420 : 0);
+  const timeout = window.setTimeout(() => { popupOpen.value = true; }, current === 'wished' ? 0 : 420);
   onCleanup(() => window.clearTimeout(timeout));
-});
+}, { immediate: true });
 watch(animatedStar, (id, _, onCleanup) => {
   if (!id) return;
   const timeout = window.setTimeout(() => { animatedStar.value = null; }, 480);
@@ -93,9 +107,9 @@ watch(skyElement, (element, _, onCleanup) => {
 }, { flush: 'post' });
 
 function syncStorage(event: StorageEvent) {
-  if (event.key !== storageKey.value || completed.value) return;
+  if (event.key !== storageKey.value || !event.newValue || serverResult.value || pendingResult.value) return;
   const next = restoreGuidingStarProgress(event.newValue, identity.value, starIds);
-  if (progress.value.wishMade || next.checkedStars.length < progress.value.checkedStars.length) return;
+  if (next.checkedStars.length < progress.value.checkedStars.length) return;
   progress.value = next;
 }
 onMounted(() => window.addEventListener('storage', syncStorage));
@@ -111,17 +125,17 @@ function chooseStar(id: string) {
 }
 function confirmWish() {
   if (!ready.value || props.saving || phase.value !== 'found') return;
-  progress.value = makeGuidingStarWish(progress.value);
-  persist();
+  pendingResult.value = 'wished';
   saveCompletion();
 }
+function onDialogClose() { if (serverResult.value) emit('back'); }
 function markLoaded(id: string) { loadedAssets.value.add(id); }
 function retryAssets() { loadedAssets.value = new Set(); assetError.value = false; assetRetry.value++; }
 function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${assetRetry.value}` : src; }
 </script>
 
 <template>
-  <DecemberTaskLayout :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
+  <DecemberTaskLayout v-if="!serverResult || !ready" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
     :task-number="20" title="Найдите свою путеводную звезду" @back="emit('back')" @retry="emit('retry')">
     <p class="guiding-poem"><em>Звезд на небе тьма.<br />Но попробуй отыскать<br />ту, что светит вам.</em></p>
     <div class="december-copy">
@@ -131,7 +145,6 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
     </div>
     <section class="guiding-search" :data-phase="phase" aria-label="Поиск путеводной звезды">
       <p class="guiding-instruction">Нажимайте на золотые звёзды. Каждую можно проверить один раз.</p>
-      <p v-if="phase === 'searching'" class="guiding-attempts" role="status">Осталось попыток: {{ remaining }} / {{ guidingStarAttempts }}</p>
       <div ref="skyElement" class="guiding-sky" :aria-busy="!imagesReady && !assetError">
         <div class="guiding-sky-canvas" :style="{ transform: `scale(${skyScale})` }">
           <img :key="`sky:${assetRetry}`" class="guiding-sky-image" :src="assetSource(sky)" alt="Звёздное зимнее небо над облаками и силуэтами елей" width="313" height="557"
@@ -156,37 +169,24 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
         <button class="december-button secondary" type="button" @click="retryAssets">Загрузить небо</button>
       </div>
       <p v-if="phase === 'searching'" class="guiding-message" role="status">{{ feedback || 'Ваша звезда уже здесь. Найдите её!' }}</p>
-      <div v-else-if="phase === 'exhausted'" class="guiding-result december-stack" role="status">
-        <p>{{ guidingStarExhaustedText }}</p>
-        <button class="december-button" type="button" @click="emit('back')">К календарю</button>
-      </div>
-      <div v-else class="guiding-result december-stack">
-        <p v-if="phase === 'found'">{{ guidingStarFoundText }}</p>
-        <p v-else>Желание загадано! {{ guidingStarWishText }}</p>
-        <button v-if="phase === 'found'" class="december-button" type="button" :disabled="saving" @click="confirmWish">Загадать желание</button>
-        <button v-else class="december-button" type="button" @click="emit('back')">К календарю</button>
-        <button class="december-link" type="button" @click="popupOpen = true">{{ phase === 'found' ? 'Открыть свою звезду' : 'Открыть пожелание' }}</button>
-      </div>
-      <p v-if="saving && progress.wishMade" class="guiding-message" role="status">Сохраняем отметку о выполнении…</p>
-      <div v-if="saveError && progress.wishMade && !completed" class="guiding-message december-stack" role="alert">
-        <p>{{ saveError }}</p>
-        <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
-      </div>
+      <button v-else class="december-link guiding-message" type="button" @click="popupOpen = true">Открыть результат</button>
       <p v-if="storageWarning" class="guiding-message" role="status">Браузер не разрешил сохранить поиск. Не закрывайте страницу до завершения.</p>
     </section>
-    <PopupDialog v-model:open="popupOpen" class="december-dialog guiding-dialog" aria-labelledby="guiding-result-title">
-      <button class="december-dialog-close" type="button" aria-label="Закрыть окно" @click="popupOpen = false">×</button>
-      <div class="guiding-dialog-star" aria-hidden="true">✦</div>
-      <h2 id="guiding-result-title">{{ phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
-      <p>{{ phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
-      <div v-if="saveError && progress.wishMade && !completed" class="guiding-message december-stack" role="alert">
-        <p>{{ saveError }}</p>
-        <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
-      </div>
-      <button v-if="phase === 'found'" class="december-button" type="button" :disabled="saving" @click="confirmWish">Загадать желание</button>
-      <button v-else class="december-button" type="button" @click="emit('back')">К календарю</button>
-    </PopupDialog>
   </DecemberTaskLayout>
+  <main v-else class="december-page guiding-completed" aria-label="Результат задания на 20 декабря" />
+  <PopupDialog v-model:open="popupOpen" class="december-dialog guiding-dialog" aria-labelledby="guiding-result-title" @close="onDialogClose">
+    <button class="december-dialog-close" type="button" aria-label="Закрыть окно" @click="popupOpen = false">×</button>
+    <div class="guiding-dialog-star" aria-hidden="true">✦</div>
+    <h2 id="guiding-result-title">{{ phase === 'exhausted' ? 'Поиски завершены' : phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
+    <p>{{ phase === 'exhausted' ? guidingStarExhaustedText : phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
+    <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
+    <div v-if="saveError && pendingResult && !serverResult" class="guiding-message december-stack" role="alert">
+      <p>{{ saveError }}</p>
+      <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
+    </div>
+    <button v-if="phase === 'found'" class="december-button" type="button" :disabled="saving || awaitingSave" @click="confirmWish">Загадать желание</button>
+    <button v-else class="december-button" type="button" :disabled="saving || awaitingSave" @click="emit('back')">К календарю</button>
+  </PopupDialog>
 </template>
 
 <style scoped>
@@ -194,7 +194,6 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 .guiding-poem { margin-bottom: 24px; text-align: right; font-style: italic; font-synthesis: style; }
 .guiding-search { margin-top: 22px; }
 .guiding-instruction { color: var(--dec-red); font-size: 12px; line-height: 18px; }
-.guiding-attempts { margin-top: 8px; font-size: 12px; font-weight: 600; }
 .guiding-sky { position: relative; width: 100%; max-width: 480px; aspect-ratio: 313 / 557; margin: 16px auto 0; overflow: hidden; border-radius: 16px; background: linear-gradient(#001d2c, #001a2a 60%, #000c16); }
 .guiding-sky-canvas { position: absolute; top: 0; left: 0; width: 313px; height: 557px; transform-origin: top left; }
 .guiding-sky-image { position: absolute; top: 0; left: 0; display: block; }
@@ -203,15 +202,12 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 .guiding-star-art { position: absolute; display: block; overflow: hidden; pointer-events: none; }
 .guiding-star-image { position: absolute; display: block; max-width: none; }
 .guiding-star:disabled { cursor: default; }
-.guiding-star.is-checked::after { position: absolute; inset: 3px; border: 1px solid #ffe3a780; border-radius: 50%; content: ''; pointer-events: none; }
-.guiding-star.is-guiding::after { border-color: #ffe3a7; box-shadow: 0 0 12px #ffe3a7; }
 .guiding-star.is-guiding .guiding-star-art { filter: drop-shadow(0 0 7px #ffe3a7); }
 .guiding-star.is-twinkling .guiding-star-art { animation: guiding-star-twinkle 420ms ease-out; }
 .guiding-star:hover:not(:disabled) .guiding-star-art { filter: drop-shadow(0 0 5px #ffe3a7); }
 .guiding-star:focus-visible { outline: 2px solid #ffe3a7; outline-offset: 1px; }
 .guiding-message { margin-top: 14px; font-size: 13px; line-height: 19px; }
-.guiding-result { margin-top: 20px; }
-.guiding-dialog { width: min(345px, calc(100% - 32px)); padding: 24px; border: 0; background: #fff5e3; overflow-y: auto; }
+.guiding-dialog { --dec-red: #a7280b; --dec-paper: #fcf6e8; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; color-scheme: light; text-align: left; letter-spacing: 0; width: min(345px, calc(100% - 32px)); padding: 24px; border: 0; background: #fff5e3; overflow-y: auto; }
 .guiding-dialog-star { margin: 3px 0 18px; color: #c69b3c; font-size: 44px; line-height: 53px; text-align: center; }
 .guiding-dialog h2 { margin: 0; padding: 0; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; }
 .guiding-dialog > p { margin-top: 24px; color: #836045; font: 400 14px/20px 'Advent Inter', sans-serif; }

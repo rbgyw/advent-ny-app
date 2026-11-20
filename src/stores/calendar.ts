@@ -176,12 +176,19 @@ export const useCalendarStore = defineStore("calendar", {
       }
 
       if (
-        ["task-13", "task-20"].includes(assignment.task.slug) &&
+        assignment.task.slug === "task-13" &&
         (!complete ||
           response.wish_made !== true ||
           Object.keys(response).length !== 1)
       ) {
         this.saveError = "Подтвердите, что желание загадано.";
+        return false;
+      }
+
+      if (assignment.task.slug === "task-20" &&
+        (!complete || Object.keys(response).length !== 1 ||
+          (response.wish_made !== true && response.search_exhausted !== true))) {
+        this.saveError = "Некорректный результат поиска звезды.";
         return false;
       }
 

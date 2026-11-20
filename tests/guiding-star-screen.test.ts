@@ -4,68 +4,68 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import TwentiethTaskScreen from '../src/components/TwentiethTaskScreen.vue';
 import PopupDialog from '../src/components/PopupDialog.vue';
 import { guidingStars, guidingStarExhaustedText, guidingStarHints } from '../src/content/guiding-star';
+import { createGuidingStarProgress } from '../src/utils/guiding-star';
 import { assignment } from './fixtures';
 import type { CalendarTask } from '../src/types/models';
 
-const key = 'advent:guiding-star:v1:user-1:assignment-20';
+let userId: string;
+function userForThreshold(threshold: number) {
+  for (let index = 0; index < 10000; index++) {
+    const id = `star-user-${index}`;
+    if (createGuidingStarProgress(`${id}:20`, guidingStars.length).requiredClicks === threshold) return id;
+  }
+  throw new Error('No test user for threshold');
+}
+function key() { return `advent:guiding-star:v1:${userId}:assignment-20`; }
 function task(): CalendarTask {
-  const value = assignment({ id: 'assignment-20', task_id: 20, position: 20, available_date: '2026-12-20' });
+  const value = assignment({ id: 'assignment-20', user_id: userId, task_id: 20, position: 20, available_date: '2026-12-20' });
   value.task = { ...value.task!, id: 20, slug: 'task-20' };
   return value;
 }
-function localProgress(requiredClicks = 3, checkedStars: string[] = [], wishMade = false) {
-  localStorage.setItem(key, JSON.stringify({ requiredClicks, checkedStars, wishMade }));
+function completedTask(exhausted = false): CalendarTask {
+  const value = task();
+  return { ...value, status: 'completed', response: {
+    id: 'response-20', user_id: userId, task_id: 20,
+    response: exhausted ? { search_exhausted: true } : { wish_made: true },
+    created_at: '', updated_at: '', completed_at: '',
+  } };
+}
+function localProgress(threshold = 3, count = 0) {
+  userId = userForThreshold(threshold);
+  localStorage.setItem(key(), JSON.stringify({ attempts: count, checkedStars: guidingStars.slice(0, count).map(star => star.id) }));
 }
 function screen(overrides: Record<string, unknown> = {}) {
   return mount(TwentiethTaskScreen, {
     props: { assignment: task(), day: 20, total: 25, loading: false, saving: false, error: null, saveError: null, ...overrides },
-    global: { stubs: { PopupDialog: { props: ['open'], template: '<div v-if="open" class="dialog-stub" role="dialog"><slot /></div>' } } },
+    global: { stubs: { PopupDialog: { props: ['open'], emits: ['close'], template: '<div v-if="open" class="dialog-stub" role="dialog"><slot /></div>' } } },
   });
 }
 type Screen = ReturnType<typeof screen>;
 async function loadImages(view: Screen) {
   for (const image of view.findAll('.guiding-sky img')) await image.trigger('load');
 }
-async function choose(view: Screen, index: number) {
-  await view.findAll('.guiding-star')[index]!.trigger('click');
-}
-async function wish(view: Screen) {
-  await view.findAll('button').find(button => button.text() === 'Загадать желание')!.trigger('click');
-}
+async function choose(view: Screen, index: number) { await view.findAll('.guiding-star')[index]!.trigger('click'); }
+async function wish(view: Screen) { await view.get('[role="dialog"] .december-button').trigger('click'); }
 beforeEach(() => {
+  userId = userForThreshold(3);
   vi.useFakeTimers();
-  vi.stubGlobal('ResizeObserver', class {
-    observe() {}
-    disconnect() {}
-  });
+  vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 });
 
 describe('20 December guiding-star screen', () => {
-  it('renders the corrected poem, introduction, and every individual vector star', () => {
+  it('renders the poem and all 24 vector stars without an attempt counter', () => {
     const view = screen();
     expect(view.get('h1').text()).toBe('Найдите свою путеводную звезду');
     expect(view.get('.guiding-poem em').text()).toContain('Звезд на небе тьма.');
     expect(view.findAll('.guiding-poem br')).toHaveLength(2);
-    expect(view.text()).toContain('К картам таро вы уже обращались');
-    expect(view.text()).toContain('Осталось попыток: 10 / 10');
+    expect(view.text()).not.toContain('Осталось попыток');
+    expect(view.find('.guiding-attempts').exists()).toBe(false);
     expect(view.findAll('.guiding-star')).toHaveLength(24);
-    expect(new Set(view.findAll('.guiding-star').map(button => button.attributes('aria-label'))).size).toBe(24);
     expect(view.findAll('.guiding-stars-overlay')).toHaveLength(1);
-    expect(view.findAll('.guiding-star-image')).toHaveLength(0);
     expect(view.findAll<HTMLButtonElement>('.guiding-star').every(button => button.element.disabled)).toBe(true);
   });
 
-  it('uses all the real vector layers as interactive stars, including the five extra grouped stars', async () => {
-    localProgress(guidingStars.length);
-    const view = screen();
-    await loadImages(view);
-    expect(view.findAll<HTMLButtonElement>('.guiding-star').every(button => !button.element.disabled)).toBe(true);
-    await choose(view, guidingStars.length - 1);
-    expect(view.findAll('.guiding-star')[guidingStars.length - 1]!.classes()).toContain('is-checked');
-    expect(view.emitted('save')).toBeUndefined();
-  });
-
-  it('cycles the specified hints, animates clicks and ignores repeated stars', async () => {
+  it('cycles hints, animates stars and ignores repeated choices without saving a result locally', async () => {
     localProgress(10);
     const view = screen();
     await loadImages(view);
@@ -75,28 +75,27 @@ describe('20 December guiding-star screen', () => {
       expect(view.findAll('.guiding-star')[index]!.classes()).toContain('is-twinkling');
     }
     await choose(view, 0);
-    expect(JSON.parse(localStorage.getItem(key)!).checkedStars).toHaveLength(4);
-    expect(view.text()).toContain('Осталось попыток: 6 / 10');
+    expect(JSON.parse(localStorage.getItem(key())!)).toEqual({ attempts: 4, checkedStars: guidingStars.slice(0, 4).map(star => star.id) });
     expect(view.emitted('save')).toBeUndefined();
     await vi.advanceTimersByTimeAsync(480);
     expect(view.findAll('.is-twinkling')).toHaveLength(0);
   });
 
-  it('finds the guiding star at the individual threshold and does not save search details to Supabase', async () => {
+  it('shows the found message only in a popup after the personal threshold', async () => {
     localProgress(2);
     const view = screen();
     await loadImages(view);
     await choose(view, 0);
     expect(view.find('[role="dialog"]').exists()).toBe(false);
     await choose(view, 1);
-    expect(view.text()).toContain('Вы нашли свою путеводную звезду!');
-    expect(view.findAll('.is-guiding')).toHaveLength(1);
+    expect(view.text()).not.toContain('Вы нашли свою путеводную звезду!');
     expect(view.emitted('save')).toBeUndefined();
     await vi.advanceTimersByTimeAsync(420);
     expect(view.get('[role="dialog"]').text()).toContain('Ваша звезда найдена!');
+    expect(view.find('.guiding-result').exists()).toBe(false);
   });
 
-  it('accepts a private wish only after the user presses the wish button and sends only its confirmation flag', async () => {
+  it('saves a wish only on confirmation and clears search data only after Supabase confirms completion', async () => {
     localProgress(1);
     const view = screen();
     await loadImages(view);
@@ -104,77 +103,110 @@ describe('20 December guiding-star screen', () => {
     await vi.advanceTimersByTimeAsync(420);
     await wish(view);
     expect(view.emitted('save')).toEqual([[{ response: { wish_made: true }, complete: true }]]);
-    expect(JSON.parse(localStorage.getItem(key)!).wishMade).toBe(true);
+    expect(JSON.parse(localStorage.getItem(key())!)).toEqual({ attempts: 1, checkedStars: [guidingStars[0]!.id] });
+    await view.setProps({ saving: true });
+    await view.setProps({ assignment: completedTask(), saving: false });
+    expect(localStorage.getItem(key())).toBeNull();
     expect(view.get('[role="dialog"]').text()).toContain('Желание загадано!');
-    await view.setProps({ assignment: { ...task(), status: 'completed' } });
-    expect(view.get('[role="dialog"]').text()).toContain('Желание загадано!');
-    expect(view.text()).toContain('увлеченность и настойчивость помогают держать курс весь 2027 год');
+    expect(view.find('.guiding-sky').exists()).toBe(false);
+    expect(view.find('.december-card').exists()).toBe(false);
   });
 
-  it('ends with the requested consolation message after ten unsuccessful choices', async () => {
+  it('shows exhaustion in a popup and sends that outcome to Supabase', async () => {
     localProgress(guidingStars.length);
     const view = screen();
     await loadImages(view);
     for (let index = 0; index < 10; index++) await choose(view, index);
-    expect(view.text()).toContain(guidingStarExhaustedText);
+    expect(view.emitted('save')).toEqual([[{ response: { search_exhausted: true }, complete: true }]]);
+    expect(view.text()).not.toContain(guidingStarExhaustedText);
+    await vi.advanceTimersByTimeAsync(420);
+    expect(view.get('[role="dialog"]').text()).toContain(guidingStarExhaustedText);
     expect(view.findAll<HTMLButtonElement>('.guiding-star').every(button => button.element.disabled)).toBe(true);
-    expect(view.emitted('save')).toBeUndefined();
-    await choose(view, 10);
-    expect(JSON.parse(localStorage.getItem(key)!).checkedStars).toHaveLength(10);
+    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(10);
+    await view.setProps({ assignment: completedTask(true) });
+    expect(localStorage.getItem(key())).toBeNull();
+    expect(view.get('[role="dialog"]').text()).toContain(guidingStarExhaustedText);
+    expect(view.find('.guiding-sky').exists()).toBe(false);
   });
 
-  it('restores the threshold, checked stars and remaining attempts after reopening', async () => {
-    localProgress(8, guidingStars.slice(0, 4).map(star => star.id));
+  it.each([false, true])('opens only the Supabase result on a return visit (exhausted: %s)', async exhausted => {
+    localProgress(8, 4);
+    const view = screen({ assignment: completedTask(exhausted) });
+    await nextTick();
+    expect(view.get('[role="dialog"]').text()).toContain(exhausted ? guidingStarExhaustedText : 'Желание загадано!');
+    expect(view.find('.december-card').exists()).toBe(false);
+    expect(view.find('.guiding-sky').exists()).toBe(false);
+    expect(view.find('.guiding-poem').exists()).toBe(false);
+    expect(view.emitted('save')).toBeUndefined();
+    expect(localStorage.getItem(key())).toBeNull();
+    view.getComponent(PopupDialog).vm.$emit('close');
+    expect(view.emitted('back')).toHaveLength(1);
+  });
+
+  it('restores only the number of attempts and selected stars for an unfinished search', async () => {
+    localProgress(8, 4);
     const view = screen();
-    expect(view.text()).toContain('Осталось попыток: 6 / 10');
     expect(view.findAll('.is-checked')).toHaveLength(4);
-    expect(JSON.parse(localStorage.getItem(key)!).requiredClicks).toBe(8);
     expect(view.emitted('save')).toBeUndefined();
+    await loadImages(view);
+    await choose(view, 4);
+    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(5);
   });
 
-  it('retries saving a locally confirmed wish after reopening and trusts the DB completed status', async () => {
-    localProgress(1, [guidingStars[0]!.id], true);
+  it('ignores a legacy locally saved wish instead of treating it as a completed task', async () => {
+    localProgress(8);
+    localStorage.setItem(key(), JSON.stringify({ requiredClicks: 1, checkedStars: [guidingStars[0]!.id], wishMade: true }));
     const view = screen();
-    await nextTick();
-    expect(view.emitted('save')).toEqual([[{ response: { wish_made: true }, complete: true }]]);
-    view.unmount();
-    const completed = screen({ assignment: { ...task(), status: 'completed' } });
-    await nextTick();
-    expect(completed.text()).toContain('Желание загадано!');
-    expect(completed.emitted('save')).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(view.find('[role="dialog"]').exists()).toBe(false);
+    expect(view.find('.guiding-sky').exists()).toBe(true);
+    expect(view.emitted('save')).toBeUndefined();
+    expect(JSON.parse(localStorage.getItem(key())!)).toEqual({ attempts: 1, checkedStars: [guidingStars[0]!.id] });
   });
 
-  it('shows save errors and retry inside the open result dialog', async () => {
-    localProgress(1);
+  it('resumes an exhausted search and saves only when the assignment is ready', async () => {
+    localProgress(guidingStars.length, 10);
+    const view = screen({ loading: true });
+    expect(view.emitted('save')).toBeUndefined();
+    await view.setProps({ loading: false });
+    expect(view.emitted('save')).toEqual([[{ response: { search_exhausted: true }, complete: true }]]);
+  });
+
+  it.each([false, true])('retains search data on save failure and lets the popup retry (exhausted: %s)', async exhausted => {
+    localProgress(exhausted ? guidingStars.length : 1, exhausted ? 9 : 0);
     const view = screen();
     await loadImages(view);
-    await choose(view, 0);
+    await choose(view, exhausted ? 9 : 0);
     await vi.advanceTimersByTimeAsync(420);
-    await wish(view);
+    if (!exhausted) await wish(view);
     await view.setProps({ saving: true });
     await view.setProps({ saving: false, saveError: 'Нет соединения с Supabase' });
+    expect(localStorage.getItem(key())).not.toBeNull();
     expect(view.get('[role="dialog"] [role="alert"]').text()).toContain('Нет соединения с Supabase');
     await view.get('[role="dialog"] [role="alert"] button').trigger('click');
     expect(view.emitted('save')).toHaveLength(2);
   });
 
-  it('does not mix searches between user accounts', async () => {
-    localProgress(20, guidingStars.slice(0, 9).map(star => star.id));
+  it('isolates searches and pending results between accounts', async () => {
+    localProgress(1);
     const view = screen();
-    expect(view.text()).toContain('Осталось попыток: 1 / 10');
-    await view.setProps({ assignment: { ...task(), user_id: 'another-user' } });
-    expect(view.text()).toContain('Осталось попыток: 10 / 10');
+    await loadImages(view);
+    await choose(view, 0);
+    await vi.advanceTimersByTimeAsync(420);
+    await wish(view);
+    await view.setProps({ assignment: { ...task(), user_id: userForThreshold(20) } });
+    expect(view.find('[role="dialog"]').exists()).toBe(false);
     expect(view.findAll('.is-checked')).toHaveLength(0);
+    expect(view.emitted('save')).toHaveLength(1);
   });
 
-  it('lets the user retry loading unavailable images without losing attempts', async () => {
+  it('retries loading unavailable images without losing selections', async () => {
     localProgress(4);
     const view = screen();
     await view.get('.guiding-sky-image').trigger('error');
-    expect(view.get('[role="alert"]').text()).toContain('Не удалось загрузить звёздное небо');
     await view.get('[role="alert"] button').trigger('click');
     await loadImages(view);
     await choose(view, 0);
-    expect(view.text()).toContain('Осталось попыток: 9 / 10');
+    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(1);
   });
 });

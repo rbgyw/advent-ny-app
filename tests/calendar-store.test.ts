@@ -221,15 +221,18 @@ describe('guiding-star wish persistence', () => {
     store.tasks = [task];
     return store;
   }
-  it('saves only the wish confirmation', async () => {
+  it.each([{ wish_made: true }, { search_exhausted: true }])('saves only the final outcome: %j', async response => {
     const store = wishStore();
     vi.mocked(calendarService.getUserCalendar).mockResolvedValue([{ ...store.tasks[0]!, status: 'completed' }]);
-    expect(await store.saveProgress(20, { wish_made: true }, true)).toBe(true);
-    expect(calendarService.saveTaskProgress).toHaveBeenCalledExactlyOnceWith(20, { wish_made: true }, true);
+    expect(await store.saveProgress(20, response, true)).toBe(true);
+    expect(calendarService.saveTaskProgress).toHaveBeenCalledExactlyOnceWith(20, response, true);
   });
   it.each([
     { response: { wish_made: true }, complete: false },
     { response: { wish_made: false }, complete: true },
+    { response: { search_exhausted: false }, complete: true },
+    { response: { search_exhausted: true }, complete: false },
+    { response: { wish_made: true, search_exhausted: true }, complete: true },
     { response: { wish_made: true, requiredClicks: 4 }, complete: true },
     { response: { wish_made: true, checkedStars: ['star-01'] }, complete: true },
   ])('keeps search details and unsuccessful attempts out of Supabase: %j', async ({ response, complete }) => {
