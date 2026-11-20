@@ -9,12 +9,13 @@ import { assignment } from './fixtures';
 import type { CalendarTask } from '../src/types/models';
 
 let userId: string;
-function userForThreshold(threshold: number) {
+const starIds = guidingStars.map(star => star.id);
+function userForTarget(targetIndex: number) {
   for (let index = 0; index < 10000; index++) {
     const id = `star-user-${index}`;
-    if (createGuidingStarProgress(`${id}:20`, guidingStars.length).requiredClicks === threshold) return id;
+    if (createGuidingStarProgress(`${id}:20`, starIds).targetStarId === starIds[targetIndex - 1]) return id;
   }
-  throw new Error('No test user for threshold');
+  throw new Error('No test user for target');
 }
 function key() { return `advent:guiding-star:v1:${userId}:assignment-20`; }
 function task(): CalendarTask {
@@ -30,8 +31,8 @@ function completedTask(exhausted = false): CalendarTask {
     created_at: '', updated_at: '', completed_at: '',
   } };
 }
-function localProgress(threshold = 3, count = 0) {
-  userId = userForThreshold(threshold);
+function localProgress(targetIndex = 3, count = 0) {
+  userId = userForTarget(targetIndex);
   localStorage.setItem(key(), JSON.stringify({ attempts: count, checkedStars: guidingStars.slice(0, count).map(star => star.id) }));
 }
 function screen(overrides: Record<string, unknown> = {}) {
@@ -47,7 +48,7 @@ async function loadImages(view: Screen) {
 async function choose(view: Screen, index: number) { await view.findAll('.guiding-star')[index]!.trigger('click'); }
 async function wish(view: Screen) { await view.get('[role="dialog"] .december-button').trigger('click'); }
 beforeEach(() => {
-  userId = userForThreshold(3);
+  userId = userForTarget(3);
   vi.useFakeTimers();
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 });
@@ -81,7 +82,7 @@ describe('20 December guiding-star screen', () => {
     expect(view.findAll('.is-twinkling')).toHaveLength(0);
   });
 
-  it('shows the found message only in a popup after the personal threshold', async () => {
+  it('shows the found message only in a popup after selecting the target star', async () => {
     localProgress(2);
     const view = screen();
     await loadImages(view);
@@ -93,6 +94,19 @@ describe('20 December guiding-star screen', () => {
     await vi.advanceTimersByTimeAsync(420);
     expect(view.get('[role="dialog"]').text()).toContain('Ваша звезда найдена!');
     expect(view.find('.guiding-result').exists()).toBe(false);
+  });
+
+  it.each([1, 10])('can find a target beyond the first ten stars on attempt %s', async attempt => {
+    localProgress(12);
+    const view = screen();
+    await loadImages(view);
+    for (let index = 0; index < attempt - 1; index++) await choose(view, index);
+    await choose(view, 11);
+    expect(view.get('.guiding-search').attributes('data-phase')).toBe('found');
+    expect(view.findAll('.is-guiding').map(star => star.attributes('data-star-id'))).toEqual([guidingStars[11]!.id]);
+    expect(view.emitted('save')).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(420);
+    expect(view.get('[role="dialog"]').text()).toContain('Ваша звезда найдена!');
   });
 
   it('saves a wish only on confirmation and clears search data only after Supabase confirms completion', async () => {
@@ -194,7 +208,7 @@ describe('20 December guiding-star screen', () => {
     await choose(view, 0);
     await vi.advanceTimersByTimeAsync(420);
     await wish(view);
-    await view.setProps({ assignment: { ...task(), user_id: userForThreshold(20) } });
+    await view.setProps({ assignment: { ...task(), user_id: userForTarget(20) } });
     expect(view.find('[role="dialog"]').exists()).toBe(false);
     expect(view.findAll('.is-checked')).toHaveLength(0);
     expect(view.emitted('save')).toHaveLength(1);

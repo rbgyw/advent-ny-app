@@ -10,7 +10,7 @@ const sky = new URL('../assets/dec-20/sky.png', import.meta.url).href;
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<DecemberTaskEvents>();
 const starIds = guidingStars.map(star => star.id);
-const progress = ref(createGuidingStarProgress('', starIds.length));
+const progress = ref(createGuidingStarProgress('', starIds));
 const skyElement = ref<HTMLDivElement>();
 const skyScale = ref(1);
 const loadedAssets = ref(new Set<string>());
@@ -27,7 +27,7 @@ const serverResult = computed<GuidingStarResult | null>(() => props.assignment?.
 const pendingResult = ref<GuidingStarResult | null>(null);
 const phase = computed(() => serverResult.value ?? pendingResult.value ?? guidingStarPhase(progress.value));
 const checked = computed(() => new Set(progress.value.checkedStars));
-const winningStar = computed(() => progress.value.checkedStars[progress.value.requiredClicks - 1]);
+const winningStar = computed(() => checked.value.has(progress.value.targetStarId) ? progress.value.targetStarId : undefined);
 const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
 const assetCount = 2;
 const imagesReady = computed(() => loadedAssets.value.size === assetCount && !assetError.value);
@@ -62,7 +62,7 @@ watch(storageKey, key => {
   pendingResult.value = null;
   awaitingSave.value = false;
   storageWarning.value = false;
-  progress.value = createGuidingStarProgress(identity.value, starIds.length);
+  progress.value = createGuidingStarProgress(identity.value, starIds);
   if (!key) return;
   if (serverResult.value) { clearStoredSearch(); return; }
   try { progress.value = restoreGuidingStarProgress(localStorage.getItem(key), identity.value, starIds); }
@@ -143,7 +143,7 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
       <p>Но одного желания порой недостаточно: важно еще понимать, куда двигаться, чтобы его осуществить. Когда-то звезды помогали морякам определять направление и держать курс. А мы предлагаем найти собственную путеводную звезду, которая напомнит о том, к чему хочется прийти в новом году.</p>
       <p>Посмотрите на небо: среди его звезд где-то спряталась ваша путеводная. Нажимайте на звезды, пока не найдете ее.</p>
     </div>
-    <section class="guiding-search" :data-phase="phase" aria-label="Поиск путеводной звезды">
+    <section class="guiding-search" :data-phase="phase" :data-search-identity="identity" aria-label="Поиск путеводной звезды">
       <p class="guiding-instruction">Нажимайте на золотые звёзды. Каждую можно проверить один раз.</p>
       <div ref="skyElement" class="guiding-sky" :aria-busy="!imagesReady && !assetError">
         <div class="guiding-sky-canvas" :style="{ transform: `scale(${skyScale})` }">
@@ -151,11 +151,11 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
             @load="markLoaded('sky')" @error="assetError = true" />
           <img :key="`overlay:${assetRetry}`" class="guiding-stars-overlay" :src="assetSource(guidingStarOverlay)" alt="" aria-hidden="true" width="313" height="624"
             @load="markLoaded('stars')" @error="assetError = true" />
-          <button v-for="(star, index) in guidingStars" :key="star.id" type="button" class="guiding-star"
+          <button v-for="star in guidingStars" :key="star.id" type="button" class="guiding-star"
             :data-star-id="star.id"
             :class="{ 'is-checked': checked.has(star.id), 'is-twinkling': animatedStar === star.id, 'is-guiding': winningStar === star.id }"
             :style="{ left: `${star.x - 6 / skyScale}px`, top: `${star.y - 6 / skyScale}px`, width: `${star.width + 12 / skyScale}px`, height: `${star.height + 12 / skyScale}px` }"
-            :aria-label="`Звезда ${index + 1}${checked.has(star.id) ? ', уже проверена' : ''}`"
+            :aria-label="`Звезда ${star.id.slice(5)}${checked.has(star.id) ? ', уже проверена' : ''}`"
             :disabled="!imagesReady || saving || phase !== 'searching' || checked.has(star.id)" @click="chooseStar(star.id)">
             <span class="guiding-star-art" :style="{ left: `${6 / skyScale}px`, top: `${6 / skyScale}px`, width: `${star.width}px`, height: `${star.height}px` }">
               <img v-if="animatedStar === star.id || winningStar === star.id" class="guiding-star-image" :src="assetSource(guidingStarOverlay)" :style="{ left: `${-star.x}px`, top: `${-star.y - 42}px` }" alt="" aria-hidden="true" width="313" height="624" />

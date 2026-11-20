@@ -2,20 +2,20 @@ export const guidingStarAttempts = 10;
 export type GuidingStarResult = 'wished' | 'exhausted';
 
 export interface GuidingStarProgress {
-  requiredClicks: number;
+  targetStarId: string;
   checkedStars: string[];
 }
 
-export function createGuidingStarProgress(identity: string, starCount: number): GuidingStarProgress {
-  if (!Number.isInteger(starCount) || starCount < 1) throw new Error('На небе нет звёзд для поиска');
-  // Recompute the personal threshold rather than storing it in the browser.
+export function createGuidingStarProgress(identity: string, starIds: readonly string[]): GuidingStarProgress {
+  if (!starIds.length) throw new Error('На небе нет звёзд для поиска');
+  // Derive one stable target from the actual star IDs; click order does not change it.
   let hash = 2166136261;
   for (const character of identity) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
-  return { requiredClicks: 1 + (hash >>> 0) % starCount, checkedStars: [] };
+  return { targetStarId: starIds[(hash >>> 0) % starIds.length]!, checkedStars: [] };
 }
 
 export function guidingStarPhase(progress: GuidingStarProgress): 'searching' | 'found' | 'exhausted' {
-  if (progress.checkedStars.length >= progress.requiredClicks) return 'found';
+  if (progress.checkedStars.includes(progress.targetStarId)) return 'found';
   return progress.checkedStars.length >= guidingStarAttempts ? 'exhausted' : 'searching';
 }
 
@@ -24,7 +24,7 @@ export function serializeGuidingStarProgress(progress: GuidingStarProgress): str
 }
 
 export function restoreGuidingStarProgress(raw: string | null, identity: string, starIds: readonly string[]): GuidingStarProgress {
-  const progress = createGuidingStarProgress(identity, starIds.length);
+  const progress = createGuidingStarProgress(identity, starIds);
   try {
     const data: unknown = JSON.parse(raw ?? 'null');
     if (!data || typeof data !== 'object') return progress;
