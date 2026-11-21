@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" width="1440" height="70" viewBox="0 0 1440 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="snow">
+<path id="Vector" d="M0 26.8116C42.5135 4.40357 86.7505 2.96716 132.711 22.5024C178.671 42.0376 214.291 44.0486 239.569 28.5353C280.934 17.6186 318.851 22.5024 353.321 43.1868C406.75 -0.480238 463.627 -10.2479 523.95 13.8839L623.914 34.5683H812.639C874.111 -1.0548 933.573 -4.78948 991.023 23.3643C1027.22 39.4521 1062.55 41.4631 1097.02 29.3972C1141.26 20.7787 1174.87 26.2371 1197.85 45.7723C1284.6 5.55271 1356.12 -0.767522 1412.42 26.8116L1440 39.7394V65.5949H0V26.8116Z" fill="url(#paint0_linear_2574_35549)" stroke-width="2" stroke="white"/>
+<path id="Vector_2" d="M310.233 80.5948C396.409 34.9168 441.221 32.3313 533.429 61.6341C602.37 45.259 663.555 42.6735 722.154 53.8775C784.201 45.259 831.598 45.259 886.75 60.7723C946.212 39.2261 988.438 33.1931 1042.73 53.0156C1097.02 71.1145 1143.55 66.8052 1197.85 60.7723L1222.84 80.5948H310.233Z" fill="url(#paint1_linear_2574_35549)" stroke-width="2" stroke="url(#paint2_linear_2574_35549)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_2574_35549" x1="7.36132" y1="1190.06" x2="7.36132" y2="1254.65" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FBF7EF"/>
+<stop offset="1" stop-color="#E6DAC8"/>
+</linearGradient>
+<linearGradient id="paint1_linear_2574_35549" x1="5.45708" y1="458.529" x2="5.45708" y2="498.168" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FBF7EF"/>
+<stop offset="1" stop-color="#E6DAC8"/>
+</linearGradient>
+<linearGradient id="paint2_linear_2574_35549" x1="503.927" y1="-589.058" x2="503.927" y2="-549.417" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="0.35" stop-color="#FFF5EB"/>
+<stop offset="0.78" stop-color="#F4DFD7"/>
+<stop offset="1" stop-color="#D5B6AD"/>
+</linearGradient>
+</defs>
+</svg>

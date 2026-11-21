@@ -13,7 +13,9 @@ onMounted(() => {
   observer = new ResizeObserver(measure);
   if (root.value) observer.observe(root.value);
 });
-watch(() => props.width, measure);
+// A responsive scene can change its native width and its CSS width together.
+// Measure after that render so the first frame uses the new coordinate system.
+watch(() => props.width, measure, { flush: 'post' });
 onBeforeUnmount(() => observer?.disconnect());
 </script>
 

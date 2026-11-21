@@ -45,3 +45,13 @@ export function calendarWindowBounds(day: number): Record<string, string> {
   const rows = [98.8037, 168.8037, 240.8037, 310.8037, 382.8037, 452.8037, 522.8037]
   return { left: `${9 + columns[column]!}px`, top: `${208 + rows[row]!}px`, width: '70.1663px', height: '62.6275px' }
 }
+
+/** Five desktop columns, a taller ground floor and the central entrance. */
+export function calendarDesktopWindowBounds(day: number): Record<string, string> {
+  if (day === 25) return { left: '668px', top: '631px', width: '101px', height: '139px' }
+  const index = day - 1
+  const columns = [505, 593, 681, 769, 856]
+  const column = day > 20 ? [0, 1, 3, 4][day - 21]! : index % 5
+  const row = day > 20 ? 4 : Math.floor(index / 5)
+  return { left: `${columns[column]}px`, top: `${[310, 393, 475, 556, 637][row]}px`, width: '74.16px', height: day > 20 ? '85.12px' : '66.2px' }
+}
