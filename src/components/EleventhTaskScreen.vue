@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -25,7 +26,8 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; submit: [letters: string[]]; edit: [] }>();
 const letters = ref<string[]>(STEREOGRAM_LETTERS.map(() => ''));
 const incorrect = ref(false), inputRefs = ref<HTMLInputElement[]>([]);
-const panel = ref<HTMLElement>(), panelWidth = ref(361), panelHeight = ref(1095);
+const { element: panel, bind: bindPanel } = useElementRef();
+const panelWidth = ref(361), panelHeight = ref(1095);
 const completed = computed(() => props.assignment?.status === 'completed');
 const locked = computed(() => props.loading || props.saving || completed.value || !props.assignment?.task);
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
@@ -92,7 +94,7 @@ onBeforeUnmount(() => observer?.disconnect());
   <TaskLayout background-variant="night" class="stereo-page">
     <div class="stereo-layout">
       <AppHeader variant="task" class="stereo-header" :wordmark="wordmark" @back="emit('back')" />
-      <AppCard ref="panel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
+      <AppCard :ref="bindPanel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
         <p class="stereo-date">{{ date }}</p>

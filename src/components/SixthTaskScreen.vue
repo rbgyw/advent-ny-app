@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -27,7 +28,9 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; draw: [card: number]; edit: [] }>();
 const stage = ref<'intro' | 'choose' | 'result'>('intro');
 const deck = ref(shuffleTarotDeck()), pending = ref<number | null>(null);
-const page = ref<HTMLElement>(), fan = ref<HTMLElement>(), focusTitle = ref<HTMLElement>();
+const { element: page, bind: bindPage } = useElementRef();
+const { element: fan, bind: bindFan } = useElementRef();
+const focusTitle = ref<HTMLElement>();
 const pageHeight = ref(938), fanScale = ref(1), imageError = ref(false), imageKey = ref(0);
 const selectedId = computed(() => tarotCardId(props.assignment?.response?.response));
 const selectedCard = computed(() => selectedId.value !== null ? tarotCards[selectedId.value] : undefined);
@@ -79,7 +82,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </script>
 
 <template>
-  <TaskLayout background-variant="night" ref="page" class="tarot-page" :class="`tarot-state-${stage}`">
+  <TaskLayout background-variant="night" :ref="bindPage" class="tarot-page" :class="`tarot-state-${stage}`">
     <div class="tarot-decorations" aria-hidden="true"><img decoding="async" v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
     <div class="tarot-layout">
       <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
@@ -95,7 +98,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <AppButton class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</AppButton>
         <p class="tarot-date">{{ date }}</p>
         <h1 id="tarot-intro-title" ref="focusTitle" tabindex="-1">Что подскажет карта?</h1>
-        <AppButton ref="fan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
+        <AppButton :ref="bindFan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
           <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img decoding="async" class="tarot-fan-image" :src="cardBack" alt="" /><img decoding="async" class="tarot-fan-border" :src="item.border" alt="" /></span><img decoding="async" class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
         </AppButton>
         <div class="tarot-intro-copy">

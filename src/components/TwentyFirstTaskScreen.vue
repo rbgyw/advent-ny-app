@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
@@ -39,7 +40,7 @@ const cells = ref<CellMark[]>(Array(cellCount).fill(unmarked));
 const tool = ref<MarkingTool>(filled);
 const enlarged = ref(false);
 const validation = ref('');
-const panel = ref<HTMLElement>();
+const { element: panel, bind: bindPanel } = useElementRef();
 const dialog = ref<InstanceType<typeof AppDialog>>();
 const dotCount = ref(0);
 let awaitingCompletion = false;
@@ -163,7 +164,7 @@ function backFromResult() {
         <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
-      <AppCard ref="panel" class="nonogram-panel" aria-labelledby="nonogram-title">
+      <AppCard :ref="bindPanel" class="nonogram-panel" aria-labelledby="nonogram-title">
         <div class="nonogram-dots" aria-hidden="true">
           <img
             v-for="n in dotCount"

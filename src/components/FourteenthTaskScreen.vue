@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -35,7 +36,7 @@ const guess = ref('');
 const solved = ref<RaskobkiAnswer[]>([]);
 const feedback = ref('');
 const invalid = ref(false);
-const panel = ref<HTMLElement>();
+const { element: panel, bind: bindPanel } = useElementRef();
 const resultHeading = ref<HTMLHeadingElement>();
 const dotCount = ref(0);
 const answerIds = [...new Set(raskobkiSlots.map(slot => slot.answer))];
@@ -143,7 +144,7 @@ function submit() {
         <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
-      <AppCard ref="panel" class="raskobki-panel" aria-labelledby="raskobki-title">
+      <AppCard :ref="bindPanel" class="raskobki-panel" aria-labelledby="raskobki-title">
         <div class="raskobki-dots" aria-hidden="true">
           <img
             v-for="n in dotCount"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -32,7 +33,8 @@ const emit = defineEmits<{ back: []; retry: []; submit: [values: CrosswordValues
 const started = ref(false), expanded = ref(false), selected = ref(1), values = ref<CrosswordValues>({});
 const bulk = ref(''), lengthError = ref(false), inserted = ref(false), checked = ref(false);
 const zoom = ref(59), manualZoom = ref(false), gridViewport = ref<HTMLElement>(), activeCard = ref<HTMLElement>();
-const card = ref<HTMLElement>(), cardWidth = ref(361), cardHeight = ref(906);
+const { element: card, bind: bindCard } = useElementRef();
+const cardWidth = ref(361), cardHeight = ref(906);
 const borderDots = computed(() => {
   const points: { left: string; top: string }[] = [];
   const add = (x: number, y: number) => points.push({ left: `${x - 1.45}px`, top: `${y - 1.45}px` });
@@ -164,7 +166,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
   <TaskLayout background-variant="night" class="crossword-page">
     <div class="crossword-layout">
       <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
-      <AppCard ref="card" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
+      <AppCard :ref="bindCard" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
         <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
         <p class="crossword-date">{{ date }}</p>
