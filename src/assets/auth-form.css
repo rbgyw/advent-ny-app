@@ -10,7 +10,6 @@
 .auth-intro { margin: 0 0 19px; line-height: 20px; color: var(--color-muted); }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .auth-field { display: flex; flex-direction: column; gap: 7px; }
-.auth-field label { font-weight: 700; line-height: 17px; }
 .auth-field input, .auth-field select { box-sizing: border-box; width: 100%; min-width: 0; height: 52px; border: 1px solid #dcd0b7; border-radius: 14px; background: #fdf9ef; padding: 0 13px; color: var(--color-auth-ink); font: 400 14px/20px var(--font-ui); box-shadow: 0 -1px 1px #e7dcc5; }
 .auth-field input::placeholder, .auth-field select.placeholder { color: #9b907e; opacity: 1; }
 .auth-field option { color: var(--color-auth-ink); }
