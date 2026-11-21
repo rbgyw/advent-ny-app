@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 import { mockBackend } from './fixture';
 
 const viewports = [
-  [320, 568], [393, 852], [551, 917], [639, 900], [640, 900], [641, 900],
-  [744, 1133], [768, 1024], [820, 1180], [834, 1194], [1024, 768],
+  [320, 568], [393, 852], [393, 1100], [551, 917], [639, 900], [640, 900], [641, 900],
+  [744, 1133], [768, 1024], [768, 1180], [820, 1180], [834, 1194], [1024, 768],
   [1194, 834], [1440, 811], [1920, 1080], [2560, 1440], [393, 852],
 ] as const;
 
@@ -14,6 +14,7 @@ for (const route of ['/', '/calendar']) {
     await expect(page.locator('.screen-loader')).toHaveCount(0);
     const firstWindow = page.locator('.calendar-window').first();
     if (route === '/calendar') await firstWindow.focus();
+    const titleTopByWidth = new Map<number, number>();
     for (const [width, height] of viewports) {
       await page.setViewportSize({ width, height });
       const wide = width >= 640;
@@ -35,6 +36,18 @@ for (const route of ['/', '/calendar']) {
         await expect(page.locator('.desktop-window')).toHaveCount(wide ? 24 : 0);
         await expect(page.locator('.calendar-fullbleed')).toHaveCount(wide ? 1 : 0);
         await expect(firstWindow).toBeFocused();
+        const logo = (await page.locator('.calendar-brand-link img').boundingBox())!;
+        const title = (await page.locator('.calendar-heading').boundingBox())!;
+        const intro = (await page.locator('.calendar-intro').boundingBox())!;
+        const action = (await page.locator('.calendar-daily').boundingBox())!;
+        expect(logo.y).toBeLessThan(35);
+        expect(title.y).toBeLessThanOrEqual(wide ? 84 : 56);
+        expect(intro.y - title.y - title.height).toBeGreaterThanOrEqual(wide ? 14 : 8);
+        expect(action.y - intro.y - intro.height).toBeGreaterThanOrEqual(wide ? 14 : 8);
+        if (wide && height > width) expect(logo.width).toBeGreaterThanOrEqual(156);
+        const previousTitleTop = titleTopByWidth.get(width);
+        if (previousTitleTop !== undefined) expect(title.y).toBeCloseTo(previousTitleTop, 0);
+        titleTopByWidth.set(width, title.y);
       }
       if (route === '/calendar' && wide) {
         for (const side of ['left', 'right']) {
@@ -46,7 +59,12 @@ for (const route of ['/', '/calendar']) {
         }
         const house = (await page.locator('.desktop-house').boundingBox())!;
         expect(house.y + house.height).toBeGreaterThan(height - 45);
-        expect((await page.locator('.calendar-daily > img').boundingBox())!.y).toBeLessThan(house.y + 2);
+        const action = (await page.locator('.calendar-daily').boundingBox())!;
+        expect(house.y - action.y - action.height).toBeGreaterThanOrEqual(16);
+        const snow = (await page.locator('.calendar-ground-back').boundingBox())!;
+        expect(snow.x).toBeCloseTo(0, 0);
+        expect(snow.x + snow.width).toBeCloseTo(width, 0);
+        expect(snow.y + snow.height).toBeCloseTo((await page.locator('main').boundingBox())!.height, 0);
         for (const selector of ['.calendar-tree', '.calendar-lantern']) {
           const decorations = page.locator(selector);
           await expect(decorations).toHaveCount(2);

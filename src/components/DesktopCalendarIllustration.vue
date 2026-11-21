@@ -5,7 +5,6 @@ import required from '../assets/calendar/desktop/window-required.svg';
 import tall from '../assets/calendar/desktop/window-tall.svg';
 import tallRequired from '../assets/calendar/desktop/window-tall-required.svg';
 import bow from '../assets/calendar/40962ceb-81dc-4a6b-877f-8504f8ce54f6.webp';
-import title from '../assets/calendar/desktop/title.svg';
 import { calendarDesktopWindowBounds, isMandatoryCalendarDay } from '../utils/calendar';
 defineProps<{ availableDays: number[] }>();
 const days = Array.from({ length: 24 }, (_, i) => i + 1);
@@ -13,7 +12,6 @@ const days = Array.from({ length: 24 }, (_, i) => i + 1);
 
 <template>
   <div class="calendar-illustration calendar-desktop-illustration" aria-hidden="true">
-    <img class="desktop-calendar-title" :src="title" alt="" width="624" height="89" />
     <img class="desktop-house" :src="house" alt="" width="524" height="627" />
     <div v-for="day in days" :key="day" class="desktop-window" :data-name="`window-${day}`" :data-mandatory="isMandatoryCalendarDay(day)" :style="calendarDesktopWindowBounds(day)">
       <img :src="day > 20 ? (isMandatoryCalendarDay(day) ? tallRequired : tall) : (isMandatoryCalendarDay(day) ? required : normal)" :data-name="isMandatoryCalendarDay(day) ? 'window-ornament' : undefined" alt="" />
@@ -29,7 +27,6 @@ const days = Array.from({ length: 24 }, (_, i) => i + 1);
 
 <style scoped>
 .calendar-desktop-illustration { position:absolute; inset:0; pointer-events:none; }
-.desktop-calendar-title { position:absolute; width:clamp(480px, 55vw, 624px); height:auto; left:50%; transform:translateX(-50%); top:calc(28px - var(--calendar-headroom, 0px) / var(--design-scale)); }
 .desktop-house { position:absolute; left:454px; top:162px; }
 .desktop-house-bow { position:absolute; left:649.56px; top:216.39px; }
 .desktop-window { position:absolute; }

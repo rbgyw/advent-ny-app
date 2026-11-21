@@ -38,7 +38,6 @@ import glow from '../assets/splash/lamp-glow.svg';
 import lamp from '../assets/splash/lamp.svg';
 import leftSnow from '../assets/splash/lamp-snow-left.svg';
 import rightSnow from '../assets/splash/lamp-snow-right.svg';
-import thread from '../assets/splash/star-thread.svg';
 import star from '../assets/splash/star.svg';
 import bow from '../assets/splash/imgRedHolidayRibbonBow2.webp';
 
@@ -49,9 +48,7 @@ const header = [
   { src: brand, x: 141, y: 69 },
   { src: ornamentLeft, x: 109.537, y: 112 },
   { src: ornamentRight, x: 267.537, y: 113 },
-  { src: thread, x: 70, y: 121 },
   { src: star, x: 47, y: 165 },
-  { src: thread, x: 318, y: 123 },
   { src: star, x: 295, y: 163 },
 ];
 // Original 393px artwork; only its wrapper scales. Text stays in normal flow.
