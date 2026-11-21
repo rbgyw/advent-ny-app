@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCampaignClock } from '../composables/useCampaignClock';
 import { asyncScreen } from '../utils/async-screen';
-import LoadingState from '../components/ui/LoadingState.vue';
+import { useScreenReadiness } from '../composables/useScreenReadiness';
 import AppButton from '../components/ui/AppButton.vue';
 import PageLayout from '../components/ui/PageLayout.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -16,7 +16,8 @@ import completedCheck from '../assets/calendar/e284dc00-d9d6-4583-a830-d4c8f80ee
 import todayOutline from '../assets/calendar/3fa47fbb-be3a-4dbf-b56a-851ff9e456ee.svg'
 import todayBadge from '../assets/calendar/2365cce0-774a-4a72-b2a8-f3f1535ce46f.svg'
 import dailyButton from '../assets/calendar/17cfb417-a7e1-4f43-be07-25f27aeb5c8b.svg'
-const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'), 'illustration')
+const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'))
+const { track } = useScreenReadiness()
 const router = useRouter()
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
@@ -44,7 +45,6 @@ const dailyAssignment = computed(() => {
     ?? available[available.length - 1]
 })
 const dailyLabel = computed(() => {
-  if (calendarStore.loading) return 'Загружаем задание дня…'
   const assignment = dailyAssignment.value
   if (assignment) return `${shortCalendarDate(assignment.available_date)} · Открыть задание дня →`
   const next = [...calendarStore.tasks].sort((a, b) => a.available_date.localeCompare(b.available_date))[0]
@@ -74,7 +74,7 @@ async function handleLogout() {
     await router.replace({ name: 'auth' })
   }
 }
-watch(() => user.value?.id, userId => { void loadCalendar(userId) }, { immediate: true })
+watch(() => user.value?.id, userId => { void track(loadCalendar(userId)) }, { immediate: true })
 onMounted(() => {
   document.addEventListener('visibilitychange', refreshVisibleCalendar)
   observer = new ResizeObserver(entries => {
@@ -123,9 +123,8 @@ onBeforeUnmount(() => {
             </span>
           </AppButton>
 
-          <LoadingState v-if="calendarStore.loading && !calendarStore.tasks.length" compact class="calendar-notice" label="Загружаем задания…" />
-          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id, true)">Попробовать ещё раз</AppButton></div>
-          <p v-else-if="!calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
+          <div v-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id, true)">Попробовать ещё раз</AppButton></div>
+          <p v-else-if="!calendarStore.loading && !calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>
       </section>

@@ -1,5 +1,5 @@
 <template>
-  <TaskLoading v-if="calendarStore.loading && !assignment" @back="goBack" />
+  <div v-if="calendarStore.loading && !assignment" />
   <FirstTaskScreen
     v-else-if="day === 1"
     :assignment="assignment"
@@ -476,7 +476,7 @@
 <script setup lang="ts">
 import { asyncScreen } from '../utils/async-screen';
 import FeedbackState from '../components/ui/FeedbackState.vue';
-import TaskLoading from '../components/ui/TaskLoading.vue';
+import { useScreenReadiness } from '../composables/useScreenReadiness';
 import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import TaskLayout from '../components/ui/TaskLayout.vue';
@@ -492,6 +492,7 @@ import TaskAttachments from "../components/TaskAttachments.vue";
 import { sendGratitude } from '../services/gratitude.service';
 import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
+const { track } = useScreenReadiness();
 const FirstTaskScreen = asyncScreen(() => import("../components/FirstTaskScreen.vue"));
 import { memorySubmissionOpen } from "../utils/memory";
 import type { DecemberTaskSave } from '../types/december';
@@ -717,7 +718,7 @@ watch(
 
     if (!userId || !slug || ["task-01", "task-02", "task-03", "task-04", "task-05", "task-06", "task-08", "task-11", "task-12", "task-13", "task-14", "task-21", "task-25"].includes(slug)) return;
 
-    const { data, error } = await supabase.rpc("is_admin");
+    const { data, error } = await track(Promise.resolve(supabase.rpc("is_admin")));
 
     if (!cancelled) {
       isAdmin.value = !error && data === true;
@@ -755,7 +756,7 @@ watch(
       return;
     }
 
-    await calendarStore.loadCalendar(userId);
+    await track(calendarStore.loadCalendar(userId));
   },
   { immediate: true },
 );

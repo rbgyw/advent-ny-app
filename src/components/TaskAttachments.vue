@@ -76,6 +76,7 @@
 <script setup lang="ts">
 import AppButton from './ui/AppButton.vue';
 import LoadingState from './ui/LoadingState.vue';
+import { useScreenReadiness } from '../composables/useScreenReadiness';
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import {
   attachmentsService,
@@ -83,6 +84,8 @@ import {
   validatePhoto,
   type TaskAttachment,
 } from "../services/attachments.service";
+
+const { track } = useScreenReadiness();
 
 const props = withDefaults(defineProps<{
   taskId: number;
@@ -366,7 +369,7 @@ async function uploadSelected(event: Event) {
   }
 }
 
-onMounted(reload);
+onMounted(() => { void track(reload()); });
 
 onBeforeUnmount(() => {
   disposed = true;

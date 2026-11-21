@@ -23,8 +23,8 @@ async function bootstrap() {
   // Supabase and auth are deferred until a route requires them.
   const { default: router } = await import('./router')
   app.use(router)
-  await router.isReady()
   app.mount('#app')
+  await router.isReady()
 }
 
 bootstrap().catch(() => {

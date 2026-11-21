@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { RouterView, useRouter } from 'vue-router';
-import { navigationPending as navigating, navigationError, navigationDestination as destination } from './router/status';
+import { computed } from 'vue';
+import { getActivePinia } from 'pinia';
+import { RouterView } from 'vue-router';
+import { navigationPending, navigationError, navigationDestination, screenPending, screenError, screenBackground, screenBackgroundLayer } from './router/status';
 import { usePageMotion } from './composables/usePageMotion';
-import LoadingState from './components/ui/LoadingState.vue';
-import FeedbackState from './components/ui/FeedbackState.vue';
-import AppButton from './components/ui/AppButton.vue';
+import ScreenLoader from './components/ui/ScreenLoader.vue';
+import ScreenReadyBoundary from './components/ui/ScreenReadyBoundary.vue';
 usePageMotion();
-const router = useRouter();
-function retry() { void router.push(destination.value).catch(() => {}); }
+const pinia = getActivePinia()!;
+const task = computed(() => /^\/task\//.test(navigationDestination.value || location.pathname));
+const theme = computed(() => {
+  const path = navigationDestination.value || location.pathname;
+  if (path.startsWith('/calendar')) return 'calendar';
+  const day = Number(path.match(/^\/task\/(\d+)/)?.[1]);
+  const assignment = pinia.state.value.calendar?.tasks?.find((item: { position: number }) => item.position === day);
+  const number = Number(assignment?.task?.slug?.match(/^task-(\d+)$/)?.[1] ?? assignment?.task_id ?? day);
+  return task.value && [4, 6, 7, 9, 11, 14, 17, 19, 21, 25].includes(number) ? 'night' : 'warm';
+});
+function retry() { window.location.reload(); }
 </script>
+
 <template>
-  <LoadingState v-if="navigating" compact class="route-status" label="Открываем страницу…" />
-  <FeedbackState v-if="navigationError" kind="error" class="route-status"><p>{{ navigationError }}</p><AppButton variant="outline" @click="retry">Попробовать снова</AppButton></FeedbackState>
-  <RouterView />
+  <ScreenLoader v-if="navigationPending || screenPending || navigationError || screenError"
+    :label="task ? 'Загружаем задание...' : 'Открываем календарь...'"
+    :theme="theme" :background="screenBackground" :background-layer="screenBackgroundLayer" :error="navigationError || screenError" @retry="retry" />
+  <RouterView v-slot="{ Component, route }">
+    <ScreenReadyBoundary v-if="Component" :key="route.fullPath" :destination="route.fullPath">
+      <component :is="Component" />
+    </ScreenReadyBoundary>
+  </RouterView>
 </template>
-<style scoped>
-.route-status { position:fixed; z-index:100; top:12px; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 48px); padding:12px 16px; border-radius:var(--radius-control); background:var(--color-paper); color:var(--color-ink); box-shadow:0 4px 20px #29120926; font:14px/20px var(--font-ui); }
-</style>

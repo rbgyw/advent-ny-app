@@ -78,6 +78,7 @@ test('raskobki preserves the existing answer chain and saves completion', async 
 });
 test('nonogram paints the solution with native keyboard controls and saves', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/21');
+  await expect(page.locator('.nonogram-board')).toBeVisible();
   for (const [index, mark] of solvedNonogram.entries()) if (mark === filled) {
     await page.locator(`[data-cell-index="${index}"]`).focus(); await page.keyboard.press('Enter');
   }

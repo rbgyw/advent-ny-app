@@ -3,7 +3,10 @@ import { videoVotingService } from '../services/video-voting.service';
 import { rankedVideos, type AdventVideo, type VideoVotingState } from '../utils/video-voting';
 import type { DecemberTaskProps } from '../types/december';
 
+import { useScreenReadiness } from './useScreenReadiness';
+
 export function useVideoVoting(props: DecemberTaskProps, onComplete: () => void) {
+  const { track } = useScreenReadiness();
   const videos = shallowRef<AdventVideo[]>([]);
   const state = shallowRef<VideoVotingState | null>(null);
   const loading = ref(false);
@@ -108,7 +111,7 @@ export function useVideoVoting(props: DecemberTaskProps, onComplete: () => void)
       if (request === version) error.value = 'Не удалось обновить рейтинг. Попробуйте ещё раз.';
     } finally { if (request === version) busy.value = false; }
   }
-  watch([identity, ready], () => { void load(); }, { immediate: true });
+  watch([identity, ready], () => { void track(load()); }, { immediate: true });
   onBeforeUnmount(() => { version++; controller?.abort(); clearSwipe(); });
   return { videos, state, loading, busy, error, swipe, rankingOpen, votes, current, ranking, load, vote, finishSwipe, refreshRanking };
 }

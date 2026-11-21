@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useScreenReadiness } from '../composables/useScreenReadiness';
 import { lockPopupScroll, unlockPopupScroll } from '../utils/popup-scroll';
+
+const { ready: screenReady } = useScreenReadiness();
 
 // A native modal provides focus trapping, Escape and focus restoration.
 // Slots and inherited attributes preserve each task's artwork and animations.
@@ -23,7 +26,7 @@ async function showModal() {
   model.value = true;
   await nextTick();
   const element = dialog.value;
-  if (disposed || !requestedOpen || !element?.isConnected || element.open) return;
+  if (!screenReady.value || disposed || !requestedOpen || !element?.isConnected || element.open) return;
   previousFocus = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : lastOutsideFocus;
   lockPopupScroll(element);
   try {
@@ -54,11 +57,11 @@ function onClose() {
   emit('close');
 }
 
-watch(model, value => { if (value) void showModal(); else close(); }, { immediate: true });
+watch([model, screenReady], ([value, ready]) => { if (value && ready) void showModal(); else if (!value) close(); }, { immediate: true });
 onBeforeUnmount(() => { disposed = true; close(); restoreFocus(); document.removeEventListener('focusin', rememberFocus); });
 defineExpose({ showModal, close, open });
 </script>
 
 <template>
-  <dialog ref="dialog" @close="onClose"><slot /></dialog>
+  <dialog ref="dialog" :data-screen-dialog-pending="model && !screenReady ? '' : undefined" @close="onClose"><slot /></dialog>
 </template>

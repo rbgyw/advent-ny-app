@@ -1,6 +1,9 @@
 <script setup lang="ts" generic="Item">
 import { computed, onMounted, onUnmounted, ref, shallowRef, useId } from 'vue';
 
+import { useScreenReadiness } from '../composables/useScreenReadiness';
+const { track } = useScreenReadiness();
+
 const props = defineProps<{
   title: string;
   filename: string;
@@ -47,7 +50,7 @@ function step(offset: number) {
   index.value = Math.min(items.value.length - 1, Math.max(0, index.value + offset));
 }
 
-onMounted(load);
+onMounted(() => { void track(load()); });
 onUnmounted(() => controller.abort());
 </script>
 
