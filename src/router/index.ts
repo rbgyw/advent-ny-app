@@ -71,7 +71,8 @@ router.afterEach((to, _from, failure) => {
   navigationPending.value = false
   if (failure) screenPending.value = false
 })
-router.onError(() => {
+router.onError((_error, to) => {
+  if (to.fullPath !== navigationDestination.value) return
   navigationPending.value = false
   navigationError.value = 'Не удалось открыть страницу. Проверьте подключение.'
 })

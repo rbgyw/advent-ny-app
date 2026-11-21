@@ -11,7 +11,7 @@
   min-height: 100svh;
   overflow: auto;
   color: #fffdf5;
-  background: #291209 url('./night-background.svg') center / 100% 100% no-repeat;
+  background: var(--background-night);
   font: 400 14px/17px 'Advent Loading', 'Advent Inter', sans-serif;
   letter-spacing: 0;
   color-scheme: light;

@@ -9,7 +9,7 @@ import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCalendarStore } from '../stores/calendar'
-import { shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds } from '../utils/calendar'
+import { shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds, isMandatoryCalendarDay } from '../utils/calendar'
 import '../assets/calendar/calendar-fonts.css'
 import completedCircle from '../assets/calendar/451730f3-8fe7-403b-be98-c03b022d0574.svg'
 import completedCheck from '../assets/calendar/e284dc00-d9d6-4583-a830-d4c8f80ee1c9.svg'
@@ -31,7 +31,7 @@ const windows = computed(() => Array.from({ length: 25 }, (_, index) => {
   const day = index + 1
   const assignment = assignments.value.get(day)
   return {
-    day, assignment, bounds: calendarWindowBounds(day),
+    day, assignment, mandatory: isMandatoryCalendarDay(day), bounds: calendarWindowBounds(day),
     completed: assignment?.status === 'completed',
     isToday: assignment?.available_date === today.value,
     available: canOpenAssignment(assignment, today.value),
@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
             </nav>
           </details>
 
-          <AppButton v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25 }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
+          <AppButton v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25, 'is-mandatory': window.mandatory }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
             <template v-if="window.isToday">
               <img class="calendar-today-outline" :src="todayOutline" alt="" width="70.3" height="61.3" />
               <span class="calendar-today-badge"><img :src="todayBadge" alt="" width="48" height="14" />Сегодня</span>

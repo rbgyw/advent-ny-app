@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, provide, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref } from 'vue';
 import { screenReadinessKey } from '../../composables/useScreenReadiness';
-import { navigationDestination, navigationPending, screenPending, screenError, screenBackground, screenBackgroundLayer } from '../../router/status';
+import { navigationDestination, navigationPending, navigationError, screenPending, screenError, screenBackground, screenBackgroundLayer } from '../../router/status';
 import { waitForScreenResources } from '../../utils/screen-resources';
 
 const props = defineProps<{ destination: string }>();
 const root = ref<HTMLElement>();
 const ready = ref(false);
+// Also cover a failed route import: the old page can remain mounted underneath
+// the error screen, and must stay outside keyboard navigation until recovery.
+const blocked = computed(() => !ready.value || navigationPending.value || screenPending.value || Boolean(navigationError.value || screenError.value));
 let mounted = false;
 let disposed = false;
 let failed = false;
@@ -66,6 +69,13 @@ async function check() {
     backgroundObserver?.disconnect();
     screenPending.value = false;
     clearTimeout(timeout);
+    await nextTick();
+    // The old screen is inert during navigation. Start reading the new page at
+    // its main landmark once it is visible; let initial native dialogs keep focus.
+    if (isCurrent() && document.activeElement === document.body) {
+      const page = root.value?.querySelector('main');
+      if (page) { page.tabIndex = -1; page.focus({ preventScroll: true }); }
+    }
   } catch (error) {
     if (!current.signal.aborted && attempt === version && isCurrent()) {
       failed = true;
@@ -112,13 +122,16 @@ onBeforeUnmount(() => { disposed = true; controller?.abort(); clearTimeout(timeo
 </script>
 
 <template>
-  <div ref="root" class="screen-content" :class="{ 'screen-content-pending': !ready || navigationPending }" :inert="!ready || navigationPending" :aria-hidden="!ready || navigationPending ? 'true' : undefined">
+  <div ref="root" class="screen-content" :class="{ 'screen-content-pending': blocked }" :inert="blocked">
     <slot />
   </div>
 </template>
 
 <style>
 .screen-content { width: 100%; min-height: 100svh; }
+/* main receives reading focus after navigation, but is never a tab stop.
+   Interactive controls keep their own visible keyboard focus indicators. */
+.screen-content > main[tabindex="-1"]:focus { outline: none; }
 .screen-content-pending { height: 100svh; overflow: clip; visibility: hidden; pointer-events: none; }
 /* Explicit visibility on a child must not expose it before the whole screen. */
 .screen-content-pending * { visibility: hidden !important; }

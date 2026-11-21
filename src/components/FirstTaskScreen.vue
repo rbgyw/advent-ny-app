@@ -163,7 +163,7 @@ function cssUrl(url: string) {
   letter-spacing: 0;
   text-align: left;
   background: #c63d0f url("../assets/first-task/background.svg") center top /
-    393px 962px repeat-x;
+    cover no-repeat;
 }
 .first-task-layout {
   box-sizing: border-box;

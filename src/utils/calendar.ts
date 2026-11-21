@@ -1,5 +1,11 @@
 import type { CalendarTask } from '../types/models'
 
+export const mandatoryCalendarDays = [4, 7, 9, 11, 14, 17, 19, 21] as const
+
+export function isMandatoryCalendarDay(day: number): boolean {
+  return (mandatoryCalendarDays as readonly number[]).includes(day)
+}
+
 const campaignFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit',
 })
@@ -22,9 +28,10 @@ export function canOpenAssignment(assignment: CalendarTask | undefined, today: s
 
 export function calendarWindowLabel(day: number, assignment: CalendarTask | undefined, today: string): string {
   if (!assignment) return `День ${day}. Задание пока не назначено`
-  const title = assignment.task?.title ? `. ${assignment.task.title}` : ''
+  const title = (assignment.task?.title ? `. ${assignment.task.title}` : '')
+    + (isMandatoryCalendarDay(day) ? '. Обязательное задание' : '')
   if (assignment.status === 'completed') return `День ${day}${title}. Выполнено`
-  if (!canOpenAssignment(assignment, today)) return `День ${day}. Откроется ${shortCalendarDate(assignment.available_date)}`
+  if (!canOpenAssignment(assignment, today)) return `День ${day}${isMandatoryCalendarDay(day) ? '. Обязательное задание' : ''}. Откроется ${shortCalendarDate(assignment.available_date)}`
   return `День ${day}${title}. ${assignment.available_date === today ? 'Сегодня' : 'Открыть задание'}`
 }
 

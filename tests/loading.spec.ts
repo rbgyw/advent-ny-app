@@ -152,3 +152,65 @@ test('a completed task prepares its initial dialog before opening the modal', as
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.getByRole('dialog')).toBeVisible();
 });
+
+test('night boot loader fills non-iPhone aspect ratios without SVG side bars', async ({ page }) => {
+  await mockBackend(page);
+  const code = barrier(), requested = barrier();
+  await page.route('**/assets/index-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
+  await page.goto('/task/6', { waitUntil: 'commit' });
+  await requested.wait;
+  for (const viewport of [{ width: 551, height: 917 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(viewport);
+    const loader = page.locator('#startup-loader');
+    await expect(loader).toHaveCSS('background-image', /linear-gradient/);
+    await expect(loader).not.toHaveCSS('background-image', /url\(/);
+    const box = await loader.boundingBox();
+    expect(box).toEqual({ x: 0, y: 0, width: viewport.width, height: viewport.height });
+    if (viewport.width === 551) await page.screenshot({ path: '/tmp/advent-loader-no-side-bars.png' });
+  }
+  code.release();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+});
+
+test('focused calendar controls are made inert without aria-hidden violations on navigation', async ({ page }) => {
+  await mockBackend(page);
+  const warnings: string[] = [];
+  page.on('console', message => { if (/aria-hidden|retained focus|Blocked aria/i.test(message.text())) warnings.push(message.text()); });
+  const accessibility = await page.context().newCDPSession(page);
+  await accessibility.send('Accessibility.enable');
+  await page.goto('/calendar');
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  const code = barrier(), requested = barrier();
+  await page.route('**/SixthTaskScreen-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
+  const window = page.locator('.calendar-window').nth(5);
+  await window.focus();
+  await expect(window).toBeFocused();
+  await page.keyboard.press('Enter');
+  await requested.wait;
+  await expect(page.locator('.screen-content')).toHaveAttribute('inert', '');
+  await expect(page.locator('.screen-content')).not.toHaveAttribute('aria-hidden');
+  await accessibility.send('Accessibility.getFullAXTree');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('[inert], [aria-hidden=true]'))).toBe(false);
+  code.release();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('main')).toBeFocused();
+  await page.getByRole('button', { name: /Назад к календарю|К календарю/ }).first().click();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('main')).toBeFocused();
+  await accessibility.send('Accessibility.getFullAXTree');
+  expect(warnings).toEqual([]);
+});
+
+test('a failed route keeps the previous screen inert behind the retry button', async ({ page }) => {
+  await mockBackend(page);
+  await page.goto('/calendar');
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await page.route('**/TaskView-*.js', route => route.abort());
+  await page.locator('.calendar-window').first().click();
+  await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось открыть страницу');
+  await expect(page.locator('.screen-content')).toHaveAttribute('inert', '');
+  await expect(page.locator('.calendar-page')).toBeHidden();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
+  expect(await page.getByRole('button').count()).toBe(1);
+});
