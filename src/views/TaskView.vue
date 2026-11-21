@@ -306,7 +306,7 @@ import TaskAttachments from "../components/TaskAttachments.vue";
 import { sendGratitude } from '../services/gratitude.service';
 import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
-import FirstTaskScreen from "../components/FirstTaskScreen.vue";
+const FirstTaskScreen = defineAsyncComponent(() => import("../components/FirstTaskScreen.vue"));
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
 import type { RaskobkiAnswer } from '../content/raskobki';

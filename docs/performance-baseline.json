@@ -1,0 +1,91 @@
+{
+  "total_bytes": 34579953,
+  "js": [
+    {
+      "file": "CalendarIllustration-CCcWwD4h.js",
+      "bytes": 347046,
+      "gzip": 29716
+    },
+    {
+      "file": "SecondTaskScreen-timBP4_m.js",
+      "bytes": 136463,
+      "gzip": 17949
+    },
+    {
+      "file": "TwentyFifthTaskScreen-BX8NvXRk.js",
+      "bytes": 50687,
+      "gzip": 14659
+    },
+    {
+      "file": "SixthTaskScreen-CH8dkkLT.js",
+      "bytes": 157652,
+      "gzip": 35310
+    },
+    {
+      "file": "FourteenthTaskScreen-DC7KlzeH.js",
+      "bytes": 6520,
+      "gzip": 2966
+    },
+    {
+      "file": "TwentyFirstTaskScreen-ChDCDwox.js",
+      "bytes": 11538,
+      "gzip": 4778
+    },
+    {
+      "file": "FourthTaskScreen-DeneT6ot.js",
+      "bytes": 21799,
+      "gzip": 6850
+    },
+    {
+      "file": "ThirdTaskScreen-bTXcT1P-.js",
+      "bytes": 8937,
+      "gzip": 3719
+    },
+    {
+      "file": "dot-C9bdzYr8.js",
+      "bytes": 507,
+      "gzip": 302
+    },
+    {
+      "file": "index-_czpnGXD.js",
+      "bytes": 422432,
+      "gzip": 123575
+    },
+    {
+      "file": "dot-2i0iDq0U.js",
+      "bytes": 501,
+      "gzip": 297
+    },
+    {
+      "file": "EleventhTaskScreen-8fhzVoUb.js",
+      "bytes": 18931,
+      "gzip": 6957
+    },
+    {
+      "file": "TwelfthTaskScreen-Bf7ImLxU.js",
+      "bytes": 14828,
+      "gzip": 5543
+    },
+    {
+      "file": "wordmark-BN3FPXap.js",
+      "bytes": 3570,
+      "gzip": 1460
+    },
+    {
+      "file": "ThirteenthTaskScreen-CD9Gm6tm.js",
+      "bytes": 53916,
+      "gzip": 11369
+    },
+    {
+      "file": "EighthTaskScreen-WVX6mQs-.js",
+      "bytes": 22895,
+      "gzip": 6981
+    },
+    {
+      "file": "FifthTaskScreen-DYFWJMr9.js",
+      "bytes": 17027,
+      "gzip": 5209
+    }
+  ],
+  "css_bytes": 165447
+}

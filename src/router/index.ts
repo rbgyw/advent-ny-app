@@ -6,12 +6,12 @@ import {
 
 import { useAuthStore } from '../stores/auth'
 
-import SplashView from '../views/SplashView.vue'
-import RulesView from '../views/RulesView.vue'
+const SplashView = () => import('../views/SplashView.vue')
+const RulesView = () => import('../views/RulesView.vue')
 
-import AuthView from '../views/AuthView.vue'
-import CalendarView from '../views/CalendarView.vue'
-import TaskView from '../views/TaskView.vue'
+const AuthView = () => import('../views/AuthView.vue')
+const CalendarView = () => import('../views/CalendarView.vue')
+const TaskView = () => import('../views/TaskView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
