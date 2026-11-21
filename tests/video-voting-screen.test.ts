@@ -17,7 +17,7 @@ describe('December 22 screen', () => {
   it('shows the Figma portrait placeholder with disabled voting until videos are published', async () => {
     vi.mocked(videoVotingService.loadCatalog).mockResolvedValue([]);
     const view = screen(); await flushPromises();
-    expect(view.get('h1').text()).toBe('Новогодние поздравления');
+    expect(view.get('h1').text()).toBe('Свет, камера, контент!');
     expect(view.text()).toContain('Здесь будет видео');
     expect(view.findAll<HTMLButtonElement>('.video-choices button').every(button => button.element.disabled)).toBe(true);
     expect(view.emitted('completed')).toBeUndefined();
@@ -38,7 +38,7 @@ describe('December 22 screen', () => {
   it('shows the shared top three, independent of which videos the current user liked', async () => {
     vi.mocked(videoVotingService.loadState).mockResolvedValue({ votes: videos.map((video, index) => ({ videoId: video.id, liked: index === 0 })), ranking, totalVideos: 4, complete: true });
     const view = screen(); await flushPromises();
-    expect(view.get('h1').text()).toBe('Топ-3 поздравлений');
+    expect(view.get('h1').text()).toBe('Топ-3 роликов');
     expect(view.get('.video-summary').text()).toBe('Вам понравилось 1 из 4 видео.');
     expect(view.findAll('.video-rank-title').map(row => row.text())).toEqual(['Поздравление b', 'Поздравление c', 'Поздравление d']);
     expect(view.findAll('.video-rank-likes').map(row => row.text())).toEqual(['20 ❤', '18 ❤', '12 ❤']);
@@ -49,6 +49,6 @@ describe('December 22 screen', () => {
     vi.mocked(videoVotingService.loadState).mockResolvedValue({ votes: videos.map(video => ({ videoId: video.id, liked: false })), ranking: ranking.map(row => ({ ...row, likes: 0 })), totalVideos: 4, complete: true });
     const view = screen(); await flushPromises();
     expect(view.find('.video-ranking').exists()).toBe(false);
-    expect(view.text()).toContain('Пока у поздравлений нет лайков');
+    expect(view.text()).toContain('Пока у роликов нет лайков');
   });
 });

@@ -67,7 +67,7 @@ function animationEnd(event: AnimationEvent) {
 <template>
   <div class="video-card-viewport">
     <article class="video-swipe-card" :class="[swipe && `swipe-${swipe}`, { 'is-dragging': dragging }]" :style="movement"
-      :aria-label="video?.title ?? 'Поздравление скоро появится'" @pointerdown="pointerDown" @pointermove="pointerMove"
+      :aria-label="video?.title ?? 'Видео скоро появится'" @pointerdown="pointerDown" @pointermove="pointerMove"
       @pointerup="pointerUp" @pointercancel="resetDrag" @lostpointercapture="lostCapture" @animationend="animationEnd">
       <div class="video-portrait">
         <video v-if="video && !mediaFailed" :key="video.id" ref="media" :src="video.videoUrl" :poster="video.posterUrl"
@@ -87,9 +87,9 @@ function animationEnd(event: AnimationEvent) {
         </div>
         <span v-if="dragging" class="video-choice-stamp" :class="{ 'is-like': drag > 0 }" aria-hidden="true">{{ drag > 0 ? 'Понравилось ❤' : 'Пропустить' }}</span>
       </div>
-      <h2 class="video-card-title">{{ video?.title ?? 'Поздравление №1' }}</h2>
+      <h2 class="video-card-title">{{ video?.title ?? 'Ролик №1' }}</h2>
       <p v-if="video?.author" class="video-card-author">{{ video.author }}</p>
-      <p v-if="video?.description || !video" class="video-card-description">{{ video?.description ?? 'Поздравления от амбассадоров ГЕРОФАРМ скоро появятся здесь.' }}</p>
+      <p v-if="video?.description || !video" class="video-card-description">{{ video?.description ?? 'Видео участников «Мастерской контента» скоро появятся здесь.' }}</p>
     </article>
   </div>
 </template>

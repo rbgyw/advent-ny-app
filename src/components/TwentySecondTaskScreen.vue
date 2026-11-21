@@ -26,17 +26,18 @@ onBeforeUnmount(() => {
 
 <template>
   <DecemberTaskLayout v-bind="props" :brand-src="brand" :task-number="22"
-    :title="rankingOpen ? 'Топ-3 поздравлений' : 'Новогодние поздравления'" @back="emit('back')" @retry="emit('retry')">
+    :title="rankingOpen ? 'Топ-3 роликов' : 'Свет, камера, контент!'" @back="emit('back')" @retry="emit('retry')">
     <template v-if="rankingOpen">
+      <p class="video-thanks" role="status">Спасибо! Ваши оценки учтены.</p>
       <p class="video-summary">Вам понравилось {{ likedCount }} из {{ videos.length }} видео.</p>
-      <ol v-if="top.length" class="video-ranking" aria-label="Общий топ поздравлений по лайкам всех пользователей">
+      <ol v-if="top.length" class="video-ranking" aria-label="Общий топ роликов по лайкам всех пользователей">
         <li v-for="(video, index) in top" :key="video.id" class="video-rank-row">
           <span class="video-rank-number">{{ index + 1 }}</span>
           <span class="video-rank-title">{{ video.title }}</span>
           <span class="video-rank-likes" :aria-label="`Лайков: ${video.likes}`">{{ video.likes }} <span aria-hidden="true">❤</span></span>
         </li>
       </ol>
-      <p v-else class="video-no-likes" role="status">Пока у поздравлений нет лайков. Топ появится, когда участники выберут понравившиеся видео.</p>
+      <p v-else class="video-no-likes" role="status">Пока у роликов нет лайков. Топ появится, когда участники выберут понравившиеся видео.</p>
       <div v-if="error" class="video-error" role="alert">
         <p>{{ error }}</p>
         <button class="december-link" type="button" :disabled="busy" @click="refreshRanking">Обновить рейтинг</button>
@@ -44,15 +45,19 @@ onBeforeUnmount(() => {
       <button class="december-button video-calendar video-ranking-back" type="button" @click="emit('back')"><span>К календарю</span></button>
     </template>
     <template v-else>
-      <p class="video-intro">Посмотрите поздравления от амбассадоров ГЕРОФАРМ. Свайпните вправо, если видео понравилось, или влево, чтобы пропустить. Можно также нажать кнопку.</p>
-      <p v-if="loading" class="video-loading" role="status">Загружаем поздравления…</p>
+      <div class="december-copy video-intro">
+        <p>Как выглядит жизнь ГЕРОФАРМ через камеру сотрудников? Участники «Мастерской контента» снимают видео о компании, своих командах и событиях, в которых участвуют сами.</p>
+        <p>«Мастерская контента» — одно из направлений программы амбассадоров ГЕРОФАРМ. Сегодня смотрите работы участников и выбирайте ролики, которые понравились больше всего.</p>
+        <p>Понравилось видео — смахните вправо, не очень — влево. По оценкам сотрудников сформируется тройка самых популярных роликов.</p>
+      </div>
+      <p v-if="loading" class="video-loading" role="status">Загружаем ролики…</p>
       <template v-else-if="!error || state">
         <p class="video-counter" role="status">{{ videos.length ? `Видео ${Math.min(votedCount + 1, videos.length)} из ${videos.length}` : 'Видео скоро появятся' }}</p>
         <div class="video-progress" role="progressbar" aria-label="Оценено видео" :aria-valuenow="votedCount" :aria-valuemin="0" :aria-valuemax="videos.length || 1">
           <div :style="{ width: `${progress}%` }" />
         </div>
         <VideoSwipeCard :key="current?.id ?? 'placeholder'" :video="current" :busy="busy || !current" :swipe="swipe" class="video-deck" @vote="vote" @settled="finishSwipe" />
-        <div class="video-choices" aria-label="Оценить поздравление">
+        <div class="video-choices" aria-label="Оценить ролик">
           <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(false)">Пропустить</button>
           <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(true)">Понравилось <span aria-hidden="true">❤</span></button>
         </div>
@@ -83,7 +88,7 @@ onBeforeUnmount(() => {
 .video-choices button:disabled { opacity: .65; }
 .video-calendar { margin-top: 10px; border-radius: 14px; }
 .video-calendar span { color: transparent; background: var(--dec-gold); background-clip: text; }
-.video-summary { line-height: 20px; }
+.video-summary { margin-top: 8px; line-height: 20px; }
 .video-ranking { display: grid; gap: 8px; padding: 0; margin: 25px 0 0; list-style: none; }
 .video-rank-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 46px; box-sizing: border-box; padding: 10px; border: 1px solid #dcc8a8; border-radius: 14px; background: #fffaf0; }
 .video-rank-number { color: var(--dec-red); font-weight: 700; }
