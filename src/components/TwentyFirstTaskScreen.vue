@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -38,7 +39,7 @@ const tool = ref<MarkingTool>(filled);
 const enlarged = ref(false);
 const validation = ref('');
 const panel = ref<HTMLElement>();
-const dialog = ref<HTMLDialogElement>();
+const dialog = ref<InstanceType<typeof AppDialog>>();
 const dotCount = ref(0);
 let awaitingCompletion = false;
 
@@ -235,12 +236,12 @@ function backFromResult() {
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
 
-    <dialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
+    <AppDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
       <AppButton class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</AppButton>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
       <AppButton class="nonogram-primary" type="button" @click="backFromResult">К календарю</AppButton>
-    </dialog>
+    </AppDialog>
   </TaskLayout>
 </template>
 

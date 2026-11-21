@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -21,7 +22,7 @@ import closeArt from '../assets/film/close.svg';
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [recommendation: FilmRecommendation]; edit: [] }>();
 const form = reactive<FilmRecommendation>({ title: '', reason: '' });
-const formElement = ref<HTMLFormElement>(), dialog = ref<HTMLDialogElement>(), background = ref<HTMLElement>();
+const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof AppDialog>>(), background = ref<HTMLElement>();
 const validation = ref(''), invalidField = ref(''), now = ref(Date.now()), ratio = ref(1529 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const closed = computed(() => !filmSubmissionOpen(props.assignment?.available_date, new Date(now.value)));
@@ -108,12 +109,12 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
       </AppCard>
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="film-popup" :style="{ '--popup-art': cssUrl(popupArt) }" aria-labelledby="film-popup-title" aria-describedby="film-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
+    <AppDialog ref="dialog" class="film-popup" :style="{ '--popup-art': cssUrl(popupArt) }" aria-labelledby="film-popup-title" aria-describedby="film-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
       <AppButton class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img :src="closeArt" alt="" /></AppButton>
       <h2 id="film-popup-title">Готово!</h2>
       <p id="film-popup-copy">Спасибо! Ваш совет поможет собрать нашу новогоднюю киноподборку</p>
       <AppButton class="film-button film-calendar" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
-    </dialog>
+    </AppDialog>
   </TaskLayout>
 </template>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -33,7 +34,7 @@ const letters = ref<string[]>(Array(15).fill(''))
 const inputs = ref<HTMLInputElement[]>([])
 const incorrect = ref(false)
 const popupOpen = ref(false)
-const dialog = ref<HTMLDialogElement | null>(null)
+const dialog = ref<InstanceType<typeof AppDialog> | null>(null)
 const gradient = ref<HTMLElement | null>(null)
 const board = ref<HTMLElement | null>(null)
 const message = ref<HTMLElement | null>(null)
@@ -206,13 +207,13 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
       </AppCard>
       <footer class="cipher-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy" @close="popupOpen = false" @cancel="popupOpen = false">
+    <AppDialog ref="dialog" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy" @close="popupOpen = false" @cancel="popupOpen = false">
       <AppButton class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</AppButton>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
       <p id="cipher-success-copy">Подарок — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнивших все обязательные задания адвента. Продолжайте открывать окошки, ведь впереди у нас еще много интересного!</p>
       <div class="cipher-gift" :style="{ backgroundImage: cssUrl(gift) }" data-figma-node="28:40836">Фото спортивной сумки</div>
       <AppButton class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</AppButton>
-    </dialog>
+    </AppDialog>
   </TaskLayout>
 </template>
 

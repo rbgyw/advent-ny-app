@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -35,7 +36,7 @@ const emit = defineEmits<{ back: []; retry: [] }>();
 const form = reactive<GratitudeLetter>({ anonymous: false, senderName: '', recipient: '', message: '' });
 const sending = ref(false), sent = ref(false), sendError = ref('');
 const invalidField = ref('');
-const formElement = ref<HTMLFormElement>(), dialog = ref<HTMLDialogElement>();
+const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof AppDialog>>();
 const background = ref<HTMLElement>(), ratio = ref(1529 / 393);
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
@@ -144,7 +145,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
       </AppCard>
       <footer class="gratitude-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
+    <AppDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
       <div v-if="sent" class="gratitude-envelope">
         <img class="envelope-back" :src="envelopeBack" alt="" />
         <img class="envelope-letter" :src="letterArt" alt="" />
@@ -160,7 +161,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
         <img class="envelope-front" :src="envelopeFront" alt="" />
         <AppButton class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
       </div>
-    </dialog>
+    </AppDialog>
   </TaskLayout>
 </template>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -31,7 +32,7 @@ const emit = defineEmits<{
 }>()
 const gradient = ref<HTMLElement | null>(null)
 const textarea = ref<HTMLTextAreaElement | null>(null)
-const dialog = ref<HTMLDialogElement | null>(null)
+const dialog = ref<InstanceType<typeof AppDialog> | null>(null)
 const attachmentsBusy = ref(false)
 const validation = ref('')
 const popupOpen = ref(false)
@@ -128,12 +129,12 @@ onBeforeUnmount(() => {
       </AppCard>
       <footer class="memory-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy" @close="popupOpen = false" @cancel="popupOpen = false">
+    <AppDialog ref="dialog" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy" @close="popupOpen = false" @cancel="popupOpen = false">
       <AppButton class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</AppButton>
       <h2 id="memory-thanks-title">Спасибо,<br />что поделились!</h2>
       <p id="memory-thanks-copy">В конце адвента соберём воспоминания коллег в праздничную подборку.</p>
       <AppButton class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></AppButton>
-    </dialog>
+    </AppDialog>
   </TaskLayout>
 </template>
 

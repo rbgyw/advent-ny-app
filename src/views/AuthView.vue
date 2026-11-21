@@ -29,14 +29,12 @@
           <p class="auth-intro">Войдите в новогодний адвент-календарь с корпоративной почтой и паролем.</p>
           <form @submit.prevent="handleLogin" :aria-busy="authStore.loading">
             <fieldset :disabled="authStore.loading">
-              <div class="auth-field email-field">
-                <label for="login-email">Email</label>
+              <FormField class="email-field" for-id="login-email" label="Email">
                 <input id="login-email" v-model="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" required />
-              </div>
-              <div class="auth-field password-field">
-                <label for="login-password">Пароль</label>
+              </FormField>
+              <FormField class="password-field" for-id="login-password" label="Пароль">
                 <input id="login-password" v-model="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
-              </div>
+              </FormField>
               <p v-if="authStore.error" class="auth-error" role="alert">{{ authStore.error }}</p>
               <AppButton class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</AppButton>
             </fieldset>
@@ -48,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import FormField from '../components/ui/FormField.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import PageLayout from '../components/ui/PageLayout.vue';
 import AppHeader from '../components/ui/AppHeader.vue';
