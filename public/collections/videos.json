@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "video-01",
+    "title": "Название ролика",
+    "author": "Имя автора или команда",
+    "description": "Короткое описание",
+    "videoUrl": "videos/video-01.mp4",
+    "posterUrl": "images/video-01.jpg"
+  },
+  {
+    "id": "video-02",
+    "title": "Название ролика",
+    "author": "Имя автора или команда",
+    "description": "Короткое описание",
+    "videoUrl": "videos/video-02.mp4",
+    "posterUrl": "images/video-02.jpg"
+  },
+  {
+    "id": "video-03",
+    "title": "Название ролика",
+    "author": "Имя автора или команда",
+    "description": "Короткое описание",
+    "videoUrl": "videos/video-03.mp4",
+    "posterUrl": "images/video-03.jpg"
+  },
+  {
+    "id": "video-04",
+    "title": "Название ролика",
+    "author": "Имя автора или команда",
+    "description": "Короткое описание",
+    "videoUrl": "videos/video-04.mp4",
+    "posterUrl": "images/video-04.jpg"
+  }
+]
