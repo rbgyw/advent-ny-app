@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useCampaignClock } from '../composables/useCampaignClock';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
@@ -24,16 +25,16 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; submit: [recommendation: FilmRecommendation]; edit: [] }>();
 const form = reactive<FilmRecommendation>({ title: '', reason: '' });
 const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof AppDialog>>(), background = ref<HTMLElement>();
-const validation = ref(''), invalidField = ref(''), now = ref(Date.now()), ratio = ref(1529 / 393);
+const { now, refreshClock } = useCampaignClock();
+const validation = ref(''), invalidField = ref(''), ratio = ref(1529 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const closed = computed(() => !filmSubmissionOpen(props.assignment?.available_date, new Date(now.value)));
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
-let observer: ResizeObserver | undefined, timer: ReturnType<typeof setInterval> | undefined;
+let observer: ResizeObserver | undefined;
 let previousOverflow: string | undefined;
 let previousScroll = 0;
-function refreshClock() { now.value = Date.now(); }
 function edit() { validation.value = ''; invalidField.value = ''; emit('edit'); }
 function unlockScroll() {
   if (previousOverflow !== undefined) { document.documentElement.style.overflow = previousOverflow; previousOverflow = undefined; window.scrollTo({ top: previousScroll, behavior: 'instant' }); }
@@ -67,9 +68,8 @@ watch(completed, (value, previous) => { if (value && previous === false) void sh
 onMounted(() => {
   observer = new ResizeObserver(entries => { const size = entries[0]?.contentRect; if (size?.width) ratio.value = size.height / size.width; });
   if (background.value) observer.observe(background.value);
-  timer = setInterval(refreshClock, 30_000); document.addEventListener('visibilitychange', refreshClock);
 });
-onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.removeEventListener('visibilitychange', refreshClock); closePopup(); });
+onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
 </script>
 
 <template>

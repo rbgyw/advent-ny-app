@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useCampaignClock } from '../composables/useCampaignClock';
 import { asyncScreen } from '../utils/async-screen';
 import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
@@ -8,7 +9,7 @@ import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCalendarStore } from '../stores/calendar'
-import { campaignDate, shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds } from '../utils/calendar'
+import { shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds } from '../utils/calendar'
 import '../assets/calendar/calendar-fonts.css'
 import completedCircle from '../assets/calendar/451730f3-8fe7-403b-be98-c03b022d0574.svg'
 import completedCheck from '../assets/calendar/e284dc00-d9d6-4583-a830-d4c8f80ee1c9.svg'
@@ -28,7 +29,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
 const { user, loading, error } = storeToRefs(authStore)
-const today = ref(campaignDate())
+const { today } = useCampaignClock()
 const layout = ref<HTMLElement | null>(null)
 const menu = ref<HTMLDetailsElement | null>(null)
 const scale = ref(1)
@@ -59,16 +60,7 @@ const dailyLabel = computed(() => {
 })
 const total = computed(() => calendarStore.totalCount || 25)
 let observer: ResizeObserver | undefined
-let clock: ReturnType<typeof setInterval> | undefined
-
-function refreshDate() {
-  const current = campaignDate()
-  if (current !== today.value) {
-    today.value = current
-    // Fetch tasks that server policies have made visible after midnight.
-    void loadCalendar(user.value?.id)
-  }
-}
+watch(today, () => { void loadCalendar(user.value?.id) })
 function closeMenu() {
   if (menu.value?.open) {
     menu.value.open = false
@@ -97,13 +89,9 @@ onMounted(() => {
     if (width) scale.value = width / 393
   })
   if (layout.value) observer.observe(layout.value)
-  clock = setInterval(refreshDate, 60_000)
-  document.addEventListener('visibilitychange', refreshDate)
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
-  if (clock) clearInterval(clock)
-  document.removeEventListener('visibilitychange', refreshDate)
 })
 </script>
 

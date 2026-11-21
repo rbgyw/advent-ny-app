@@ -51,6 +51,7 @@ const count = computed(() => crosswordWords.filter(w => wordKeys(w).every(key =>
 const size = computed(() => Math.round(34 * zoom.value / 100));
 const date = computed(() => `${Number(props.assignment?.available_date?.slice(8, 10)) || props.day} ДЕКАБРЯ`);
 const storageKey = computed(() => props.userId && props.assignment?.task_id ? `advent-crossword-v1:${props.userId}:${props.assignment.task_id}` : '');
+const wordsByDirection = { across: crosswordWords.filter(word => word.direction === 'across'), down: crosswordWords.filter(word => word.direction === 'down') };
 const cssUrl = (url: string) => `url("${url}")`;
 const art = (url: string) => ({ '--surface-art': cssUrl(url) });
 let observer: ResizeObserver | undefined;
@@ -196,7 +197,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <div v-if="expanded" id="all-crossword-questions" class="all-questions">
               <section v-for="direction in ['across', 'down']" :key="direction">
                 <h2>{{ direction === 'across' ? 'По горизонтали' : 'По вертикали' }}</h2>
-                <AppButton v-for="item in crosswordWords.filter(w => w.direction === direction)" :key="item.number" class="clue-option surface" :style="art(clueArt)" :aria-pressed="selected === item.number" @click="selectWord(item.number); expanded = false; nextTick(() => activeCard?.scrollIntoView({ block: 'nearest' }))">{{ item.number }}. {{ item.clue }} ({{ item.answer.length }} {{ item.answer.length === 4 ? 'буквы' : 'букв' }})</AppButton>
+                <AppButton v-for="item in wordsByDirection[direction]" :key="item.number" class="clue-option surface" :style="art(clueArt)" :aria-pressed="selected === item.number" @click="selectWord(item.number); expanded = false; nextTick(() => activeCard?.scrollIntoView({ block: 'nearest' }))">{{ item.number }}. {{ item.clue }} ({{ item.answer.length }} {{ item.answer.length === 4 ? 'буквы' : 'букв' }})</AppButton>
               </section>
             </div>
           </section>

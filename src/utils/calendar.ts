@@ -1,16 +1,19 @@
 import type { CalendarTask } from '../types/models'
 
+const campaignFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit',
+})
+const shortDateFormatter = new Intl.DateTimeFormat('ru-RU', { timeZone: 'UTC', day: 'numeric', month: 'long' })
+
 /** Date-only campaign keys in Moscow, including the hours around UTC midnight. */
 export function campaignDate(now = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(now)
+  const parts = campaignFormatter.formatToParts(now)
   const part = (name: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === name)?.value ?? ''
   return `${part('year')}-${part('month')}-${part('day')}`
 }
 
 export function shortCalendarDate(date: string): string {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'UTC', day: 'numeric', month: 'long' }).format(new Date(`${date}T00:00:00Z`))
+  return shortDateFormatter.format(new Date(`${date}T00:00:00Z`))
 }
 
 export function canOpenAssignment(assignment: CalendarTask | undefined, today: string): boolean {

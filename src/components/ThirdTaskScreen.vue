@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useCampaignClock } from '../composables/useCampaignClock';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
@@ -37,7 +38,7 @@ const dialog = ref<InstanceType<typeof AppDialog> | null>(null)
 const attachmentsBusy = ref(false)
 const validation = ref('')
 const popupOpen = ref(false)
-const now = ref(Date.now())
+const { now, refreshClock } = useCampaignClock()
 const ratio = ref(1477 / 393)
 const completed = computed(() => props.assignment?.status === 'completed')
 const closed = computed(() => !memorySubmissionOpen(props.assignment?.available_date, new Date(now.value)))
@@ -45,10 +46,8 @@ const busy = computed(() => props.saving || attachmentsBusy.value)
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '3 ДЕКАБРЯ')
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
-let timer: ReturnType<typeof setInterval> | undefined
 let previousOverflow: string | undefined
 function cssUrl(url: string) { return `url("${url}")` }
-function refreshClock() { now.value = Date.now() }
 function input(event: Event) {
   validation.value = ''; emit('edit')
   emit('update:modelValue', (event.target as HTMLTextAreaElement).value)
@@ -84,12 +83,9 @@ onMounted(() => {
     if (size?.width) ratio.value = size.height / size.width
   })
   if (gradient.value) observer.observe(gradient.value)
-  timer = setInterval(refreshClock, 60_000)
-  document.addEventListener('visibilitychange', refreshClock)
 })
 onBeforeUnmount(() => {
-  observer?.disconnect(); clearInterval(timer)
-  document.removeEventListener('visibilitychange', refreshClock)
+  observer?.disconnect()
   dialog.value?.close(); unlockScroll(); emit('busy', false)
 })
 </script>

@@ -4,7 +4,7 @@ withDefaults(defineProps<{
   variant?: 'plain' | 'primary' | 'outline' | 'ghost';
   loading?: boolean;
   disabled?: boolean;
-}>(), { type: 'button', variant: 'plain', loading: false, disabled: false });
+}>(), { variant: 'plain', loading: false, disabled: false });
 </script>
 
 <template>

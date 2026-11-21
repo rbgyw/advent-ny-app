@@ -64,12 +64,14 @@ const rules = [
 
 watch(panel, (element, _, onCleanup) => {
   if (!element) return;
-  const observer = new ResizeObserver(() => {
-    const { width, height } = element.getBoundingClientRect();
+  const observer = new ResizeObserver(entries => {
+    const box = entries[0]?.borderBoxSize[0];
+    if (!box) return;
+    const width = box.inlineSize, height = box.blockSize;
     const perimeter = 2 * (width + height - 20) - (8 - 2 * Math.PI) * 17;
     dotCount.value = Math.max(1, Math.round(perimeter / 11));
   });
-  observer.observe(element);
+  observer.observe(element, { box: 'border-box' });
   onCleanup(() => observer.disconnect());
 }, { flush: 'post' });
 

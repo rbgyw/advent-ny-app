@@ -55,7 +55,7 @@ watch([deck, matched, moves, started], () => {
   try {
     if (started.value && (!completed.value || won.value) && moves.value >= matched.value.length) sessionStorage.setItem(storageKey.value, JSON.stringify({ deck: deck.value, matched: matched.value, moves: moves.value }));
   } catch { /* Keep playing when storage is unavailable. */ }
-}, { deep: true });
+});
 watch(board, element => { if (element) observer?.observe(element); });
 function isOpen(index: number) { return opened.value.includes(index) || matched.value.includes(deck.value[index]!); }
 function backArt(index: number) { return index === 0 ? back : index === 1 ? backSecond : index % 4 === 3 ? backRight : backMiddle; }
@@ -89,8 +89,10 @@ async function loadImages() {
     if (version === imageVersion) ready.value = true;
   } catch { if (version === imageVersion) imageError.value = true; }
 }
+watch(() => Boolean(props.assignment?.task) && !props.loading && !props.error, available => {
+  if (available && !ready.value) void loadImages();
+}, { immediate: true });
 onMounted(() => {
-  void loadImages();
   observer = new ResizeObserver(entries => {
     for (const entry of entries) pendingSizes.set(entry.target, { width: entry.contentRect.width, height: entry.contentRect.height });
     if (resizeFrame) return;
