@@ -4,7 +4,7 @@ import { mockBackend } from './fixture';
 const viewports = [
   [320, 568], [393, 852], [393, 1100], [531, 875], [639, 900], [640, 900], [641, 900],
   [744, 1133], [768, 1024], [768, 1180], [820, 1180], [834, 1194], [1024, 768],
-  [1194, 834], [1440, 811], [1920, 1080], [2559, 1440], [2560, 1080], [2560, 1440],
+  [1194, 834], [1440, 811], [1920, 1080], [1999, 1440], [2000, 1080], [2000, 1440],
   [3840, 2160], [393, 852],
 ] as const;
 
@@ -76,8 +76,8 @@ for (const route of ['/', '/calendar']) {
         expect(house.y + house.height).toBeGreaterThan(height - 45);
         const action = (await page.locator('.calendar-daily').boundingBox())!;
         expect(house.y - action.y - action.height).toBeGreaterThanOrEqual(16);
-        if (width === 2559) standardHouseWidth = house.width;
-        if (width >= 2560) {
+        if (width === 1999) standardHouseWidth = house.width;
+        if (width >= 2000) {
           expect(house.width).toBeGreaterThan(standardHouseWidth * (height >= 1440 ? 1.8 : 1.2));
           if (height >= 1600) expect(house.width).toBeCloseTo(standardHouseWidth * 2, 0);
         }

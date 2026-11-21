@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
   --curtain-width: clamp(65px, calc(24vw - 84px), 262px);
   --lantern-width: clamp(58px, 7vw, 100px);
 }
-@media (min-width: 2560px) {
+@media (min-width: 2000px) {
   .calendar-layout-desktop { --stage-target-width: 2880px; }
 }
 .calendar-layout-desktop .calendar-canvas { width: 1440px; height: 811px; }
