@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
         </h1>
         <p class="calendar-intro">Нажмите на окошко — и задание откроется.</p>
         <AppButton class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
-          {{ dailyLabel }}
+          <span class="calendar-daily-label">{{ dailyLabel }}</span>
         </AppButton>
       </div>
 
@@ -224,8 +224,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 56px 20px 10px;
+  padding: 56px 20px var(--copy-bottom);
   text-align: center;
 }
 .calendar-heading { width: fit-content; margin: 0; line-height: 0; }
@@ -235,20 +234,35 @@ onBeforeUnmount(() => {
 .mobile-title-second { top: 48%; left: 22.15%; width: 57.08%; }
 .mobile-title-spark { top: 8.62%; right: 2.38%; width: 5.66%; }
 .desktop-calendar-title { display: block; width: var(--title-width); height: auto; }
-.calendar-intro { font-size: 13px; line-height: 1.35; font-weight: 500; margin: 0; }
+.calendar-intro {
+  max-inline-size: calc(var(--stage-width) * .58);
+  margin: var(--title-gap) 0 0;
+  font-size: clamp(11px, calc(var(--stage-width) * .0295), 12.5px);
+  line-height: 1.35;
+  font-weight: 500;
+  text-wrap: balance;
+}
 .calendar-daily {
+  display: grid;
+  place-items: center;
   box-sizing: border-box;
-  min-height: 44px;
-  max-width: 100%;
-  padding: 8px 18px;
-  border: 1px solid #e8cfa2;
-  border-radius: 100px;
-  background: #f7ead0;
-  color: #68381f;
-  font: 700 13px/1.35 var(--font-ui);
+  min-height: var(--daily-hit-height);
+  max-width: min(100%, 248px);
+  margin-block-start: var(--daily-gap);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   cursor: pointer;
 }
-.calendar-daily:hover:not(:disabled) { background: #fff3d9; }
+.calendar-daily-label {
+  padding: clamp(4px, .5cqw, 5px) clamp(10px, 1.6cqw, 14px);
+  border-radius: inherit;
+  background: #fff4dd;
+  color: #68381f;
+  font: 700 clamp(10px, 1.6cqw, 12px)/1.35 var(--font-ui);
+}
+.calendar-daily:hover:not(:disabled) .calendar-daily-label { background: #fffaed; }
 .calendar-daily:disabled { cursor: default; }
 .calendar-menu summary::-webkit-details-marker { display:none; }
 .calendar-menu-panel { position:absolute; top:calc(100% + 5px); right:0; width:228px; box-sizing:border-box; padding:10px; border:1px solid #dfbc7f; border-radius:16px; background:#fff3da; color:#68381f; box-shadow:0 12px 35px #160a0666; text-align:left; }
@@ -260,6 +274,8 @@ onBeforeUnmount(() => {
 .calendar-window:not(:disabled):hover { box-shadow:inset 0 0 18px #fff2ce70; }
 .calendar-window:focus-visible,.calendar-daily:focus-visible,.calendar-brand-link:focus-visible,.calendar-menu summary:focus-visible,.calendar-menu-panel :focus-visible { outline:3px solid #2c624c; outline-offset:3px; }
 .calendar-completed { position:absolute; right:7.7px; bottom:5.9px; width:12px; height:12px; pointer-events:none; }
+.calendar-window.is-door .calendar-completed { right: 17px; bottom: 15px; }
+.calendar-layout-desktop .calendar-window.is-door .calendar-completed { bottom: 26px; }
 .calendar-completed img { position:absolute; left:0; top:0; }
 .calendar-completed img + img { left:2.45px; top:3px; }
 .calendar-today-outline { position:absolute; left:.27px; top:1.05px; pointer-events:none; }
@@ -273,6 +289,10 @@ onBeforeUnmount(() => {
 .calendar-auth-error { top:354px; }
 
 .calendar-layout {
+  --title-gap: clamp(14px, 2.65cqw, 28px);
+  --daily-gap: clamp(8px, 1.3cqw, 16px);
+  --daily-hit-height: 44px;
+  --copy-bottom: 10px;
   --stage-width: min(100cqw, clamp(393px, calc(16vw + 330px), 430px));
   --facade-height: calc(var(--stage-width) * 644 / 393);
   position: relative;
@@ -317,8 +337,9 @@ onBeforeUnmount(() => {
   --title-width: clamp(360px, 51vw, 624px);
   --intro-size: clamp(15px, 1.4vw, 20px);
   --copy-top: clamp(26px, calc(84px - (100vw - 1024px) / 3), 84px);
-  /* Two 14px gaps, a 44px action and 18px below the action. */
-  --copy-height: calc(var(--copy-top) + var(--title-width) * 89 / 624 + var(--intro-size) * 1.45 + 90px);
+  --copy-bottom: 18px;
+  --copy-height: calc(var(--copy-top) + var(--title-width) * 89 / 624 + var(--title-gap)
+    + var(--intro-size) * 1.45 + var(--daily-gap) + var(--daily-hit-height) + var(--copy-bottom));
   --stage-width: min(clamp(1040px, calc(50vw + 768px), 1440px), max(1040px, calc((100svh - var(--copy-height)) * 1440 / 649)));
   --facade-height: calc(var(--stage-width) * 649 / 1440);
   --scene-scale: calc(var(--stage-width) / 1440px);
@@ -340,9 +361,8 @@ onBeforeUnmount(() => {
 .calendar-layout-desktop .calendar-brand-link { width: clamp(128px, 13.34vw, 192px); }
 .calendar-layout-desktop .calendar-menu summary { width: 48px; height: 48px; }
 .calendar-layout-desktop .calendar-menu summary svg { width: 100%; height: 100%; }
-.calendar-layout-desktop .calendar-copy { gap: 14px; padding-top: var(--copy-top); padding-bottom: 18px; }
-.calendar-layout-desktop .calendar-intro { font-size: var(--intro-size); line-height: 1.45; }
-.calendar-layout-desktop .calendar-daily { font-size: 14px; }
+.calendar-layout-desktop .calendar-copy { padding-top: var(--copy-top); }
+.calendar-layout-desktop .calendar-intro { max-inline-size: 100%; font-size: var(--intro-size); line-height: 1.45; }
 @media (orientation: portrait) {
   .calendar-layout-desktop { --copy-top: 84px; }
   .calendar-layout-desktop .calendar-toolbar { inset-inline: clamp(16px, 4.5vw, 65px); }

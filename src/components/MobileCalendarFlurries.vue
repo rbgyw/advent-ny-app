@@ -36,10 +36,7 @@ const tiles = [
 <style scoped>
 .mobile-flurries {
   position: absolute;
-  inset: 0 auto;
-  left: 50%;
-  width: var(--stage-width);
-  transform: translateX(-50%);
+  inset: 0;
   pointer-events: none;
 }
 .flurry-tile {

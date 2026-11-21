@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { mockBackend } from './fixture';
 
 const viewports = [
-  [320, 568], [393, 852], [393, 1100], [551, 917], [639, 900], [640, 900], [641, 900],
+  [320, 568], [393, 852], [393, 1100], [531, 875], [639, 900], [640, 900], [641, 900],
   [744, 1133], [768, 1024], [768, 1180], [820, 1180], [834, 1194], [1024, 768],
   [1194, 834], [1440, 811], [1920, 1080], [2560, 1440], [393, 852],
 ] as const;
@@ -40,10 +40,23 @@ for (const route of ['/', '/calendar']) {
         const title = (await page.locator('.calendar-heading').boundingBox())!;
         const intro = (await page.locator('.calendar-intro').boundingBox())!;
         const action = (await page.locator('.calendar-daily').boundingBox())!;
+        const pill = (await page.locator('.calendar-daily-label').boundingBox())!;
         expect(logo.y).toBeLessThan(35);
         expect(title.y).toBeLessThanOrEqual(wide ? 84 : 56);
-        expect(intro.y - title.y - title.height).toBeGreaterThanOrEqual(wide ? 14 : 8);
-        expect(action.y - intro.y - intro.height).toBeGreaterThanOrEqual(wide ? 14 : 8);
+        expect(intro.y - title.y - title.height).toBeGreaterThanOrEqual(14);
+        expect(intro.y - title.y - title.height).toBeLessThanOrEqual(28);
+        expect(pill.y - intro.y - intro.height).toBeGreaterThanOrEqual(16);
+        expect(pill.y - intro.y - intro.height).toBeLessThanOrEqual(28);
+        expect(action.height).toBeGreaterThanOrEqual(44);
+        expect(pill.height).toBeLessThan(28);
+        expect(pill.width).toBeLessThanOrEqual(248);
+        if (!wide) {
+          const stage = (await page.locator('.calendar-stage').boundingBox())!;
+          expect(intro.width).toBeLessThanOrEqual(stage.width * .58 + .5);
+          const flurries = (await page.locator('.mobile-flurries').boundingBox())!;
+          expect(flurries.x).toBeCloseTo(0);
+          expect(flurries.width).toBeCloseTo(width);
+        }
         if (wide && height > width) expect(logo.width).toBeGreaterThanOrEqual(156);
         const previousTitleTop = titleTopByWidth.get(width);
         if (previousTitleTop !== undefined) expect(title.y).toBeCloseTo(previousTitleTop, 0);
