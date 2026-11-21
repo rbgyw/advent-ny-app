@@ -17,6 +17,7 @@ const props = defineProps<{
   title: string;
   taskNumber: number;
   mandatory?: boolean;
+  brandSrc?: string;
 }>();
 const emit = defineEmits<{ back: []; retry: [] }>();
 const date = computed(() => props.assignment
@@ -28,7 +29,7 @@ const date = computed(() => props.assignment
   <main class="december-page" :class="{ 'december-mandatory': mandatory }">
     <div class="december-layout">
       <header class="december-header">
-        <img :src="wordmark" width="108" height="13" alt="ГЕРОФАРМ" />
+        <img :src="brandSrc ?? wordmark" width="108" height="13" alt="ГЕРОФАРМ" />
         <button class="december-back" type="button" @click="emit('back')">← К календарю</button>
       </header>
       <article class="december-card" aria-labelledby="december-title">

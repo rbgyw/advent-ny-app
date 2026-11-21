@@ -302,6 +302,20 @@
     @submit="solveNonogram"
     @edit="calendarStore.saveError = null"
   />
+  <TwentySecondTaskScreen
+    v-else-if="matchesTask(22)"
+    :key="`task-22:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @completed="reloadFirstTask"
+  />
   <TwentyThirdTaskScreen
     v-else-if="matchesTask(23)"
     :key="`task-23:${assignment?.id ?? day}`"
@@ -498,6 +512,7 @@ const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/Twelf
 const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
 const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
 const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
+const TwentySecondTaskScreen = defineAsyncComponent(() => import('../components/TwentySecondTaskScreen.vue'));
 const TwentyThirdTaskScreen = defineAsyncComponent(() => import('../components/TwentyThirdTaskScreen.vue'));
 const TwentyFourthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFourthTaskScreen.vue'));
 const TwentyFifthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFifthTaskScreen.vue'));

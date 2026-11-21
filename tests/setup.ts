@@ -5,12 +5,12 @@ enableAutoUnmount(afterEach);
 
 beforeEach(() => {
   vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
-  HTMLElement.prototype.scrollIntoView = vi.fn();
+  if (typeof HTMLElement !== 'undefined') HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
-  localStorage.clear();
+  if (typeof localStorage !== 'undefined') localStorage.clear();
 });
