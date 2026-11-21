@@ -3,7 +3,6 @@ import CalendarWindows from './CalendarWindows.vue'
 import doorShade from '../assets/calendar/door-shade.svg'
 import accentSpark from '../assets/calendar/08bc0911-cd39-458a-8e13-ab15cb943d81.svg'
 // Original Figma vector layers. Interactive controls are provided by CalendarView.
-import asset0 from '../assets/calendar/background.svg'
 import asset1 from '../assets/calendar/b315bb73-c4b6-4bb5-bc94-073c0708ba4a.svg'
 import asset2 from '../assets/calendar/b65bc5b2-2951-4e42-9f3a-2b430ce464f6.svg'
 import asset3 from '../assets/calendar/d9c56c04-01d1-44c7-82c9-274feafee261.svg'
@@ -112,7 +111,7 @@ defineProps<{ availableDays: number[] }>()
 <template>
 <div class="calendar-illustration" aria-hidden="true">
 <img :src="accentSpark" alt="" width="1.076" height="1.076" style="position:absolute;left:383.0758px;top:52px" data-figma-node="10:656" />
-<div data-figma-node="10:6" style="display:contents;position:relative;width:100%;height:100%"><div data-figma-node="10:10" style="position:absolute;left:1px;top:0;width:392px;height:852px"><img alt="" :src="asset0" style="position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%" draggable="false" /></div>
+<div data-figma-node="10:6" style="display:contents;position:relative;width:100%;height:100%">
 <div data-figma-node="10:11" style="position:absolute;display:flex;inset:16.6% 54.96% 63.46% -7.63%;align-items:center;justify-content:center;container-type:size"><div style="flex:none;height:100cqw;width:100cqh;transform:rotate(-90deg)"><div style="position:relative;width:100%;height:100%"><img alt="" :src="asset1" style="position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%" draggable="false" /></div></div></div>
 <div data-figma-node="10:86" style="position:absolute;display:flex;inset:45.58% 59.85% 33.14% -13.99%;align-items:center;justify-content:center;container-type:size"><div style="flex:none;height:hypot(-4.71585cqw,95.4564cqh);width:hypot(95.2841cqw,4.54356cqh);transform:rotate(2.78deg)"><div style="position:relative;width:100%;height:100%"><img alt="" :src="asset2" style="position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%" draggable="false" /></div></div></div>
 <div data-figma-node="10:161" style="position:absolute;display:flex;inset:36.44% 62.34% 43.61% -15.01%;align-items:center;justify-content:center;container-type:size"><div style="flex:none;height:100cqw;width:100cqh;transform:rotate(90deg)"><div style="position:relative;width:100%;height:100%"><img alt="" :src="asset3" style="position:absolute;display:block;inset:0;max-width:none;width:100%;height:100%" draggable="false" /></div></div></div>

@@ -1,244 +1,147 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router';
 import PageLayout from '../components/ui/PageLayout.vue';
-import { RouterLink } from "vue-router";
-import background from "../assets/splash/imgBackground.svg";
-import frame from "../assets/splash/imgArchitecturalFrame.svg";
-import snow from "../assets/splash/imgSnow.svg";
-import garlands from "../assets/splash/imgHolidayLightGarlands.svg";
-import brand from "../assets/splash/imgBrand.svg";
-import ornamentLeft from "../assets/splash/imgGroup2.svg";
-import ornamentRight from "../assets/splash/imgGroup3.svg";
-import buttonBase from "../assets/splash/imgVector.svg";
-import buttonBorder from "../assets/splash/imgRosetteBorder.svg";
-import buttonStars from "../assets/splash/imgSideStars.svg";
-import buttonDots from "../assets/splash/imgAccentDots.svg";
-import firework1 from "../assets/splash/imgFirework1.svg";
-import firework2 from "../assets/splash/imgFirework2.svg";
-import firework3 from "../assets/splash/imgFirework3.svg";
-import city from "../assets/splash/city.svg";
-import foreground from "../assets/splash/imgSnowForeground.svg";
-import glow from "../assets/splash/lamp-glow.svg";
-import lamp from "../assets/splash/lamp.svg";
-import leftSnow from "../assets/splash/lamp-snow-left.svg";
-import rightSnow from "../assets/splash/lamp-snow-right.svg";
-import thread from "../assets/splash/star-thread.svg";
-import star from "../assets/splash/star.svg";
-import bow from "../assets/splash/imgRedHolidayRibbonBow2.webp";
+import DesignCanvas from '../components/ui/DesignCanvas.vue';
+import frame from '../assets/splash/imgArchitecturalFrame.svg';
+import snow from '../assets/splash/imgSnow.svg';
+import garlands from '../assets/splash/imgHolidayLightGarlands.svg';
+import wideGarlands from '../assets/splash/garlands-wide.svg';
+import brand from '../assets/calendar/66d4a818-5417-4c1c-ac45-147152fb77f1.svg';
+import title from '../assets/splash/title.svg';
+import ornamentLeft from '../assets/splash/imgGroup2.svg';
+import ornamentRight from '../assets/splash/imgGroup3.svg';
+import buttonBase from '../assets/splash/imgVector.svg';
+import buttonBorder from '../assets/splash/imgRosetteBorder.svg';
+import buttonStars from '../assets/splash/imgSideStars.svg';
+import buttonDots from '../assets/splash/imgAccentDots.svg';
+import firework1 from '../assets/splash/imgFirework1.svg';
+import firework2 from '../assets/splash/imgFirework2.svg';
+import firework3 from '../assets/splash/imgFirework3.svg';
+import city from '../assets/splash/city.svg';
+import wideCity from '../assets/splash/city-wide.svg';
+import foreground from '../assets/splash/imgSnowForeground.svg';
+import wideSnow from '../assets/splash/snow-wide.svg';
+import glow from '../assets/splash/lamp-glow.svg';
+import lamp from '../assets/splash/lamp.svg';
+import leftSnow from '../assets/splash/lamp-snow-left.svg';
+import rightSnow from '../assets/splash/lamp-snow-right.svg';
+import thread from '../assets/splash/star-thread.svg';
+import star from '../assets/splash/star.svg';
+import bow from '../assets/splash/imgRedHolidayRibbonBow2.webp';
 
-// Coordinates refer to the 393 × 852 illustration, excluding Figma's version label.
-const decorations = [
-  { src: background, x: 0, y: 0 },
-  { src: frame, x: 18.25, y: 8.5 },
+const header = [
   { src: snow, x: 9.2, y: 12.4 },
   { src: garlands, x: 43, y: 94.65 },
   { src: brand, x: 141, y: 69 },
   { src: ornamentLeft, x: 109.537, y: 112 },
   { src: ornamentRight, x: 267.537, y: 113 },
-  { src: firework3, x: 238, y: 647 },
-  { src: firework2, x: 237, y: 561 },
-  { src: firework1, x: 118, y: 596 },
-  { src: city, x: 35, y: 568 },
-  { src: foreground, x: 0, y: 772 },
-  { src: glow, x: 18, y: 616 },
-  { src: glow, x: 325, y: 616 },
-  { src: lamp, x: 30.5, y: 611 },
-  { src: lamp, x: 337.5, y: 611 },
-  { src: leftSnow, x: 31.52, y: 617.56 },
-  { src: rightSnow, x: 337.21, y: 617.26 },
   { src: thread, x: 70, y: 121 },
   { src: star, x: 47, y: 165 },
   { src: thread, x: 318, y: 123 },
   { src: star, x: 295, y: 163 },
 ];
+// Original 393px artwork; only its wrapper scales. Text stays in normal flow.
+const scenery = [
+  { src: firework3, x: 238, y: 79 },
+  { src: firework2, x: 237, y: -7 },
+  { src: firework1, x: 118, y: 28 },
+  { src: city, x: 35, y: 0 },
+  { src: foreground, x: 0, y: 204 },
+  { src: glow, x: 18, y: 48 },
+  { src: glow, x: 325, y: 48 },
+  { src: lamp, x: 30.5, y: 43 },
+  { src: lamp, x: 337.5, y: 43 },
+  { src: leftSnow, x: 31.52, y: 49.56 },
+  { src: rightSnow, x: 337.21, y: 49.26 },
+];
 </script>
 
 <template>
-  <PageLayout class="splash-page">
+  <PageLayout background-variant="night" class="splash-page">
     <section class="splash-scene" aria-labelledby="splash-title">
-      <div class="splash-art" aria-hidden="true">
-        <img
-          v-for="(item, index) in decorations"
-          :key="index"
-          :src="item.src"
-          alt=""
-          :style="{ left: `${item.x}px`, top: `${item.y}px` }"
-        />
-        <img class="splash-bow splash-bow-left" :src="bow" alt="" />
-        <img class="splash-bow splash-bow-right" :src="bow" alt="" />
+      <DesignCanvas class="splash-arch" :width="356.5" :height="818.25" aria-hidden="true"><img :src="frame" alt="" /></DesignCanvas>
+      <DesignCanvas class="splash-mobile-header" :width="393" :height="208" aria-hidden="true">
+        <img v-for="(item, index) in header" :key="index" :src="item.src" alt="" :style="{ left: `${item.x}px`, top: `${item.y}px` }" />
+      </DesignCanvas>
+      <div class="splash-wide-header" aria-hidden="true">
+        <DesignCanvas class="splash-wide-brand" :width="112" :height="15"><img :src="brand" alt="" /></DesignCanvas>
+        <DesignCanvas class="splash-wide-garlands" :width="1440" :height="97"><img :src="wideGarlands" alt="" /></DesignCanvas>
       </div>
-      <span class="splash-brand-label">ГЕРОФАРМ</span>
       <div class="splash-copy">
-        <p class="splash-eyebrow">ВРЕМЯ МАЛЕНЬКИХ ЧУДЕС</p>
-        <h1 id="splash-title">Новогодний<br />адвент-<br />календарь</h1>
-        <p class="splash-description">
-          Открывайте новые окошки каждый день,<br />выполняйте задания и
-          встречайте<br />Новый год вместе с ГЕРОФАРМ!
-        </p>
+        <h1 id="splash-title" aria-label="Новогодний адвент-календарь"><DesignCanvas class="splash-title-art" :width="270" :height="151" aria-hidden="true"><img :src="title" alt="" /></DesignCanvas></h1>
+        <p class="splash-description">Открывайте новые окошки каждый день,<br class="splash-copy-break" /> выполняйте задания и встречайте<br class="splash-copy-break" /> Новый год вместе с ГЕРОФАРМ!</p>
         <RouterLink class="splash-start" to="/rules">
-          <img :src="buttonBase" alt="" aria-hidden="true" />
-          <img
-            class="splash-button-border"
-            :src="buttonBorder"
-            alt=""
-            aria-hidden="true"
-          />
-          <img
-            class="splash-button-stars"
-            :src="buttonStars"
-            alt=""
-            aria-hidden="true"
-          />
-          <img
-            class="splash-button-dots"
-            :src="buttonDots"
-            alt=""
-            aria-hidden="true"
-          />
+          <DesignCanvas class="splash-button-art" :width="305" :height="56" aria-hidden="true">
+            <img :src="buttonBase" alt="" />
+            <img :src="buttonBorder" class="splash-button-border" alt="" />
+            <img :src="buttonStars" class="splash-button-stars" alt="" />
+            <img :src="buttonDots" class="splash-button-dots" alt="" />
+          </DesignCanvas>
           <span>Начать</span>
         </RouterLink>
+      </div>
+      <div class="splash-scenery" aria-hidden="true">
+        <DesignCanvas class="splash-mobile-scenery" :width="393" :height="284">
+          <img v-for="(item, index) in scenery" :key="index" :src="item.src" alt="" :style="{ left: `${item.x}px`, top: `${item.y}px` }" />
+          <img class="splash-bow splash-bow-left" :src="bow" alt="" />
+          <img class="splash-bow splash-bow-right" :src="bow" alt="" />
+        </DesignCanvas>
+        <div class="splash-wide-scenery">
+          <DesignCanvas class="splash-wide-city" :width="1341" :height="488"><img :src="wideCity" alt="" /></DesignCanvas>
+          <DesignCanvas class="splash-wide-snow" :width="1440" :height="82"><img :src="wideSnow" alt="" /></DesignCanvas>
+          <DesignCanvas v-for="side in ['left', 'right']" :key="side" class="splash-wide-lamp" :class="`splash-wide-lamp-${side}`" :width="50" :height="238">
+            <img :src="glow" class="splash-lamp-glow" alt="" /><img :src="lamp" class="splash-lamp" alt="" /><img :src="bow" class="splash-wide-bow" alt="" />
+          </DesignCanvas>
+        </div>
       </div>
     </section>
   </PageLayout>
 </template>
 
 <style scoped>
-.splash-page {
-  container-type: inline-size;
-  width: 100%;
-  min-height: 100svh;
-  background: #e76a16;
-  color: #78341d;
-  color-scheme: light;
-  text-align: center;
-  font-family: "Advent Inter", sans-serif;
-  letter-spacing: 0;
-  overflow: clip;
+:global(#app:has(.splash-page)) { width: 100%; border: 0; }
+.splash-page { width: 100%; min-height: 100svh; overflow: clip; color: var(--color-cream); color-scheme: light; text-align: center; font: 400 14px/22px var(--font-ui); letter-spacing: 0; }
+.splash-scene { position: relative; isolation: isolate; display: flex; flex-direction: column; width: 100%; max-width: 1600px; min-height: max(852px, 100svh); margin-inline: auto; }
+.splash-arch, .splash-mobile-header, .splash-wide-header { position: absolute; pointer-events: none; z-index: -1; }
+.splash-arch { top: 8.5px; left: 50%; width: 356.5px; transform: translateX(-50%); }
+.splash-mobile-header { top: 0; left: 50%; width: min(100%, 393px); transform: translateX(-50%); }
+.splash-page :deep(.design-canvas-art > img) { position: absolute; display: block; max-width: none; }
+.splash-wide-header, .splash-wide-scenery { display: none; }
+.splash-copy { position: relative; padding-top: clamp(192px, 59.03vw, 232px); }
+.splash-copy h1 { margin: 0; line-height: 0; }
+.splash-title-art { width: clamp(270px, 32vw, 378px); margin-inline: auto; }
+.splash-description { max-width: 520px; margin: 15px auto 0; padding-inline: 16px; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.571429; text-wrap: pretty; }
+.splash-start { position: relative; display: grid; place-items: center; width: min(clamp(305px, 28vw, 350px), calc(100% - 32px)); min-height: 56px; aspect-ratio: 305 / 56; margin: 28px auto 0; border-radius: 18px; color: var(--color-action); font: 700 18px/22px var(--font-ui); text-decoration: none; transition: filter 160ms ease; }
+.splash-button-art { position: absolute; width: 100%; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.splash-button-border { left: 4.85px; top: 4.85px; }
+.splash-button-stars { left: 24.98px; top: 23.425px; }
+.splash-button-dots { left: 39.2px; top: 27.2px; }
+.splash-start span { position: relative; }
+.splash-start:focus-visible { outline: 3px solid var(--color-cream); outline-offset: 5px; }
+.splash-start:hover { filter: brightness(1.06); }
+.splash-start:active { filter: brightness(.96); }
+.splash-scenery { position: relative; flex: 1; min-height: 284px; margin-top: 20px; z-index: -1; pointer-events: none; }
+.splash-mobile-scenery { position: absolute; width: min(100%, 393px); bottom: 0; left: 50%; transform: translateX(-50%); }
+.splash-bow { width: 18px; height: 18px; top: 78px; object-fit: cover; }
+.splash-bow-left { left: 34px; }
+.splash-bow-right { left: 341px; }
+@media (min-width: 768px) {
+  .splash-scene { min-height: max(813px, 100svh); }
+  .splash-arch, .splash-mobile-header, .splash-mobile-scenery { display: none; }
+  .splash-wide-header { display: block; inset: 0 0 auto; }
+  .splash-wide-brand { width: clamp(112px, 12vw, 174px); margin: 32px auto 0; }
+  .splash-wide-garlands { position: absolute; top: 68px; left: 0; width: 100%; }
+  .splash-copy { padding-top: clamp(170px, calc(8svh + 120px), 208px); }
+  .splash-scenery { min-height: 300px; margin-top: 36px; }
+  .splash-wide-scenery { display: block; position: absolute; inset: 0; }
+  .splash-wide-city { position: absolute; width: min(93.125%, 1490px); bottom: 12px; left: 50%; transform: translateX(-50%); }
+  .splash-wide-snow { position: absolute; bottom: 0; left: 0; width: 100%; }
+  .splash-wide-lamp { position: absolute; width: clamp(40px, 4vw, 56px); bottom: 16px; }
+  .splash-wide-lamp-left { left: 12%; }
+  .splash-wide-lamp-right { right: 12%; }
+  .splash-lamp-glow { left: 0; top: 5px; }
+  .splash-lamp { left: 12.5px; top: 0; }
+  .splash-wide-bow { left: 16px; top: 35px; width: 18px; height: 18px; object-fit: cover; }
 }
-:global(#app:has(.splash-page)) {
-  width: 100%;
-  border: 0;
-}
-.splash-scene {
-  position: relative;
-  width: 393px;
-  height: 852px;
-  margin-inline: auto;
-  overflow: hidden;
-  isolation: isolate;
-}
-.splash-art {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-.splash-art img {
-  position: absolute;
-  display: block;
-  max-width: none;
-}
-.splash-art .splash-bow {
-  width: 18px;
-  height: 18px;
-  top: 646px;
-  object-fit: cover;
-}
-.splash-bow-left {
-  left: 34px;
-}
-.splash-bow-right {
-  left: 341px;
-}
-.splash-brand-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-.splash-copy {
-  position: relative;
-  padding-top: 208px;
-}
-.splash-eyebrow {
-  margin: 0;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 11px;
-}
-.splash-copy h1 {
-  margin: 9px 0 0;
-  font:
-    600 45px/46px "Advent STIX",
-    serif;
-  letter-spacing: 0;
-  background: linear-gradient(152.6676deg, #fffdf5, #f7e8cb);
-  background-clip: text;
-  color: transparent;
-  transform: translateX(1px);
-}
-.splash-description {
-  margin: 32.5px 0 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-}
-.splash-start {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 305px;
-  height: 56px;
-  margin: 27.5px auto 0;
-  color: var(--color-action);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 22px;
-  text-decoration: none;
-  border-radius: 18px;
-}
-.splash-start img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  max-width: none;
-}
-.splash-start .splash-button-border {
-  left: 4.85px;
-  top: 4.85px;
-}
-.splash-start .splash-button-stars {
-  left: 24.98px;
-  top: 23.425px;
-}
-.splash-start .splash-button-dots {
-  left: 39.2px;
-  top: 27.2px;
-}
-.splash-start span {
-  position: relative;
-}
-.splash-start:focus-visible {
-  outline: 3px solid #78341d;
-  outline-offset: 5px;
-}
-.splash-start:hover {
-  filter: brightness(1.04);
-}
-.splash-start:active {
-  filter: brightness(0.96);
-}
-@container (max-width: 392px) {
-  .splash-scene {
-    margin-inline: 0;
-    zoom: calc(100cqw / 393px);
-  }
-}
-@container (min-width: 394px) {
-  .splash-scene {
-    zoom: min(calc(100cqw / 393px), 1.3);
-  }
-}
+@media (prefers-reduced-motion: reduce) { .splash-start { transition: none; } }
 </style>

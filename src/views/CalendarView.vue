@@ -4,6 +4,7 @@ import { asyncScreen } from '../utils/async-screen';
 import { useScreenReadiness } from '../composables/useScreenReadiness';
 import AppButton from '../components/ui/AppButton.vue';
 import PageLayout from '../components/ui/PageLayout.vue';
+import DesignCanvas from '../components/ui/DesignCanvas.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
@@ -23,9 +24,7 @@ const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
 const { user, loading, error } = storeToRefs(authStore)
 const { today } = useCampaignClock()
-const layout = ref<HTMLElement | null>(null)
 const menu = ref<HTMLDetailsElement | null>(null)
-const scale = ref(1)
 const assignments = computed(() => new Map(calendarStore.tasks.map(task => [task.position, task])))
 const windows = computed(() => Array.from({ length: 25 }, (_, index) => {
   const day = index + 1
@@ -50,7 +49,6 @@ const dailyLabel = computed(() => {
   const next = [...calendarStore.tasks].sort((a, b) => a.available_date.localeCompare(b.available_date))[0]
   return next ? `Первое окошко — ${shortCalendarDate(next.available_date)}` : 'Задания появятся здесь'
 })
-let observer: ResizeObserver | undefined
 watch(today, () => { void loadCalendar(user.value?.id, true) })
 function refreshVisibleCalendar() { if (!document.hidden) void loadCalendar(user.value?.id, true) }
 function closeMenu() {
@@ -77,23 +75,17 @@ async function handleLogout() {
 watch(() => user.value?.id, userId => { void track(loadCalendar(userId)) }, { immediate: true })
 onMounted(() => {
   document.addEventListener('visibilitychange', refreshVisibleCalendar)
-  observer = new ResizeObserver(entries => {
-    const width = entries[0]?.contentRect.width
-    if (width) scale.value = width / 393
-  })
-  if (layout.value) observer.observe(layout.value)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', refreshVisibleCalendar)
-  observer?.disconnect()
 })
 </script>
 
 <template>
-  <PageLayout class="calendar-page" @keydown.esc="closeMenu">
-    <div ref="layout" class="calendar-layout" :style="{ '--calendar-scale': scale }">
+  <PageLayout background-variant="calendar" class="calendar-page" @keydown.esc="closeMenu">
+    <div class="calendar-layout">
       <h1 class="sr-only">Новогодний адвент ГЕРОФАРМ</h1>
-      <section class="calendar-stage" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
+      <DesignCanvas class="calendar-stage" :width="393" :height="852" role="region" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
         <div class="calendar-canvas">
           <CalendarIllustration :available-days="windows.filter(window => window.available).map(window => window.day)" />
           <RouterLink class="calendar-brand-link" to="/" aria-label="ГЕРОФАРМ — на главную" />
@@ -127,28 +119,28 @@ onBeforeUnmount(() => {
           <p v-else-if="!calendarStore.loading && !calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>
-      </section>
+      </DesignCanvas>
     </div>
   </PageLayout>
 </template>
 
 <style scoped>
 :global(#app:has(.calendar-page)) { width:100%; border:0; }
-.calendar-page { min-height:100svh; background:linear-gradient(135deg,#110c08,#8b3e16 55%,#ff941f); color:#fff0d0; font:400 12px/1.3 'Advent Inter',sans-serif; letter-spacing:0; color-scheme:light; }
-.calendar-layout { max-width:393px; margin:0 auto; overflow:hidden; background:linear-gradient(135deg,#110c08,#803711 55%,#ff941f); }
-.calendar-stage { position:relative; width:100%; aspect-ratio:393 / 852; }
-.calendar-canvas { position:absolute; width:393px; height:1018px; left:0; top:0; transform:scale(var(--calendar-scale)); transform-origin:top left; }
-.calendar-intro { position:absolute; top:147px; left:77px; width:239px; font-size:10px; line-height:12px; font-weight:500; text-align:center; margin:0; }
-.calendar-brand-link { position:absolute; left:22px; top:10px; width:112px; height:44px; }
-.calendar-daily { position:absolute; top:162px; left:88px; width:217px; min-height:44px; padding:0; border:0; background:transparent; color:#68381f; font:700 9px/11px 'Advent Inter',sans-serif; cursor:pointer; display:grid; place-items:center; }
-.calendar-daily > img { position:absolute; left:10px; top:12px; pointer-events:none; }
+.calendar-page { min-height:100svh; color:#fff0d0; font:400 12px/1.3 'Advent Inter',sans-serif; letter-spacing:0; color-scheme:light; }
+.calendar-layout { width:min(100%, clamp(393px, calc(24vw + 299px), 560px)); margin:0 auto; overflow:hidden; }
+.calendar-stage { width:100%; }
+.calendar-canvas { position:absolute; width:393px; height:1018px; left:0; top:0; }
+.calendar-intro { position:absolute; top:147px; left:24px; right:24px; font-size:max(10px, calc(10px / var(--design-scale))); line-height:max(12px, calc(12px / var(--design-scale))); font-weight:500; text-align:center; margin:0; }
+.calendar-brand-link { position:absolute; left:22px; top:10px; width:112px; height:max(44px, calc(44px / var(--design-scale))); }
+.calendar-daily { position:absolute; top:162px; left:88px; width:217px; min-height:max(44px, calc(44px / var(--design-scale))); padding:0; border:0; background:transparent; color:#68381f; font:700 max(9px, calc(9px / var(--design-scale)))/max(11px, calc(11px / var(--design-scale))) 'Advent Inter',sans-serif; cursor:pointer; display:grid; place-items:center; }
+.calendar-daily > img { position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none; }
 .calendar-daily > span { position:relative; white-space:nowrap; }
 .calendar-daily:disabled { cursor:default; }
 .calendar-menu { position:absolute; right:19px; top:9px; z-index:5; }
-.calendar-menu summary { width:44px; height:44px; list-style:none; cursor:pointer; border-radius:50%; }
+.calendar-menu summary { width:max(44px, calc(44px / var(--design-scale))); height:max(44px, calc(44px / var(--design-scale))); list-style:none; cursor:pointer; border-radius:50%; }
 .calendar-menu summary::-webkit-details-marker { display:none; }
-.calendar-menu-panel { position:absolute; top:49px; right:0; width:228px; box-sizing:border-box; padding:10px; border:1px solid #dfbc7f; border-radius:16px; background:#fff3da; color:#68381f; box-shadow:0 12px 35px #160a0666; text-align:left; }
-.calendar-menu-panel a,.calendar-menu-panel button { display:flex; align-items:center; min-height:44px; width:100%; box-sizing:border-box; padding:10px; color:inherit; background:none; border:0; border-radius:8px; text-decoration:none; font:500 13px/20px 'Advent Inter',sans-serif; text-align:left; cursor:pointer; }
+.calendar-menu-panel { position:absolute; top:max(49px, calc(49px / var(--design-scale))); right:0; width:228px; box-sizing:border-box; padding:10px; border:1px solid #dfbc7f; border-radius:16px; background:#fff3da; color:#68381f; box-shadow:0 12px 35px #160a0666; text-align:left; }
+.calendar-menu-panel a,.calendar-menu-panel button { display:flex; align-items:center; min-height:max(44px, calc(44px / var(--design-scale))); width:100%; box-sizing:border-box; padding:10px; color:inherit; background:none; border:0; border-radius:8px; text-decoration:none; font:500 max(13px, calc(13px / var(--design-scale)))/max(20px, calc(20px / var(--design-scale))) 'Advent Inter',sans-serif; text-align:left; cursor:pointer; }
 .calendar-menu-panel a:hover,.calendar-menu-panel button:hover { background:#f2dfbd; }
 .calendar-account { padding:8px 10px 12px; margin:0; overflow-wrap:anywhere; color:#846443; font-size:11px; }
 .calendar-window { position:absolute; padding:0; border:0; background:transparent; border-radius:36px 36px 0 0; cursor:pointer; -webkit-tap-highlight-color:#fff0d033; }

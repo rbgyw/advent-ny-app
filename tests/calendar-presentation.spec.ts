@@ -13,7 +13,7 @@ for (const state of ['available', 'closed', 'completed'] as const) {
     await expect(page.locator('.calendar-window.is-mandatory')).toHaveCount(8);
     for (const viewport of [{ width: 320, height: 568 }, { width: 551, height: 917 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
-      await expect.poll(async () => page.locator('.calendar-canvas').evaluate(el => Math.abs(el.getBoundingClientRect().width - Math.min(innerWidth, 393)))).toBeLessThan(1);
+      await expect.poll(async () => page.locator('.calendar-canvas').evaluate(el => Math.abs(el.getBoundingClientRect().width - document.querySelector('.calendar-stage')!.getBoundingClientRect().width))).toBeLessThan(1);
       for (const day of [3, ...required]) {
         const window = page.locator('.calendar-window').nth(day - 1);
         const number = page.locator(`.calendar-illustration [data-name="window-${day}"] > p`);
