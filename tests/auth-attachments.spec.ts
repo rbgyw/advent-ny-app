@@ -17,7 +17,7 @@ test('verification handles an invalid code and then restores an authenticated ca
   await expect(page).toHaveURL(/\/calendar$/); await expect(page.locator('.calendar-window').nth(0)).toBeEnabled();
 });
 test('invalid attachments are rejected before reserving storage or sending a file', async ({ page }) => {
-  const backend = await mockBackend(page); await page.goto('/task/7');
+  const backend = await mockBackend(page, { genericTasks: true }); await page.goto('/task/17');
   const input = page.locator('input[type=file][multiple]'); await expect(input).toBeEnabled();
   await input.setInputFiles({ name: 'invalid.pdf', mimeType: 'application/pdf', buffer: Buffer.from('invalid') });
   await expect(page.getByRole('alert')).toContainText('Выберите фотографию');

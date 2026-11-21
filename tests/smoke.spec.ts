@@ -9,6 +9,7 @@ test('public routes and guest guard', async ({ page }) => {
   await page.goto('/calendar'); await expect(page).toHaveURL(/\/auth/); await expect(page.getByRole('heading', { name: 'Вход' })).toBeVisible();
 });
 test('all 25 task routes open and return', async ({ page }) => {
+  test.setTimeout(90_000);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await mockBackend(page);

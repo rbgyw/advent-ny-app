@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
-import LoadingState from './ui/LoadingState.vue';
-import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
 import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, ref, watch } from 'vue';
+import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
@@ -42,7 +41,7 @@ const tool = ref<MarkingTool>(filled);
 const enlarged = ref(false);
 const validation = ref('');
 const { element: panel, bind: bindPanel } = useElementRef();
-const dialog = ref<InstanceType<typeof AppDialog>>();
+const dialog = ref<InstanceType<typeof PopupDialog>>();
 const dotCount = ref(0);
 let awaitingCompletion = false;
 
@@ -66,14 +65,12 @@ const rules = [
 
 watch(panel, (element, _, onCleanup) => {
   if (!element) return;
-  const observer = new ResizeObserver(entries => {
-    const box = entries[0]?.borderBoxSize[0];
-    if (!box) return;
-    const width = box.inlineSize, height = box.blockSize;
+  const observer = new ResizeObserver(() => {
+    const { width, height } = element.getBoundingClientRect();
     const perimeter = 2 * (width + height - 20) - (8 - 2 * Math.PI) * 17;
     dotCount.value = Math.max(1, Math.round(perimeter / 11));
   });
-  observer.observe(element, { box: 'border-box' });
+  observer.observe(element);
   onCleanup(() => observer.disconnect());
 }, { flush: 'post' });
 
@@ -162,7 +159,7 @@ function backFromResult() {
   <TaskLayout class="nonogram-page">
     <div class="nonogram-layout">
       <AppHeader class="nonogram-header">
-        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
+        <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard :ref="bindPanel" class="nonogram-panel" aria-labelledby="nonogram-title">
@@ -176,18 +173,18 @@ function backFromResult() {
           />
         </div>
         <div class="nonogram-heading">
-          <img decoding="async" class="nonogram-wreath" :src="wreath" alt="" />
+          <img class="nonogram-wreath" :src="wreath" alt="" />
           <p class="nonogram-date">{{ date }}</p>
           <h1 id="nonogram-title">Что скрывает нонограм?</h1>
           <p class="nonogram-badge">Обязательное задание</p>
         </div>
 
         <LoadingState v-if="loading" class="nonogram-notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="nonogram-notice">
+        <div v-else-if="error" class="nonogram-notice" role="alert">
           <p>{{ error }}</p>
           <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>
-        </FeedbackState>
-        <FeedbackState v-else-if="!assignment" class="nonogram-notice" message="Задание не найдено." />
+        </div>
+        <p v-else-if="!assignment" class="nonogram-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="nonogram-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>
@@ -241,29 +238,42 @@ function backFromResult() {
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
 
-    <AppDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
+    <PopupDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
       <AppButton class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</AppButton>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
       <AppButton class="nonogram-primary" type="button" @click="backFromResult">К календарю</AppButton>
-    </AppDialog>
+    </PopupDialog>
   </TaskLayout>
 </template>
 
 <style scoped>
+@font-face {
+  font-family: 'Advent Inter';
+  src: url('../assets/splash/Inter.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Advent STIX';
+  src: url('../assets/splash/STIXTwoText.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 :global(#app:has(.nonogram-page)) { width: 100%; border: 0; }
-:global(html:has(.nonogram-popup[open])) { overflow: hidden; }
 
 .nonogram-page {
-  --accent: var(--color-action);
+  --accent: #a7280b;
   --light: #fff1cf;
-  --heading-color: var(--color-ink);
+  --heading-color: #623c28;
   box-sizing: border-box;
   min-height: 100svh;
   background: linear-gradient(107.4deg, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f);
   color: #70492c;
   color-scheme: light;
-  font: 400 14px/20px var(--font-ui);
+  font: 400 14px/20px 'Advent Inter', sans-serif;
   letter-spacing: 0;
   text-align: left;
 }
@@ -307,7 +317,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
   max-width: 254px;
   margin: 13px 0 11px;
   color: var(--heading-color);
-  font: 500 28px/30px var(--font-display);
+  font: 500 28px/30px 'Advent STIX', serif;
   letter-spacing: 0;
 }
 
@@ -425,7 +435,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-popup h2 {
   margin: 0 0 21px;
   color: var(--heading-color);
-  font: 600 26px/33px var(--font-display);
+  font: 600 26px/33px 'Advent STIX', serif;
   letter-spacing: 0;
 }
 

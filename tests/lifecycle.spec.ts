@@ -44,8 +44,8 @@ test('logout clears session while calendar requests are pending', async ({ page 
   await page.goto('/task/9');
   await expect(page).toHaveURL(/\/auth/);
 });
-test('all generic tasks save and reopen their own response', async ({ page }) => {
-  const backend = await mockBackend(page);
+test('generic fallback tasks save and reopen their own response', async ({ page }) => {
+  const backend = await mockBackend(page, { genericTasks: true });
   for (const day of [7, 9, 10, 15, 16, 17, 18, 19, 20, 22, 23, 24]) {
     await page.goto(`/task/${day}`);
     await page.locator('textarea').fill(`Ответ ${day}`);

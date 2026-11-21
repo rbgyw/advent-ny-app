@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockBackend } from './fixture';
 test('draft and completion preserve progress and reuse the calendar on return', async ({ page }) => {
-  const backend = await mockBackend(page);
+  const backend = await mockBackend(page, { genericTasks: true });
   await page.goto('/calendar'); await expect(page.locator('.calendar-window').nth(8)).toBeEnabled();
   await page.locator('.calendar-window').nth(8).click();
   await page.locator('textarea').fill('Мой ответ');
@@ -29,19 +29,20 @@ test('fortune opens animates saves and reopens the same prediction without anoth
   await expect(page.locator('.fortune-text')).toHaveText(prediction);
   expect(backend.calls.filter(path => path.endsWith('/save_task_progress'))).toHaveLength(1);
 });
-test('failed fortune save can be retried without redrawing', async ({ page }) => {
+test('failed fortune save keeps the result hidden until a successful retry', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const backend = await mockBackend(page, { failSave: true });
   await page.goto('/task/25'); await page.getByRole('button', { name: 'Открыть печеньку' }).click();
-  const prediction = await page.locator('.fortune-text').innerText();
   await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('.fortune-text')).toHaveCount(0);
   backend.options.failSave = false;
-  await page.getByRole('button', { name: /Сохранить отметку о выполнении/ }).click();
+  await page.getByRole('button', { name: 'Попробовать снова', exact: true }).click();
   await expect.poll(() => backend.completed.has(25)).toBe(true);
-  await expect(page.locator('.fortune-text')).toHaveText(prediction);
+  await expect(page.locator('.fortune-text')).toBeVisible();
+  expect(typeof backend.responses[25]?.fortune_index).toBe('number');
 });
 test('an old task save error does not appear on another task', async ({ page }) => {
-  await mockBackend(page, { failSave: true, delay: 100 });
+  await mockBackend(page, { genericTasks: true, failSave: true, delay: 100 });
   await page.goto('/task/9'); await page.locator('textarea').fill('Ответ');
   await page.getByRole('button', { name: 'Сохранить черновик', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Завершить задание', exact: true })).toBeEnabled();

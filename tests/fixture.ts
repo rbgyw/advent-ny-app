@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 export const userId = '00000000-0000-4000-8000-000000000001';
-export async function mockBackend(page: Page, options: { failCalendar?: boolean; failSave?: boolean; delay?: number; completed?: boolean; authenticated?: boolean } = {}) {
+export async function mockBackend(page: Page, options: { genericTasks?: boolean; failCalendar?: boolean; failSave?: boolean; delay?: number; completed?: boolean; authenticated?: boolean } = {}) {
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if ((url.protocol === 'http:' || url.protocol === 'https:') && url.hostname !== '127.0.0.1') return route.abort();
@@ -27,7 +27,7 @@ export async function mockBackend(page: Page, options: { failCalendar?: boolean;
     if (path.endsWith('/user')) data = user;
     else if (path.endsWith('/is_admin')) data = false;
     else if (path.endsWith('/user_tasks')) data = Array.from({ length: 25 }, (_, i) => ({ id: `assignment-${i + 1}`, user_id: userId, task_id: i + 1, position: i + 1, available_date: '2026-11-01', status: completed.has(i + 1) ? 'completed' : responses[i + 1] ? 'in_progress' : 'not_started', completed_at: completed.has(i + 1) ? '2026-11-01T00:00:00Z' : null }));
-    else if (path.endsWith('/tasks')) data = Array.from({ length: 25 }, (_, i) => ({ id: i + 1, slug: `task-${String(i + 1).padStart(2, '0')}`, title: `Задание ${i + 1}`, description: `Описание задания ${i + 1}`, is_active: true, config: {} }));
+    else if (path.endsWith('/tasks')) data = Array.from({ length: 25 }, (_, i) => ({ id: i + 1, slug: options.genericTasks && [7, 9, 10, 15, 16, 17, 18, 19, 20, 22, 23, 24].includes(i + 1) ? `custom-task-${i + 1}` : `task-${String(i + 1).padStart(2, '0')}`, title: `Задание ${i + 1}`, description: `Описание задания ${i + 1}`, is_active: true, config: {} }));
     else if (path.endsWith('/task_responses')) data = Object.entries(responses).map(([id, response]) => ({ id: `response-${id}`, user_id: userId, task_id: Number(id), response }));
     else if (path.endsWith('/save_task_progress')) {
       const body = request.postDataJSON(); responses[body.p_task_id] = body.p_response;
@@ -35,7 +35,7 @@ export async function mockBackend(page: Page, options: { failCalendar?: boolean;
       data = { task_id: body.p_task_id, status: body.p_complete ? 'completed' : 'in_progress', completed_at: body.p_complete ? new Date().toISOString() : null, response: body.p_response };
     } else if (path.endsWith('/claim_tarot_card')) {
       const body = request.postDataJSON(); completed.add(body.p_task_id); responses[body.p_task_id] = { card_id: body.p_card_id }; data = { card_id: body.p_card_id };
-    } else if (path.endsWith('/attachments')) data = [];
+    } else if (path.endsWith('/attachments') || path.endsWith('/guiding_star_results')) data = [];
     const taskFilter = new URL(request.url()).searchParams.get('task_id');
     if (taskFilter && Array.isArray(data)) data = data.filter(item => item.task_id === Number(taskFilter.slice(3)));
     if (request.headers()['accept']?.includes('application/vnd.pgrst.object+json') && Array.isArray(data)) data = data[0] ?? null;

@@ -17,9 +17,10 @@ test('cipher validates saves and reopens the confirmed result', async ({ page })
 test('memory preserves the story and confirms completion', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/3');
   await page.locator('#memory-answer').fill('Наше воспоминание');
+  await page.locator('#memory-author').fill('Тестовый автор');
   await page.getByRole('button', { name: 'Поделиться историей', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  expect(backend.responses[3]).toEqual({ text: 'Наше воспоминание' });
+  expect(backend.responses[3]).toEqual({ text: 'Наше воспоминание', author: 'Тестовый автор' });
 });
 test('crossword restores a local draft and saves only the solved flag', async ({ page }) => {
   const backend = await mockBackend(page);
