@@ -340,7 +340,8 @@ onBeforeUnmount(() => {
   --copy-bottom: 18px;
   --copy-height: calc(var(--copy-top) + var(--title-width) * 89 / 624 + var(--title-gap)
     + var(--intro-size) * 1.45 + var(--daily-gap) + var(--daily-hit-height) + var(--copy-bottom));
-  --stage-width: min(clamp(1040px, calc(50vw + 768px), 1440px), max(1040px, calc((100svh - var(--copy-height)) * 1440 / 649)));
+  --stage-target-width: clamp(1040px, calc(50vw + 768px), 1440px);
+  --stage-width: min(var(--stage-target-width), max(1040px, calc((100svh - var(--copy-height)) * 1440 / 649)));
   --facade-height: calc(var(--stage-width) * 649 / 1440);
   --scene-scale: calc(var(--stage-width) / 1440px);
   --side-space: calc((100cqw - var(--stage-width) * 524 / 1440) / 2);
@@ -349,6 +350,9 @@ onBeforeUnmount(() => {
   --lantern-center: clamp(76px, calc(28vw - 78px), 325px);
   --curtain-width: clamp(65px, calc(24vw - 84px), 262px);
   --lantern-width: clamp(58px, 7vw, 100px);
+}
+@media (min-width: 2560px) {
+  .calendar-layout-desktop { --stage-target-width: 2880px; }
 }
 .calendar-layout-desktop .calendar-canvas { width: 1440px; height: 811px; }
 .calendar-layout-desktop .calendar-toolbar {
