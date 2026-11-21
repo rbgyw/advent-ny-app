@@ -18,17 +18,19 @@ import todayOutline from '../assets/calendar/3fa47fbb-be3a-4dbf-b56a-851ff9e456e
 import todayBadge from '../assets/calendar/2365cce0-774a-4a72-b2a8-f3f1535ce46f.svg'
 import dailyButton from '../assets/calendar/17cfb417-a7e1-4f43-be07-25f27aeb5c8b.svg'
 import DesktopCalendarIllustration from '../components/DesktopCalendarIllustration.vue'
+import mobileGround from '../assets/calendar/snow-mobile.svg'
 import curtainLeft from '../assets/calendar/desktop/curtain-left.svg'
 import curtainRight from '../assets/calendar/desktop/curtain-right.svg'
 import snowFront from '../assets/calendar/desktop/snow-front.svg'
 import snowBack from '../assets/calendar/desktop/snow-back.svg'
 import treeLeft from '../assets/calendar/desktop/tree-left.svg'
 import treeRight from '../assets/calendar/desktop/tree-right.svg'
+import skylineRight from '../assets/calendar/desktop/skyline-right.svg'
 import skyline from '../assets/calendar/desktop/skyline.svg'
 import snowfall from '../assets/splash/snowfall-wide.svg'
 import lantern from '../assets/calendar/desktop/lantern.svg'
-import brand from '../assets/calendar/66d4a818-5417-4c1c-ac45-147152fb77f1.svg'
-const desktopMedia = window.matchMedia('(min-width: 900px)')
+import brand from '../assets/calendar/desktop/brand.svg'
+const desktopMedia = window.matchMedia('(min-width: 640px)')
 const desktop = ref(desktopMedia.matches)
 function updateDesktop() { desktop.value = desktopMedia.matches }
 const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'))
@@ -100,12 +102,12 @@ onBeforeUnmount(() => {
 <template>
   <PageLayout background-variant="calendar" class="calendar-page" @keydown.esc="closeMenu">
     <div class="calendar-layout" :class="{ 'calendar-layout-desktop': desktop }">
-      <div class="calendar-fullbleed" aria-hidden="true">
+      <div v-if="desktop" class="calendar-fullbleed" aria-hidden="true">
         <img class="calendar-snowfall" :src="snowfall" alt="" />
-        <img class="calendar-lantern calendar-lantern-left" :src="lantern" alt="" />
-        <img class="calendar-lantern calendar-lantern-right" :src="lantern" alt="" />
+        <div class="calendar-lantern calendar-lantern-left"><img :src="lantern" alt="" /></div>
+        <div class="calendar-lantern calendar-lantern-right"><img :src="lantern" alt="" /></div>
         <img class="calendar-skyline calendar-skyline-left" :src="skyline" alt="" />
-        <img class="calendar-skyline calendar-skyline-right" :src="skyline" alt="" />
+        <img class="calendar-skyline calendar-skyline-right" :src="skylineRight" alt="" />
         <img class="calendar-ground-back" :src="snowBack" alt="" />
         <img class="calendar-tree calendar-tree-left" :src="treeLeft" alt="" />
         <img class="calendar-tree calendar-tree-right" :src="treeRight" alt="" />
@@ -116,7 +118,7 @@ onBeforeUnmount(() => {
       <DesignCanvas class="calendar-stage" :width="desktop ? 1440 : 393" :height="desktop ? 811 : 852" role="region" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
         <div class="calendar-canvas">
           <component :is="desktop ? DesktopCalendarIllustration : CalendarIllustration" :available-days="windows.filter(window => window.available).map(window => window.day)" />
-          <RouterLink class="calendar-brand-link" to="/" aria-label="ГЕРОФАРМ — на главную"><img v-if="desktop" :src="brand" alt="" width="112" height="15" /></RouterLink>
+          <RouterLink class="calendar-brand-link" to="/" aria-label="ГЕРОФАРМ — на главную"><img v-if="desktop" :src="brand" alt="" width="192" height="34" /></RouterLink>
           <p class="calendar-intro">Нажмите на окошко - и задание откроется.</p>
           <AppButton class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
             <img :src="dailyButton" alt="" width="197" height="21" />
@@ -148,7 +150,7 @@ onBeforeUnmount(() => {
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>
       </DesignCanvas>
-      <div class="calendar-ground-front" aria-hidden="true"><img :src="snowFront" alt="" /></div>
+      <div class="calendar-ground-front" aria-hidden="true"><img :src="desktop ? snowFront : mobileGround" alt="" /></div>
     </div>
   </PageLayout>
 </template>
@@ -188,37 +190,105 @@ onBeforeUnmount(() => {
 .calendar-auth-error { top:354px; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 
-.calendar-layout { position:relative; isolation:isolate; display:flex; flex-direction:column; width:100%; min-height:100svh; overflow:clip; }
-.calendar-stage { flex:none; width:min(100%, clamp(393px, calc(24vw + 299px), 430px)); margin:auto auto 0; z-index:1; }
-.calendar-fullbleed { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-.calendar-fullbleed img { position:absolute; display:block; max-width:none; }
-.calendar-snowfall { inset:0; width:100%; height:100%; object-fit:cover; opacity:.65; }
-.calendar-skyline { bottom:22px; width:clamp(280px, 28.7vw, 550px); opacity:.6; }
-.calendar-skyline-left { left:4.16%; }
-.calendar-skyline-right { right:0; transform:scaleX(-1); }
-.calendar-ground-back { width:100%; height:clamp(110px, 12.36vw, 210px); bottom:0; }
-.calendar-tree,.calendar-curtain,.calendar-lantern { display:none; }
-.calendar-ground-front { position:absolute; inset:auto 0 0; height:clamp(24px, 4.86vw, 90px); pointer-events:none; z-index:2; background:none; }
-.calendar-ground-front::after { content:""; position:absolute; inset:auto 0 -1px; height:5px; background:#faf7ee; }
-.calendar-ground-front img { display:block; position:absolute; width:100%; height:100%; inset:0; max-width:none; }
-/* The desktop facade keeps readable windows while side scenery fills the viewport. */
-.calendar-layout-desktop { min-height:max(811px, 100svh); --calendar-headroom:max(0px, calc(100svh - 811px)); }
-.calendar-layout-desktop .calendar-stage { width:1440px; left:50%; margin:auto 0 0; transform:translateX(-50%); }
-.calendar-layout-desktop .calendar-canvas { width:1440px; height:811px; }
-.calendar-layout-desktop .calendar-intro { top:calc(119px - var(--calendar-headroom) / var(--design-scale)); left:400px; right:400px; font-size:max(14px, calc(14px / var(--design-scale))); line-height:22px; }
-.calendar-layout-desktop .calendar-brand-link { top:calc(26px - var(--calendar-headroom) / var(--design-scale)); left:calc(720px - 50vw + clamp(24px, 4.5vw, 65px)); display:flex; align-items:flex-start; }
-.calendar-layout-desktop .calendar-menu { top:calc(24px - var(--calendar-headroom) / var(--design-scale)); right:calc(720px - 50vw + clamp(24px, 4.5vw, 65px)); }
-.calendar-layout-desktop summary { display:grid; place-items:center; }
-.calendar-layout-desktop .calendar-daily { left:610px; top:calc(138px - var(--calendar-headroom) / var(--design-scale)); }
-.calendar-layout-desktop .calendar-lantern { display:block; width:clamp(54px, 6.94vw, 100px); top:74px; }
-.calendar-layout-desktop .calendar-lantern-left { left:calc(50% - min(30.9vw, 445px)); }
-.calendar-layout-desktop .calendar-lantern-right { right:calc(50% - min(30.9vw, 445px)); }
-.calendar-layout-desktop .calendar-tree { display:block; bottom:17px; width:clamp(140px, 16vw, 280px); }
-.calendar-layout-desktop .calendar-tree-left { left:max(20px, calc(50% - 536px)); }
-.calendar-layout-desktop .calendar-tree-right { right:max(20px, calc(50% - 536px)); }
-.calendar-layout-desktop .calendar-curtain { display:block; height:100%; width:clamp(130px, 18.2vw, 300px); object-fit:fill; top:0; }
-.calendar-layout-desktop .calendar-curtain-left { left:0; }
-.calendar-layout-desktop .calendar-curtain-right { right:0; }
+.calendar-layout {
+  --mobile-stage-width: min(100%, clamp(393px, calc(16vw + 330px), 430px));
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  overflow: clip;
+}
+.calendar-stage { flex: none; width: var(--mobile-stage-width); margin: auto auto 0; z-index: 1; }
+.calendar-ground-front {
+  position: absolute;
+  inset: auto 0 0;
+  height: min(14.25vw, 61px);
+  pointer-events: none;
+}
+.calendar-ground-front img { display: block; width: 100%; height: 100%; max-width: none; }
+
+/* The wide facade and its hit areas scale as one. The scenery uses the entire viewport. */
+.calendar-layout-desktop {
+  --stage-width: clamp(1040px, calc(50vw + 768px), 1440px);
+  --stage-height: calc(var(--stage-width) * 811 / 1440);
+  --extra-height: max(0px, calc(100svh - var(--stage-height)));
+  --calendar-headroom: calc(var(--extra-height) - min(280px, var(--extra-height) * .73));
+  --scene-scale: calc(var(--stage-width) / 1440px);
+  --side-space: calc((100cqw - var(--stage-width) * 524 / 1440) / 2);
+  --tree-width: min(clamp(88px, calc(13vw + 43px), 235px), calc(var(--side-space) - 10px));
+  --tree-center: min(clamp(50px, calc(28vw - 104px), 422px), calc(var(--side-space) - var(--tree-width) / 2 + 4px));
+  --lantern-center: clamp(76px, calc(28vw - 78px), 325px);
+  --curtain-width: clamp(65px, calc(24vw - 84px), 262px);
+  --lantern-width: clamp(58px, 7vw, 100px);
+  --edge-gutter: clamp(16px, 4.5vw, 65px);
+  min-height: max(var(--stage-height), 100svh);
+}
+.calendar-layout-desktop .calendar-stage { width: var(--stage-width); left: 50%; margin: auto 0 0; transform: translateX(-50%); }
+.calendar-layout-desktop .calendar-canvas { width: 1440px; height: 811px; }
+.calendar-layout-desktop .calendar-intro {
+  top: calc(115px - var(--calendar-headroom) / var(--design-scale));
+  left: 400px;
+  right: 400px;
+  font-size: 20px;
+  line-height: 22px;
+}
+.calendar-layout-desktop .calendar-brand-link {
+  top: calc((26px - var(--extra-height)) / var(--design-scale));
+  left: calc(720px + (var(--edge-gutter) - 50cqw) / var(--design-scale));
+  width: clamp(112px, 14vw, 192px);
+  display: flex;
+  align-items: flex-start;
+}
+.calendar-layout-desktop .calendar-brand-link img { width: 100%; height: auto; }
+.calendar-layout-desktop .calendar-menu {
+  top: calc((26px - var(--extra-height)) / var(--design-scale));
+  right: calc(720px + (clamp(16px, 3.15vw, 45px) - 50cqw) / var(--design-scale));
+}
+.calendar-layout-desktop summary { display: grid; place-items: center; min-width: 48px; min-height: 48px; }
+.calendar-layout-desktop summary svg { width: 100%; height: 100%; }
+.calendar-layout-desktop .calendar-daily { left: 611.5px; top: calc(127px - var(--calendar-headroom) / var(--design-scale)); }
+.calendar-layout-desktop .calendar-daily > img { left: 0; width: 100%; }
+.calendar-page { container-type: inline-size; }
+.calendar-fullbleed { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.calendar-fullbleed > img { position: absolute; max-width: none; }
+.calendar-snowfall { inset: 0; width: 100%; height: 100%; object-fit: fill; }
+.calendar-skyline { bottom: 23px; }
+.calendar-skyline-left { left: clamp(-15px, calc(14vw - 141.6px), 75px); width: clamp(270px, 28.68vw, 480px); }
+.calendar-skyline-right { right: clamp(-15px, calc(14vw - 149.6px), 75px); width: clamp(290px, 30.83vw, 516px); }
+.calendar-ground-back { width: 100%; height: clamp(90px, 12.36vw, 178px); bottom: 0; }
+.calendar-lantern {
+  position: absolute;
+  top: 0;
+  width: var(--lantern-width);
+  padding-top: calc(var(--lantern-width) * .74 + min(182px, var(--extra-height) * .48));
+}
+.calendar-lantern img { display: block; width: 100%; }
+.calendar-lantern::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  bottom: calc(var(--lantern-width) * 2.15);
+  width: 1px;
+  background: #eeca8c;
+}
+.calendar-lantern-left { left: calc(var(--lantern-center) - var(--lantern-width) / 2); }
+.calendar-lantern-right { right: calc(var(--lantern-center) - var(--lantern-width) / 2); }
+.calendar-tree { bottom: calc(17px * var(--scene-scale)); width: var(--tree-width); }
+.calendar-tree-left { left: calc(var(--tree-center) - var(--tree-width) / 2); }
+.calendar-tree-right { right: calc(var(--tree-center) - var(--tree-width) / 2); }
+.calendar-curtain { bottom: 0; height: 100%; width: var(--curtain-width); }
+.calendar-curtain-left { left: 0; }
+.calendar-curtain-right { right: 0; }
+.calendar-layout-desktop .calendar-ground-front { z-index: 2; height: clamp(38px, 4.86vw, 70px); }
+.calendar-layout-desktop .calendar-ground-front::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 4px;
+  background: #faf7ee;
+}
 .calendar-layout-desktop .calendar-today-outline { width:100%; height:100%; left:0; top:0; }
 .calendar-layout-desktop .calendar-today-badge { left:calc(50% - 24px); }
 .calendar-layout-desktop .calendar-notice { left:560px; }

@@ -19,6 +19,9 @@
 }
 .screen-loader[data-theme='warm'] { background: radial-gradient(ellipse 165% 108% at 30% 100%, #ffb451, #f78028 54%, #c63d0f); }
 .screen-loader[data-theme='calendar'] { background: var(--background-calendar); }
+@media (min-width: 640px) {
+  .screen-loader[data-splash] { background: var(--background-night-wide); }
+}
 .screen-loader-background { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .screen-loader-content {
   position: absolute;

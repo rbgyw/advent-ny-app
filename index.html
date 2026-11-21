@@ -24,6 +24,7 @@
     <script>
       const startupTask = Number(location.pathname.match(/^\/task\/(\d+)/)?.[1]);
       document.getElementById('startup-loader').dataset.theme = location.pathname.startsWith('/calendar') ? 'calendar' : [4,6,7,9,11,14,17,19,21,25].includes(startupTask) || ['/', '/rules'].includes(location.pathname.replace(/\/$/, '') || '/') ? 'night' : 'warm';
+      document.getElementById('startup-loader').toggleAttribute('data-splash', location.pathname === '/');
       if (startupTask) document.getElementById('startup-status').textContent = 'Загружаем задание...';
     </script>
     <script type="module" src="/src/main.ts"></script>

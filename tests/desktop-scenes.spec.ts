@@ -1,15 +1,22 @@
 import { expect, test } from '@playwright/test';
 import { mockBackend } from './fixture';
 
-const widths = [320, 393, 430, 551, 559, 560, 600, 767, 768, 899, 900, 901, 1024, 1199, 1440, 1601, 1920, 2560];
+const viewports = [
+  [320, 568], [393, 852], [551, 917], [639, 900], [640, 900], [641, 900],
+  [744, 1133], [768, 1024], [820, 1180], [834, 1194], [1024, 768],
+  [1194, 834], [1440, 811], [1920, 1080], [2560, 1440], [393, 852],
+] as const;
 
 for (const route of ['/', '/calendar']) {
   test(`${route} keeps its scenery attached to the bottom and both sides during resizing`, async ({ page }) => {
     await mockBackend(page);
     await page.goto(route);
     await expect(page.locator('.screen-loader')).toHaveCount(0);
-    for (const width of widths) {
-      await page.setViewportSize({ width, height: width % 2 ? 1080 : 740 });
+    const firstWindow = page.locator('.calendar-window').first();
+    if (route === '/calendar') await firstWindow.focus();
+    for (const [width, height] of viewports) {
+      await page.setViewportSize({ width, height });
+      const wide = width >= 640;
       const ground = page.locator(route === '/' ? '.splash-ground' : '.calendar-ground-front');
       await expect.poll(() => ground.evaluate(element => {
         const rect = element.getBoundingClientRect();
@@ -23,7 +30,13 @@ for (const route of ['/', '/calendar']) {
           return Math.abs(canvas.getBoundingClientRect().width - element.getBoundingClientRect().width);
         }), `art and hit areas use the same scale at ${width}px`).toBeLessThan(.5);
       }
-      if (route === '/calendar' && width >= 900) {
+      if (route === '/calendar') {
+        await expect(page.locator('.calendar-window')).toHaveCount(25);
+        await expect(page.locator('.desktop-window')).toHaveCount(wide ? 24 : 0);
+        await expect(page.locator('.calendar-fullbleed')).toHaveCount(wide ? 1 : 0);
+        await expect(firstWindow).toBeFocused();
+      }
+      if (route === '/calendar' && wide) {
         for (const side of ['left', 'right']) {
           const curtain = page.locator(`.calendar-curtain-${side}`);
           const bounds = await curtain.boundingBox();
@@ -31,8 +44,30 @@ for (const route of ['/', '/calendar']) {
           expect(bounds!.y).toBeCloseTo(0, 0);
           expect(bounds!.height).toBeCloseTo((await page.locator('main').boundingBox())!.height, 0);
         }
-        await expect(page.locator('.calendar-window')).toHaveCount(25);
-        await expect(page.locator('.desktop-window')).toHaveCount(24);
+        const house = (await page.locator('.desktop-house').boundingBox())!;
+        expect(house.y + house.height).toBeGreaterThan(height - 45);
+        expect((await page.locator('.calendar-daily > img').boundingBox())!.y).toBeLessThan(house.y + 2);
+        for (const selector of ['.calendar-tree', '.calendar-lantern']) {
+          const decorations = page.locator(selector);
+          await expect(decorations).toHaveCount(2);
+          for (const decoration of await decorations.all()) {
+            const box = (await decoration.boundingBox())!;
+            expect(box.x).toBeGreaterThanOrEqual(0);
+            expect(box.x + box.width).toBeLessThanOrEqual(width);
+          }
+        }
+      }
+      if (route === '/') {
+        for (const selector of ['.splash-arch', '.splash-mobile-header', '.splash-mobile-scenery', '.splash-mobile-lamps']) {
+          await expect(page.locator(selector)).toHaveCount(1);
+          await expect(page.locator(selector + ':visible')).toHaveCount(wide ? 0 : 1);
+        }
+        for (const selector of ['.splash-wide-header', '.splash-wide-city', '.splash-title-wide', '.splash-wide-lamp-left', '.splash-wide-lamp-right']) {
+          await expect(page.locator(selector + ':visible')).toHaveCount(wide ? 1 : 0);
+        }
+        await expect(page.locator('.splash-fireworks-wide img:visible')).toHaveCount(wide ? 6 : 0);
+        await expect(page.locator('.splash-wide-bow:visible')).toHaveCount(wide ? 2 : 0);
+        await expect(ground.locator('img')).toHaveJSProperty('complete', true);
       }
     }
   });

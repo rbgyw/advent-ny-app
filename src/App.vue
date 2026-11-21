@@ -9,10 +9,11 @@ import ScreenReadyBoundary from './components/ui/ScreenReadyBoundary.vue';
 usePageMotion();
 const pinia = getActivePinia()!;
 const task = computed(() => /^\/task\//.test(navigationDestination.value || location.pathname));
+const splash = computed(() => /^\/(?:[?#]|$)/.test(navigationDestination.value || location.pathname));
 const theme = computed(() => {
   const path = navigationDestination.value || location.pathname;
   if (path.startsWith('/calendar')) return 'calendar';
-  if (/^\/(?:[?#]|$)/.test(path) || path.startsWith('/rules')) return 'night';
+  if (splash.value || path.startsWith('/rules')) return 'night';
   const day = Number(path.match(/^\/task\/(\d+)/)?.[1]);
   const assignment = pinia.state.value.calendar?.tasks?.find((item: { position: number }) => item.position === day);
   const number = Number(assignment?.task?.slug?.match(/^task-(\d+)$/)?.[1] ?? assignment?.task_id ?? day);
@@ -24,6 +25,7 @@ function retry() { window.location.reload(); }
 <template>
   <ScreenLoader v-if="navigationPending || screenPending || navigationError || screenError"
     :label="task ? 'Загружаем задание...' : 'Открываем календарь...'"
+    :data-splash="splash ? '' : undefined"
     :theme="theme" :background="screenBackground" :background-layer="screenBackgroundLayer" :error="navigationError || screenError" @retry="retry" />
   <RouterView v-slot="{ Component, route }">
     <ScreenReadyBoundary v-if="Component" :key="route.fullPath" :destination="route.fullPath">
