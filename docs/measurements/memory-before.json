@@ -1,0 +1,27 @@
+{
+  "baseURL": "http://127.0.0.1:4174",
+  "notes": "One warm-up batch loads all six task chunks. Snapshots after explicit GC; JS heap is not total browser RAM.",
+  "samples": [
+    {
+      "visits": 6,
+      "js_heap_used": 4852068,
+      "documents": 142,
+      "nodes": 4592,
+      "jsEventListeners": 65
+    },
+    {
+      "visits": 18,
+      "js_heap_used": 5397420,
+      "documents": 143,
+      "nodes": 4689,
+      "jsEventListeners": 65
+    },
+    {
+      "visits": 30,
+      "js_heap_used": 5535084,
+      "documents": 142,
+      "nodes": 4592,
+      "jsEventListeners": 65
+    }
+  ]
+}

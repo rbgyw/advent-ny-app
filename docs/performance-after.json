@@ -1,0 +1,176 @@
+{
+  "total_bytes": 9429926,
+  "initial_js_bytes": 104605,
+  "js": [
+    {
+      "file": "assets/AppCard-BL_-GoPm.js",
+      "bytes": 232,
+      "gzip": 203
+    },
+    {
+      "file": "assets/AppDialog-Dbb99m3p.js",
+      "bytes": 1001,
+      "gzip": 547
+    },
+    {
+      "file": "assets/AppHeader-BfG4EfRa.js",
+      "bytes": 679,
+      "gzip": 511
+    },
+    {
+      "file": "assets/AuthView-BT5Mu5c-.js",
+      "bytes": 24692,
+      "gzip": 7551
+    },
+    {
+      "file": "assets/CalendarIllustration-BiGLBytR.js",
+      "bytes": 347097,
+      "gzip": 30057
+    },
+    {
+      "file": "assets/CalendarView-Bg35S_AK.js",
+      "bytes": 12535,
+      "gzip": 4359
+    },
+    {
+      "file": "assets/EighthTaskScreen-3ih4bH7q.js",
+      "bytes": 23368,
+      "gzip": 7328
+    },
+    {
+      "file": "assets/EleventhTaskScreen-cOoRshru.js",
+      "bytes": 19387,
+      "gzip": 7342
+    },
+    {
+      "file": "assets/FifthTaskScreen-Biva00eq.js",
+      "bytes": 17918,
+      "gzip": 5644
+    },
+    {
+      "file": "assets/FirstTaskScreen-DbDpyski.js",
+      "bytes": 5593,
+      "gzip": 2675
+    },
+    {
+      "file": "assets/FourteenthTaskScreen-jCdwpWBP.js",
+      "bytes": 7063,
+      "gzip": 3214
+    },
+    {
+      "file": "assets/FourthTaskScreen-CV0a0Us2.js",
+      "bytes": 22639,
+      "gzip": 7229
+    },
+    {
+      "file": "assets/PageLayout-BATulMpY.js",
+      "bytes": 393,
+      "gzip": 295
+    },
+    {
+      "file": "assets/RulesView-hjzi2aHY.js",
+      "bytes": 3957,
+      "gzip": 1808
+    },
+    {
+      "file": "assets/SecondTaskScreen-BLZBhKRV.js",
+      "bytes": 137135,
+      "gzip": 18552
+    },
+    {
+      "file": "assets/SixthTaskScreen-BfYoo88E.js",
+      "bytes": 158712,
+      "gzip": 35958
+    },
+    {
+      "file": "assets/SplashView-DkGTv-6H.js",
+      "bytes": 14018,
+      "gzip": 3889
+    },
+    {
+      "file": "assets/TaskView-CvEa1FP6.js",
+      "bytes": 25764,
+      "gzip": 7514
+    },
+    {
+      "file": "assets/ThirdTaskScreen-dnEceotl.js",
+      "bytes": 9407,
+      "gzip": 3968
+    },
+    {
+      "file": "assets/ThirteenthTaskScreen-Pw-Ycs58.js",
+      "bytes": 54252,
+      "gzip": 11677
+    },
+    {
+      "file": "assets/TwelfthTaskScreen-C5untatK.js",
+      "bytes": 15176,
+      "gzip": 5856
+    },
+    {
+      "file": "assets/TwentyFifthTaskScreen-C39ctQ-2.js",
+      "bytes": 51148,
+      "gzip": 14929
+    },
+    {
+      "file": "assets/TwentyFirstTaskScreen-O26TWdaj.js",
+      "bytes": 12169,
+      "gzip": 5095
+    },
+    {
+      "file": "assets/auth-nq6m0z6e.js",
+      "bytes": 218035,
+      "gzip": 55748
+    },
+    {
+      "file": "assets/calendar-Baq57xlA.js",
+      "bytes": 1218,
+      "gzip": 734
+    },
+    {
+      "file": "assets/calendar-C4_op0gx.js",
+      "bytes": 23208,
+      "gzip": 8846
+    },
+    {
+      "file": "assets/dot-2i0iDq0U.js",
+      "bytes": 501,
+      "gzip": 300
+    },
+    {
+      "file": "assets/dot-C9bdzYr8.js",
+      "bytes": 507,
+      "gzip": 304
+    },
+    {
+      "file": "assets/index-CTB6b7rV.js",
+      "bytes": 44983,
+      "gzip": 17940
+    },
+    {
+      "file": "assets/router-DV_7_wc5.js",
+      "bytes": 2485,
+      "gzip": 1122
+    },
+    {
+      "file": "assets/runtime-core.esm-bundler-DSCqMXoF.js",
+      "bytes": 59622,
+      "gzip": 23111
+    },
+    {
+      "file": "assets/useCampaignClock-CCa2BGt5.js",
+      "bytes": 526,
+      "gzip": 334
+    },
+    {
+      "file": "assets/useElementRef-BvlXsOoc.js",
+      "bytes": 200,
+      "gzip": 178
+    },
+    {
+      "file": "assets/wordmark-BdDTiBaZ.js",
+      "bytes": 3964,
+      "gzip": 1588
+    }
+  ]
+}
