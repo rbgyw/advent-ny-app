@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
@@ -163,8 +164,8 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
         <p class="cipher-date">{{ date }}</p>
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
         <LoadingState v-if="loading" class="cipher-notice" role="status" />
-        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
-        <p v-else-if="!assignment" class="cipher-notice" role="status">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="cipher-notice"><p>{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="cipher-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="cipher-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="cipher-intro">
@@ -202,7 +203,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
             </fieldset>
             <p v-if="incorrect" class="cipher-warning cipher-incorrect" role="alert">В шифре еще осталась загадка.<br />Сверьтесь с алфавитом и попробуйте снова!</p>
             <p v-else-if="saveError" class="cipher-warning cipher-incorrect" role="alert">{{ saveError }}</p>
-            <AppButton class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
+            <AppButton :loading="saving" class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
           </form>
         </template>
       </AppCard>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
@@ -90,7 +91,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <h1>Что подскажет карта?</h1>
         <LoadingState v-if="loading" role="status" />
         <template v-else-if="error"><p role="alert">{{ error }}</p><AppButton class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></template>
-        <p v-else-if="!assignment">Задание не найдено.</p>
+        <FeedbackState v-else-if="!assignment" message="Задание не найдено." />
         <p v-else-if="!assignment.task">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <p v-else>Для задания уже сохранён результат. Повторный выбор карты недоступен. Обратитесь к организатору, чтобы уточнить сохранённый результат.</p>
       </section>

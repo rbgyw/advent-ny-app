@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -54,11 +55,11 @@ function cssUrl(url: string) { return `url("${url}")` }
         <h1 id="first-task-title">Праздник в каждую переписку</h1>
 
         <LoadingState v-if="loading" class="first-task-notice" role="status" />
-        <div v-else-if="error" class="first-task-notice">
-          <p role="alert">{{ error }}</p>
+        <FeedbackState v-else-if="error" kind="error" class="first-task-notice">
+          <p>{{ error }}</p>
           <AppButton class="first-task-button first-task-primary" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton>
-        </div>
-        <p v-else-if="!assignment" class="first-task-notice" role="status">Задание не найдено.</p>
+        </FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="first-task-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="first-task-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="first-task-copy" data-figma-node="28:39192">

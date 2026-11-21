@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
@@ -161,11 +162,11 @@ function submit() {
           <p class="raskobki-badge">Обязательное задание</p>
         </div>
         <LoadingState v-if="loading" class="raskobki-notice" role="status" />
-        <div v-else-if="error" class="raskobki-notice" role="alert">
+        <FeedbackState v-else-if="error" kind="error" class="raskobki-notice">
           <p>{{ error }}</p>
           <AppButton class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</AppButton>
-        </div>
-        <p v-else-if="!assignment" class="raskobki-notice">Задание не найдено.</p>
+        </FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="raskobki-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="raskobki-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>
@@ -216,7 +217,7 @@ function submit() {
               </div>
             </template>
             <p id="raskobki-feedback" class="raskobki-feedback" role="status">{{ saveError || feedback }}</p>
-            <AppButton class="raskobki-button" type="submit" :disabled="saving">
+            <AppButton :loading="saving" class="raskobki-button" type="submit" :disabled="saving">
               {{ saving ? 'Сохраняем…' : allSolved ? 'Сохранить результат' : 'Вставить слово' }}
             </AppButton>
           </form>

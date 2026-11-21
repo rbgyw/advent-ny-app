@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -120,8 +121,8 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
         <p class="pairs-date">{{ date }}</p>
         <h1 id="pairs-title">Что скрывают карточки?</h1>
         <LoadingState v-if="loading" class="pairs-notice" role="status" />
-        <div v-else-if="error" class="pairs-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></div>
-        <p v-else-if="!assignment" class="pairs-notice" role="status">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="pairs-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="pairs-copy">

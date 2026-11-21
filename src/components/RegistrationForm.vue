@@ -88,7 +88,7 @@ function submit() {
               <p v-if="!consent" id="register-consent-hint" class="auth-consent-hint">Для регистрации необходимо ваше согласие.</p>
             </div>
             <p v-if="validationError || error" class="auth-error" role="alert">{{ validationError || error }}</p>
-            <AppButton class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</AppButton>
+            <AppButton :loading="loading" class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</AppButton>
           </fieldset>
         </form>
       </section>

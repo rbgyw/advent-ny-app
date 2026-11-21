@@ -36,7 +36,7 @@
                 <input id="login-password" v-model="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
               </FormField>
               <p v-if="authStore.error" class="auth-error" role="alert">{{ authStore.error }}</p>
-              <AppButton class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</AppButton>
+              <AppButton :loading="authStore.loading" class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</AppButton>
             </fieldset>
           </form>
       </section>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -166,11 +167,11 @@ async function shareCard() {
         <p class="fortune-date">{{ date }}</p>
         <h1 id="fortune-title">Печенье на счастье</h1>
         <LoadingState v-if="loading" class="fortune-notice" role="status" />
-        <div v-else-if="error" class="fortune-notice" role="alert">
+        <FeedbackState v-else-if="error" kind="error" class="fortune-notice">
           <p>{{ error }}</p>
           <AppButton class="fortune-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>
-        </div>
-        <p v-else-if="!assignment" class="fortune-notice">Задание не найдено.</p>
+        </FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="fortune-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="fortune-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>

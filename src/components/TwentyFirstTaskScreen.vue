@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
@@ -182,11 +183,11 @@ function backFromResult() {
         </div>
 
         <LoadingState v-if="loading" class="nonogram-notice" role="status" />
-        <div v-else-if="error" class="nonogram-notice" role="alert">
+        <FeedbackState v-else-if="error" kind="error" class="nonogram-notice">
           <p>{{ error }}</p>
           <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>
-        </div>
-        <p v-else-if="!assignment" class="nonogram-notice">Задание не найдено.</p>
+        </FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="nonogram-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="nonogram-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
@@ -101,8 +102,8 @@ onBeforeUnmount(() => observer?.disconnect());
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />
-        <div v-else-if="error" class="stereo-notice" role="alert"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></div>
-        <p v-else-if="!assignment" class="stereo-notice">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="stereo-notice"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="stereo-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="stereo-copy"><p>На первый взгляд перед вами пестрый хаос.</p><p>Но стоит посмотреть иначе, и среди узоров появится объемное изображение. Что именно скрывается в сегодняшней стереокартинке? Попробуйте разглядеть!</p></div>
@@ -120,7 +121,7 @@ onBeforeUnmount(() => observer?.disconnect());
                 </div>
               </div>
             </fieldset>
-            <AppButton class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
+            <AppButton :loading="saving" class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
             <p v-if="completed" id="stereo-feedback" class="stereo-feedback stereo-success stereo-surface" :style="{ '--surface-art': cssUrl(successArt) }" role="status">Изображение раскрыто! Вы увидели, что скрывалось за узором. Обязательное задание выполнено</p>
             <p v-else-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
           </form>

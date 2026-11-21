@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
@@ -108,8 +109,8 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
         <p class="gratitude-date">{{ date }}</p>
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
         <LoadingState v-if="loading" class="gratitude-notice" role="status" />
-        <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
-        <p v-else-if="!assignment" class="gratitude-notice">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="gratitude-notice"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="gratitude-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="gratitude-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="gratitude-copy">
@@ -140,7 +141,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
             </div>
             <div class="gratitude-signature"><p>С наилучшими пожеланиями,</p><p>{{ !form.anonymous && form.senderName.trim() ? form.senderName.trim() : 'Твой тайный Дед Мороз' }}</p></div>
             <p v-if="sendError" id="gratitude-error" class="gratitude-error" role="alert">{{ sendError }}</p>
-            <AppButton class="gratitude-send" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></AppButton>
+            <AppButton :loading="sending" class="gratitude-send" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></AppButton>
           </form>
         </template>
       </AppCard>

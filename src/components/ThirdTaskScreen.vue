@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import { useCampaignClock } from '../composables/useCampaignClock';
 import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
@@ -102,8 +103,8 @@ onBeforeUnmount(() => {
         <p class="memory-date">{{ date }}</p>
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
         <LoadingState v-if="loading" class="memory-notice" role="status" />
-        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
-        <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="memory-notice"><p>{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="memory-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="memory-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="memory-copy" data-figma-node="28:40850">
@@ -120,7 +121,7 @@ onBeforeUnmount(() => {
             <TaskAttachments v-if="userId" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
+            <AppButton :loading="saving" class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
           </form>
         </template>
       </AppCard>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -74,8 +75,8 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <p class="wish-date">{{ date }}</p>
         <LoadingState v-if="loading" class="wish-notice" role="status" />
-        <div v-else-if="error" class="wish-notice" role="alert"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></div>
-        <p v-else-if="!assignment" class="wish-notice">Задание не найдено.</p>
+        <FeedbackState v-else-if="error" kind="error" class="wish-notice"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="wish-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div v-if="stage === 'accepted'" class="wish-star-scene" role="img" aria-label="Золотая звезда с сияющим следом">
