@@ -24,6 +24,11 @@ for (const state of ['available', 'closed', 'completed'] as const) {
         if (required.includes(day)) {
           await expect(window).toHaveAccessibleName(/Обязательное задание/);
           await expect(art.locator('[data-name=window-ornament]')).toHaveCount(1);
+          expect(await art.evaluate(element => {
+            const ornament = element.querySelector('[data-name=window-ornament]')!;
+            const number = element.querySelector('p')!;
+            return Boolean(ornament.compareDocumentPosition(number) & Node.DOCUMENT_POSITION_FOLLOWING);
+          }), `day ${day}: the number must paint above its ornament`).toBe(true);
         } else {
           await expect(window).not.toHaveClass(/is-mandatory/);
           await expect(page.locator(`.calendar-illustration [data-name="window-${day}"] [data-name=window-ornament]`)).toHaveCount(0);
