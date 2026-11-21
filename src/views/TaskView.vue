@@ -17,7 +17,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solveCipher"
@@ -33,7 +33,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="shareMemory"
@@ -49,7 +49,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solveCrossword"
@@ -64,7 +64,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solvePairs"
@@ -79,7 +79,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @draw="drawTarot"
@@ -104,7 +104,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solveStereogram"
@@ -118,7 +118,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="recommendFilm"
@@ -132,7 +132,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @confirm="makeWish"
@@ -146,7 +146,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solveRaskobki"
@@ -160,7 +160,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @submit="solveNonogram"
@@ -174,7 +174,7 @@
     :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
     :error="assignment ? null : calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
     @complete="completeFortune"
@@ -232,8 +232,8 @@
         @busy="attachmentsBusy = $event"
       />
 
-      <p v-if="calendarStore.saveError" class="error">
-        {{ calendarStore.saveError }}
+      <p v-if="taskSaveError" class="error">
+        {{ taskSaveError }}
       </p>
 
       <div v-if="isCompleted">
@@ -355,6 +355,8 @@ const assignment = computed(() =>
     : undefined,
 );
 
+const taskSaveError = computed(() => calendarStore.saveErrorTaskId === assignment.value?.task_id ? calendarStore.saveError : null);
+
 // Match task identity: personalised calendars may place it in another window.
 const isCipherTask = computed(() => assignment.value?.task?.slug === 'task-02' ||
   (!assignment.value?.task && (assignment.value?.task_id === 2 || day.value === 2)));
@@ -448,6 +450,7 @@ async function shareMemory() {
   if (!isMemoryTask.value || !assignment.value?.task || isCompleted.value ||
     calendarStore.saving || attachmentsBusy.value || !answer.value.trim()) return;
   if (!memorySubmissionOpen(assignment.value.available_date)) {
+    calendarStore.saveErrorTaskId = assignment.value.task_id;
     calendarStore.saveError = 'Приём воспоминаний завершён 10 декабря.';
     return;
   }
@@ -518,11 +521,12 @@ watch(
 
 // Восстанавливаем сохранённый текст
 watch(
-  () => [assignment.value?.id, assignment.value?.response?.response] as const,
-  () => {
-    const responseData = assignment.value?.response?.response;
-    answer.value =
-      typeof responseData?.text === "string" ? responseData.text : "";
+  [() => assignment.value?.id, () => assignment.value?.response?.response?.text],
+  ([id, text], [previousId, previousText]) => {
+    const previous = typeof previousText === "string" ? previousText : "";
+    // A background refresh must not replace an unsaved local draft.
+    if (id === previousId && answer.value !== previous) return;
+    answer.value = typeof text === "string" ? text : "";
   },
   { immediate: true },
 );

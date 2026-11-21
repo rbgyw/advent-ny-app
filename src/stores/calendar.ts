@@ -22,6 +22,7 @@ interface CalendarState {
 
   error: string | null;
   saveError: string | null;
+  saveErrorTaskId: number | null;
 
   currentUserId: string | null;
   loadVersion: number;
@@ -39,6 +40,7 @@ export const useCalendarStore = defineStore("calendar", {
 
     error: null,
     saveError: null,
+    saveErrorTaskId: null,
 
     currentUserId: null,
     loadVersion: 0,
@@ -109,6 +111,7 @@ export const useCalendarStore = defineStore("calendar", {
       response: Record<string, unknown>,
       complete: boolean,
     ): Promise<boolean> {
+      this.saveErrorTaskId = taskId;
       const userId = this.currentUserId;
       const version = this.loadVersion;
 
@@ -186,6 +189,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
+          this.saveErrorTaskId = taskId;
           this.saveError =
             error instanceof Error
               ? error.message
@@ -254,7 +258,7 @@ export const useCalendarStore = defineStore("calendar", {
       const assignment = this.tasks.find(item => item.task_id === taskId);
       if (assignment?.task?.slug !== 'task-12') return false;
       const payload = normalizeFilm(recommendation), validation = filmError(payload);
-      if (validation) { this.saveError = validation.message; return false; }
+      if (validation) { this.saveErrorTaskId = taskId; this.saveError = validation.message; return false; }
       if (assignment.status === 'completed') return true;
       return this.saveProgress(taskId, { ...payload }, true);
     },
@@ -289,6 +293,7 @@ export const useCalendarStore = defineStore("calendar", {
     },
 
     async drawTarotTask(taskId: number, candidate: number): Promise<boolean> {
+      this.saveErrorTaskId = taskId;
       const userId = this.currentUserId;
       const version = this.loadVersion;
 
@@ -329,6 +334,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
+          this.saveErrorTaskId = taskId;
           this.saveError =
             error instanceof Error
               ? error.message
@@ -363,6 +369,7 @@ export const useCalendarStore = defineStore("calendar", {
       this.error = null;
       this.saveError = null;
 
+      this.saveErrorTaskId = null;
       this.currentUserId = null;
       this.initializedUserId = null;
       this.loadedAt = 0;
