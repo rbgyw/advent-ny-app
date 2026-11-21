@@ -93,6 +93,20 @@ function placement(left: number, top: number, width: number) {
       ></span>
     </template>
     <img v-show="stage === 'open'" class="fortune-cookie-open" :src="openCookie" alt="" />
+    <svg
+      v-if="stage !== 'closed'"
+      class="fortune-ribbon-lettering"
+      :class="{ 'is-unrolling': stage === 'opening' }"
+      :style="placement(94.978, 58.022, 117.044)"
+      viewBox="0 0 117.044 39.5545"
+      fill="none"
+    >
+      <g stroke="#9B6A48" stroke-width="1.6" stroke-linecap="round" opacity="0.65">
+        <path d="M29 12Q58.5 9.7 88 12" stroke-dasharray="9 4 5 4 12 4 7 4 10" />
+        <path d="M30 19Q58.5 17 87 19" stroke-dasharray="5 4 12 4 8 4 10 4 6" />
+        <path d="M37 26Q58.5 24.8 80 26" stroke-dasharray="10 4 6 4 11 4 4" />
+      </g>
+    </svg>
   </div>
 </template>
 
@@ -133,6 +147,8 @@ function placement(left: number, top: number, width: number) {
 .fortune-half--left .fortune-half-detail { clip-path: inset(0 50% 0 0); }
 .fortune-half--right .fortune-half-detail { clip-path: inset(0 0 0 50%); }
 .fortune-ribbon { transform-origin: center; animation: fortune-unroll var(--break-duration) ease-out both; }
+.fortune-ribbon-lettering { position: absolute; z-index: 2; display: block; height: auto; }
+.fortune-ribbon-lettering.is-unrolling { transform-origin: center; animation: fortune-unroll var(--break-duration) ease-out both; }
 
 .fortune-crumb {
   position: absolute;

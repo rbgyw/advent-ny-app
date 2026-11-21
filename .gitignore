@@ -33,3 +33,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Generated from public/collections/videos.json for publication in Supabase
+/supabase/video-catalog.sql

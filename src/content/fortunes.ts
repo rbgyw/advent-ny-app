@@ -1,5 +1,4 @@
-export const fortuneHeading = 'Ваше пожелание на 2027 год';
-export const fortuneSignature = 'С теплом, ГЕРОФАРМ';
+export const fortuneHeading = 'Ваше предсказание на 2027 год';
 
 export const fortunes = [
   'Ты пробежишь свою дистанцию — 5 км, 10 км, 21 км или даже марафон. Главное — сделать первый шаг.',
