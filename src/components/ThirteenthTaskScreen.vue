@@ -70,7 +70,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
   <TaskLayout class="wish-page" :data-stage="stage" :data-motion-phase="motionPhase">
     <div ref="background" class="wish-background" aria-hidden="true"><div class="wish-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="wish-layout">
-      <AppHeader class="wish-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader variant="task" class="wish-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <p class="wish-date">{{ date }}</p>
         <LoadingState v-if="loading" class="wish-notice" role="status" />
@@ -113,10 +113,8 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
 .wish-background { position: absolute; top: 0; left: 0; width: 100%; height: 174.742857%; z-index: -1; overflow: hidden; pointer-events: none; }
 .wish-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: var(--background-task-glow); }
 .wish-layout { box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 30px; }
-.wish-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .wish-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
-.wish-header button { position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); }
 .wish-panel { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px 24px; }
 .wish-panel::before { content: ''; position: absolute; z-index: -1; inset: -.5px; border: 24px solid transparent; border-image: var(--panel-art) 24 fill / 24px stretch; pointer-events: none; }
 .wish-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }

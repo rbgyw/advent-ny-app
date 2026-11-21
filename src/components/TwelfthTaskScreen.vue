@@ -76,7 +76,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
   <TaskLayout class="film-page">
     <div ref="background" class="film-background" aria-hidden="true"><div class="film-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="film-layout">
-      <AppHeader class="film-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader variant="task" class="film-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <p class="film-date">{{ date }}</p>
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
@@ -125,10 +125,8 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
 .film-background { position: absolute; top: 0; left: 0; z-index: -1; width: 100%; height: 103.8722826%; overflow: hidden; pointer-events: none; }
 .film-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: var(--background-task-glow); }
 .film-layout { box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 26px; }
-.film-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .film-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
-.film-header button { position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); }
 .film-panel { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px 24px 28px; }
 .film-panel::before { content: ''; position: absolute; z-index: -1; inset: 0; border: 24px solid transparent; border-image: var(--panel-art) 24 fill / 24px stretch; pointer-events: none; }
 .film-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }

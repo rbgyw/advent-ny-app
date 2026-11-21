@@ -91,7 +91,7 @@ onBeforeUnmount(() => observer?.disconnect());
 <template>
   <TaskLayout background-variant="night" class="stereo-page">
     <div class="stereo-layout">
-      <AppHeader class="stereo-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader variant="task" class="stereo-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard ref="panel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
@@ -134,10 +134,8 @@ onBeforeUnmount(() => observer?.disconnect());
 :global(#app:has(.stereo-page)) { width: 100%; border: 0; }
 .stereo-page { min-height: 100svh; width: 100%; overflow: clip; color-scheme: light; color: #70492c;  font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .stereo-layout { box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 25px; }
-.stereo-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .stereo-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
-.stereo-header button { position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); }
 .stereo-panel { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px 24px 32px; }
 .stereo-panel.has-error:not(.is-complete) { padding-bottom: 43px; }
 .stereo-panel.is-complete { padding-bottom: 30px; }

@@ -103,7 +103,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
   <TaskLayout class="gratitude-page">
     <div ref="background" class="gratitude-background" aria-hidden="true"><div class="gratitude-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="gratitude-layout">
-      <AppHeader class="gratitude-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader variant="task" class="gratitude-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
         <p class="gratitude-date">{{ date }}</p>
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
@@ -173,10 +173,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
 .gratitude-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .gratitude-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: var(--background-task-glow); }
 .gratitude-layout { box-sizing: border-box; max-width: 760px; margin: 0 auto; padding: 0 16px 32px; }
-.gratitude-header { position: relative; height: 94px; box-sizing: border-box; padding-top: 34px; }
-.gratitude-header img { display: block; margin: 0 auto; }
 button { font-family: inherit; cursor: pointer; }
-.gratitude-header button { position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); }
 .gratitude-panel { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px 24px 32px; }
 .gratitude-panel::before { position: absolute; z-index: -1; inset: 0; content: ''; border: 24px solid transparent; border-image: var(--panel-art) 24 fill / 24px stretch; pointer-events: none; }
 .gratitude-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }
