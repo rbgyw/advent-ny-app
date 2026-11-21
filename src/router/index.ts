@@ -3,8 +3,8 @@ import {
   createRouter,
   createWebHistory,
 } from 'vue-router'
+import { navigationPending, navigationError, navigationDestination } from './status'
 
-import { useAuthStore } from '../stores/auth'
 
 const SplashView = () => import('../views/SplashView.vue')
 const RulesView = () => import('../views/RulesView.vue')
@@ -57,7 +57,20 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach(to => {
+  navigationDestination.value = to.fullPath
+  navigationError.value = ''
+  navigationPending.value = true
+})
+router.afterEach(() => { navigationPending.value = false })
+router.onError(() => {
+  navigationPending.value = false
+  navigationError.value = 'Не удалось открыть страницу. Проверьте подключение.'
+})
+
 router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth && !to.meta.requiresGuest) return
+  const { useAuthStore } = await import('../stores/auth')
   const authStore = useAuthStore()
 
   // Дожидаемся восстановления сессии

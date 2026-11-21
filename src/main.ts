@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import './assets/fonts.css'
@@ -8,17 +8,20 @@ import './tokens.css'
 document.querySelector('#startup-retry')?.addEventListener('click', () => window.location.reload())
 
 async function bootstrap() {
-  // Keep the HTML startup shell visible, including during module/auth failures.
-  const [{ default: router }, { useAuthStore }] = await Promise.all([
-    import('./router'), import('./stores/auth'),
-  ])
   const app = createApp(App)
   const pinia = createPinia()
+  // The plugin runs only when the calendar store is actually created.
+  // Clear user data synchronously on identity changes without loading it on public pages.
+  pinia.use(({ store }) => {
+    if (store.$id === 'calendar') {
+      watch(() => pinia.state.value.auth?.user?.id, (id, previous) => {
+        if (previous && id !== previous) store.reset()
+      }, { flush: 'sync' })
+    }
+  })
   app.use(pinia)
-  // Guards still await initialization before entering protected routes.
-  const auth = useAuthStore(pinia)
-  app.provide('authStore', auth)
-  void auth.initialize()
+  // Supabase and auth are deferred until a route requires them.
+  const { default: router } = await import('./router')
   app.use(router)
   await router.isReady()
   app.mount('#app')
