@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -161,7 +162,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
       <AppCard class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
         <p class="cipher-date">{{ date }}</p>
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
-        <p v-if="loading" class="cipher-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="cipher-notice" role="status" />
         <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="cipher-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="cipher-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

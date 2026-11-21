@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -164,7 +165,7 @@ async function shareCard() {
       <AppCard class="fortune-panel" aria-labelledby="fortune-title">
         <p class="fortune-date">{{ date }}</p>
         <h1 id="fortune-title">Печенье на счастье</h1>
-        <p v-if="loading" class="fortune-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="fortune-notice" role="status" />
         <div v-else-if="error" class="fortune-notice" role="alert">
           <p>{{ error }}</p>
           <AppButton class="fortune-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>

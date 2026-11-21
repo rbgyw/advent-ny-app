@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -72,7 +73,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
       <AppHeader class="wish-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <p class="wish-date">{{ date }}</p>
-        <p v-if="loading" class="wish-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="wish-notice" role="status" />
         <div v-else-if="error" class="wish-notice" role="alert"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="wish-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>

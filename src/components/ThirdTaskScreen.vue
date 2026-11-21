@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -104,7 +105,7 @@ onBeforeUnmount(() => {
       <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
         <p class="memory-date">{{ date }}</p>
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
-        <p v-if="loading" class="memory-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="memory-notice" role="status" />
         <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="memory-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

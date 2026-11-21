@@ -1,6 +1,7 @@
 <template>
+  <LoadingState v-if="calendarStore.loading && !assignment" />
   <FirstTaskScreen
-    v-if="day === 1"
+    v-else-if="day === 1"
     :assignment="assignment"
     :loading="calendarStore.loading"
     :error="calendarStore.error"
@@ -184,7 +185,7 @@
 
     <h1>День {{ day }}</h1>
 
-    <p v-if="calendarStore.loading">Загружаем задание...</p>
+    <LoadingState v-if="calendarStore.loading && !assignment" />
 
     <p v-else-if="calendarStore.error" class="error">
       {{ calendarStore.error }}
@@ -294,9 +295,11 @@
 </template>
 
 <script setup lang="ts">
+import { asyncScreen } from '../utils/async-screen';
+import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import TaskLayout from '../components/ui/TaskLayout.vue';
-import { computed, defineAsyncComponent, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../lib/supabase";
 
@@ -308,23 +311,23 @@ import TaskAttachments from "../components/TaskAttachments.vue";
 import { sendGratitude } from '../services/gratitude.service';
 import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
-const FirstTaskScreen = defineAsyncComponent(() => import("../components/FirstTaskScreen.vue"));
+const FirstTaskScreen = asyncScreen(() => import("../components/FirstTaskScreen.vue"));
 import { memorySubmissionOpen } from "../utils/memory";
 import type { CrosswordValues } from "../utils/crossword";
 import type { RaskobkiAnswer } from '../content/raskobki';
 import type { CellMark } from '../content/nonogram';
-const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
-const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTaskScreen.vue"));
-const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
-const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
-const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
-const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
-const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
-const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
-const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
-const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
-const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
-const TwentyFifthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFifthTaskScreen.vue'));
+const SecondTaskScreen = asyncScreen(() => import("../components/SecondTaskScreen.vue"));
+const ThirdTaskScreen = asyncScreen(() => import("../components/ThirdTaskScreen.vue"));
+const FourthTaskScreen = asyncScreen(() => import("../components/FourthTaskScreen.vue"));
+const FifthTaskScreen = asyncScreen(() => import("../components/FifthTaskScreen.vue"));
+const SixthTaskScreen = asyncScreen(() => import("../components/SixthTaskScreen.vue"));
+const EighthTaskScreen = asyncScreen(() => import('../components/EighthTaskScreen.vue'));
+const EleventhTaskScreen = asyncScreen(() => import('../components/EleventhTaskScreen.vue'));
+const TwelfthTaskScreen = asyncScreen(() => import('../components/TwelfthTaskScreen.vue'));
+const ThirteenthTaskScreen = asyncScreen(() => import('../components/ThirteenthTaskScreen.vue'));
+const FourteenthTaskScreen = asyncScreen(() => import('../components/FourteenthTaskScreen.vue'));
+const TwentyFirstTaskScreen = asyncScreen(() => import('../components/TwentyFirstTaskScreen.vue'));
+const TwentyFifthTaskScreen = asyncScreen(() => import('../components/TwentyFifthTaskScreen.vue'));
 
 const route = useRoute();
 const router = useRouter();

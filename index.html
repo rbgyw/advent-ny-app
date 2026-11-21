@@ -5,9 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>gph-advent</title>
+    <style>
+      .startup-shell { box-sizing:border-box; min-height:100svh; padding:64px 24px; text-align:center; background:#fdf6e3; color:#623c28; font:16px/1.5 system-ui,sans-serif; }
+      .startup-shell p { margin:0 0 24px; }
+      .startup-shell button { padding:12px 20px; border:1px solid #a7280b; border-radius:13px; color:#a7280b; background:transparent; font:inherit; cursor:pointer; }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="startup-shell">
+        <p>ГЕРОФАРМ</p>
+        <p id="startup-status" role="status">Открываем новогодний адвент…</p>
+        <button id="startup-retry" type="button" hidden>Попробовать снова</button>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -18,7 +18,7 @@
       @change="uploadSelected"
     />
 
-    <p v-if="busy">Обрабатываем фотографии...</p>
+    <LoadingState v-if="busy" compact label="Обрабатываем фотографии…" />
     <p v-if="message" role="status">{{ message }}</p>
     <p v-if="errorMessage" class="error" role="alert">
       {{ errorMessage }}
@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import {

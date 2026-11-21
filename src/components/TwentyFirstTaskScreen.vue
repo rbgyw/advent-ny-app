@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -177,7 +178,7 @@ function backFromResult() {
           <p class="nonogram-badge">Обязательное задание</p>
         </div>
 
-        <p v-if="loading" class="nonogram-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="nonogram-notice" role="status" />
         <div v-else-if="error" class="nonogram-notice" role="alert">
           <p>{{ error }}</p>
           <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>

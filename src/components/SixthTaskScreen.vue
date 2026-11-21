@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -84,7 +85,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
       <AppHeader class="tarot-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
         <h1>Что подскажет карта?</h1>
-        <p v-if="loading" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" role="status" />
         <template v-else-if="error"><p role="alert">{{ error }}</p><AppButton class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></template>
         <p v-else-if="!assignment">Задание не найдено.</p>
         <p v-else-if="!assignment.task">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

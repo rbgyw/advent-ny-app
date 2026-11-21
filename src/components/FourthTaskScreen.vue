@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -168,7 +169,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p class="crossword-date">{{ date }}</p>
         <h1 id="crossword-title">Качество<br />начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
-        <p v-if="loading" class="notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="notice" role="status" />
         <div v-else-if="error" class="notice"><p role="alert">{{ error }}</p><AppButton class="crossword-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

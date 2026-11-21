@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -116,7 +117,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
       <AppCard class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
         <p class="pairs-date">{{ date }}</p>
         <h1 id="pairs-title">Что скрывают карточки?</h1>
-        <p v-if="loading" class="pairs-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="pairs-notice" role="status" />
         <div v-else-if="error" class="pairs-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></div>
         <p v-else-if="!assignment" class="pairs-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

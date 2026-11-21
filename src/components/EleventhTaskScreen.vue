@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -97,7 +98,7 @@ onBeforeUnmount(() => observer?.disconnect());
         <p class="stereo-date">{{ date }}</p>
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
-        <p v-if="loading" class="stereo-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="stereo-notice" role="status" />
         <div v-else-if="error" class="stereo-notice" role="alert"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="stereo-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>

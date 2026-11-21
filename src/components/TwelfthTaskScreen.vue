@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -79,7 +80,7 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
       <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <p class="film-date">{{ date }}</p>
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
-        <p v-if="loading" class="film-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="film-notice" role="status" />
         <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>

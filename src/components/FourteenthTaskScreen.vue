@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -156,7 +157,7 @@ function submit() {
           <h1 id="raskobki-title">Ра[скобки]</h1>
           <p class="raskobki-badge">Обязательное задание</p>
         </div>
-        <p v-if="loading" class="raskobki-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="raskobki-notice" role="status" />
         <div v-else-if="error" class="raskobki-notice" role="alert">
           <p>{{ error }}</p>
           <AppButton class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</AppButton>

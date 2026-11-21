@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppDialog from './ui/AppDialog.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -106,7 +107,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
         <p class="gratitude-date">{{ date }}</p>
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
-        <p v-if="loading" class="gratitude-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="gratitude-notice" role="status" />
         <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="gratitude-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="gratitude-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>

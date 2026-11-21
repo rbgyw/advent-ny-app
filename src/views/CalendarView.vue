@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { asyncScreen } from '../utils/async-screen';
+import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import PageLayout from '../components/ui/PageLayout.vue';
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -21,7 +23,7 @@ import legendSoon from '../assets/calendar/bd28fbb2-2dc6-4874-8e24-a7793b940428.
 import progressTrack from '../assets/calendar/4460766a-65d8-43d4-adfa-3815be36befc.svg'
 import progressFill from '../assets/calendar/91922ebb-c2f8-4f13-9e88-bae94e5c002f.svg'
 
-const CalendarIllustration = defineAsyncComponent(() => import('../components/CalendarIllustration.vue'))
+const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'))
 const router = useRouter()
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
@@ -139,7 +141,7 @@ onBeforeUnmount(() => {
             </span>
           </AppButton>
 
-          <div v-if="calendarStore.loading" class="calendar-notice" role="status">Загружаем задания…</div>
+          <LoadingState v-if="calendarStore.loading && !calendarStore.tasks.length" compact class="calendar-notice" label="Загружаем задания…" />
           <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id)">Попробовать ещё раз</AppButton></div>
           <p v-else-if="!calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -52,7 +53,7 @@ function cssUrl(url: string) { return `url("${url}")` }
         <p class="first-task-date">1 ДЕКАБРЯ</p>
         <h1 id="first-task-title">Праздник в каждую переписку</h1>
 
-        <p v-if="loading" class="first-task-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="first-task-notice" role="status" />
         <div v-else-if="error" class="first-task-notice">
           <p role="alert">{{ error }}</p>
           <AppButton class="first-task-button first-task-primary" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton>
