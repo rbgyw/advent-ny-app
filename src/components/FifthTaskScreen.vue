@@ -34,6 +34,8 @@ const date = computed(() => props.assignment ? shortCalendarDate(props.assignmen
 const storageKey = computed(() => props.userId && props.assignment?.task_id ? `advent-pairs-v1:${props.userId}:${props.assignment.task_id}` : '');
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
+const imageLoads = new Map<HTMLImageElement, () => void>();
+function cancelImageLoads() { for (const cancel of imageLoads.values()) cancel(); imageLoads.clear(); }
 let timer: ReturnType<typeof setTimeout> | undefined;
 let observer: ResizeObserver | undefined;
 let resizeFrame = 0, imageVersion = 0;
@@ -82,10 +84,13 @@ function flip(index: number) {
   }, match ? 480 : 1300);
 }
 async function loadImages() {
-  const version = ++imageVersion; ready.value = false; imageError.value = false;
+  const version = ++imageVersion; cancelImageLoads(); ready.value = false; imageError.value = false;
   try {
     await Promise.all(pairProducts.map(product => new Promise<void>((resolve, reject) => {
-      const image = new Image(); image.onload = () => resolve(); image.onerror = () => reject(new Error('image')); image.src = product.image;
+      const image = new Image();
+      const finish = (error?: Error) => { image.onload = null; image.onerror = null; imageLoads.delete(image); if (error) reject(error); else resolve(); };
+      imageLoads.set(image, () => { finish(new Error('cancelled')); image.removeAttribute('src'); });
+      image.decoding = 'async'; image.onload = () => finish(); image.onerror = () => finish(new Error('image')); image.src = product.image;
     })));
     if (version === imageVersion) ready.value = true;
   } catch { if (version === imageVersion) imageError.value = true; }
@@ -109,7 +114,7 @@ onMounted(() => {
   if (background.value) observer.observe(background.value);
   if (board.value) observer.observe(board.value);
 });
-onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnimationFrame(resizeFrame); imageVersion++; });
+onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnimationFrame(resizeFrame); imageVersion++; cancelImageLoads(); });
 </script>
 
 <template>
