@@ -115,7 +115,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
   <TaskLayout class="pairs-page">
     <div ref="background" class="pairs-background" aria-hidden="true"><div class="pairs-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="pairs-layout">
-      <AppHeader class="pairs-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" class="pairs-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="pairs-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" class="pairs-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
         <p class="pairs-date">{{ date }}</p>
         <h1 id="pairs-title">Что скрывают карточки?</h1>
@@ -133,8 +133,8 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
           <div ref="board" class="pairs-board" :style="{ '--card-scale': cardScale }" role="group" aria-label="Игровое поле: 16 карточек, 8 пар">
             <AppButton v-for="(id, index) in deck" :key="`${index}:${id}`" class="pair-card" :class="{ 'is-open': isOpen(index), 'is-matched': matched.includes(id) }" type="button" :disabled="!playable || isOpen(index)" :aria-label="`Карточка ${index + 1}. ${isOpen(index) ? pairProducts[id]!.name + (matched.includes(id) ? ', пара найдена' : '') : 'Закрыта'}`" :aria-pressed="isOpen(index)" @click="flip(index)">
               <span class="pair-card-scale"><span class="pair-card-rotator">
-                <span class="pair-card-face pair-card-back" aria-hidden="true"><img class="pair-art" :src="backArt(index)" alt="" /><img v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
-                <span class="pair-card-face pair-card-front" aria-hidden="true"><img class="pair-art" :src="front" alt="" /><img class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /><span class="pair-product-name">{{ pairProducts[id]!.name }}</span></span>
+                <span class="pair-card-face pair-card-back" aria-hidden="true"><img decoding="async" class="pair-art" :src="backArt(index)" alt="" /><img decoding="async" v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
+                <span class="pair-card-face pair-card-front" aria-hidden="true"><img decoding="async" class="pair-art" :src="front" alt="" /><img decoding="async" class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /><span class="pair-product-name">{{ pairProducts[id]!.name }}</span></span>
               </span></span>
             </AppButton>
           </div>

@@ -156,7 +156,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
     <div ref="gradient" class="cipher-background" aria-hidden="true"><div class="cipher-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="cipher-layout">
       <AppHeader class="cipher-header">
-        <img :src="wordmark" alt="ГЕРОФАРМ" class="cipher-wordmark" data-figma-node="39:14" />
+        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" class="cipher-wordmark" data-figma-node="39:14" />
         <AppButton class="cipher-back" type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
@@ -179,7 +179,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
           <div ref="board" class="cipher-alphabet" aria-label="Алфавит спортивных человечков" data-figma-node="28:39861">
             <div class="cipher-alphabet-inner" :style="{ transform: `scale(${boardScale})`, backgroundImage: cssUrl(alphabetFrame) }">
               <template v-for="(figure, index) in cipherAlphabet" :key="figure.node">
-                <img :src="figure.art" :alt="`Поза для буквы ${figure.letter}`" :style="{ left: `${figure.x}px`, top: `${figure.y}px` }" :data-figma-node="figure.node" />
+                <img decoding="async" :src="figure.art" :alt="`Поза для буквы ${figure.letter}`" :style="{ left: `${figure.x}px`, top: `${figure.y}px` }" :data-figma-node="figure.node" />
                 <span :style="{ left: `${28 + index % 6 * 51}px`, top: `${60 + Math.floor(index / 6) * 69}px` }">{{ figure.letter }}</span>
               </template>
             </div>
@@ -191,7 +191,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
                 <div class="cipher-message-inner" :style="{ transform: `scale(${messageScale})` }">
                   <div v-for="(word, wordIndex) in words" :key="wordIndex" class="cipher-word" :style="{ top: `${wordIndex * 89}px` }" :aria-label="`Слово ${wordIndex + 1}, ${word.length} букв`">
                     <div v-for="(index, position) in word" :key="index" class="cipher-cell" :style="{ left: `${position * 31.3}px`, '--cell-art': cssUrl(index === 2 || index === 12 ? cellVariant : cell) }">
-                      <img class="cipher-clue" :src="cipherFigures[index]!.art" alt="" :style="clueStyle(index)" :data-figma-node="cipherFigures[index]!.node" />
+                      <img decoding="async" class="cipher-clue" :src="cipherFigures[index]!.art" alt="" :style="clueStyle(index)" :data-figma-node="cipherFigures[index]!.node" />
                       <div class="cipher-input-wrap">
                         <input :id="`cipher-letter-${index}`" :ref="el => { if (el) inputs[index] = el as HTMLInputElement }" :value="letters[index]" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" :spellcheck="false" :aria-label="`Слово ${wordIndex + 1}, буква ${position + 1}`" @input="onInput($event, index)" @paste="onPaste($event, index)" @keydown="onKeydown($event, index)" @focus="inputs[index]?.select()" />
                       </div>
@@ -219,7 +219,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.woff2') format('woff2'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.cipher-page)) { width: 100%; border: 0; }
 .cipher-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; box-sizing: border-box; color-scheme: light; color: var(--color-ink); background: #c63d0f; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .cipher-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }

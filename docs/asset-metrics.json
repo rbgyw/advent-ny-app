@@ -1,0 +1,236 @@
+[
+  {
+    "source": "src/assets/calendar/40962ceb-81dc-4a6b-877f-8504f8ce54f6.png",
+    "original_bytes": 700506,
+    "optimized_bytes": 376106,
+    "original_size": [
+      1254,
+      1254
+    ],
+    "optimized_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "source": "src/assets/film/movie-tv.png",
+    "original_bytes": 401494,
+    "optimized_bytes": 179752,
+    "original_size": [
+      550,
+      460
+    ],
+    "optimized_size": [
+      550,
+      460
+    ]
+  },
+  {
+    "source": "src/assets/pairs/cortexin.png",
+    "original_bytes": 1596837,
+    "optimized_bytes": 67246,
+    "original_size": [
+      4096,
+      3276
+    ],
+    "optimized_size": [
+      768,
+      614
+    ]
+  },
+  {
+    "source": "src/assets/pairs/evodin.png",
+    "original_bytes": 457196,
+    "optimized_bytes": 171434,
+    "original_size": [
+      1066,
+      896
+    ],
+    "optimized_size": [
+      768,
+      646
+    ]
+  },
+  {
+    "source": "src/assets/pairs/memantinol.png",
+    "original_bytes": 263499,
+    "optimized_bytes": 83910,
+    "original_size": [
+      479,
+      504
+    ],
+    "optimized_size": [
+      479,
+      504
+    ]
+  },
+  {
+    "source": "src/assets/pairs/recognan.png",
+    "original_bytes": 4123402,
+    "optimized_bytes": 125910,
+    "original_size": [
+      4096,
+      2867
+    ],
+    "optimized_size": [
+      768,
+      538
+    ]
+  },
+  {
+    "source": "src/assets/pairs/retinalamin.png",
+    "original_bytes": 3213629,
+    "optimized_bytes": 91064,
+    "original_size": [
+      4096,
+      3277
+    ],
+    "optimized_size": [
+      768,
+      614
+    ]
+  },
+  {
+    "source": "src/assets/pairs/rinfast.png",
+    "original_bytes": 3133448,
+    "optimized_bytes": 72892,
+    "original_size": [
+      4096,
+      2867
+    ],
+    "optimized_size": [
+      768,
+      538
+    ]
+  },
+  {
+    "source": "src/assets/pairs/sedjaro.png",
+    "original_bytes": 5187655,
+    "optimized_bytes": 118490,
+    "original_size": [
+      4096,
+      2867
+    ],
+    "optimized_size": [
+      768,
+      538
+    ]
+  },
+  {
+    "source": "src/assets/pairs/semavic.png",
+    "original_bytes": 4365991,
+    "optimized_bytes": 122148,
+    "original_size": [
+      4096,
+      2547
+    ],
+    "optimized_size": [
+      768,
+      478
+    ]
+  },
+  {
+    "source": "src/assets/splash/imgRedHolidayRibbonBow2.png",
+    "original_bytes": 700506,
+    "optimized_bytes": 376106,
+    "original_size": [
+      1254,
+      1254
+    ],
+    "optimized_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "source": "src/assets/tarot/card-back.png",
+    "original_bytes": 1925931,
+    "optimized_bytes": 694664,
+    "original_size": [
+      977,
+      1610
+    ],
+    "optimized_size": [
+      640,
+      1055
+    ]
+  },
+  {
+    "source": "src/assets/calendar/BioRhyme-1.ttf",
+    "original_bytes": 3680,
+    "optimized_bytes": 2116,
+    "glyphs": 16
+  },
+  {
+    "source": "src/assets/calendar/BioRhyme.ttf",
+    "original_bytes": 3688,
+    "optimized_bytes": 2096,
+    "glyphs": 16
+  },
+  {
+    "source": "src/assets/calendar/FontdinerSwanky.ttf",
+    "original_bytes": 22840,
+    "optimized_bytes": 5912,
+    "glyphs": 48
+  },
+  {
+    "source": "src/assets/calendar/Fraunces.ttf",
+    "original_bytes": 3384,
+    "optimized_bytes": 2060,
+    "glyphs": 12
+  },
+  {
+    "source": "src/assets/calendar/Kalnia.ttf",
+    "original_bytes": 3528,
+    "optimized_bytes": 2168,
+    "glyphs": 12
+  },
+  {
+    "source": "src/assets/calendar/LibreBodoni.ttf",
+    "original_bytes": 5560,
+    "optimized_bytes": 2560,
+    "glyphs": 32
+  },
+  {
+    "source": "src/assets/calendar/MontaguSlab.ttf",
+    "original_bytes": 5796,
+    "optimized_bytes": 2888,
+    "glyphs": 32
+  },
+  {
+    "source": "src/assets/calendar/RozhaOne.ttf",
+    "original_bytes": 6920,
+    "optimized_bytes": 3472,
+    "glyphs": 12
+  },
+  {
+    "source": "src/assets/calendar/Workbench.ttf",
+    "original_bytes": 32472,
+    "optimized_bytes": 5416,
+    "glyphs": 237
+  },
+  {
+    "source": "src/assets/cipher/SourceSerif4.ttf",
+    "original_bytes": 1209508,
+    "optimized_bytes": 427408,
+    "glyphs": 1463
+  },
+  {
+    "source": "src/assets/gratitude/STIXTwoText-Italic.ttf",
+    "original_bytes": 454368,
+    "optimized_bytes": 174260,
+    "glyphs": 2238
+  },
+  {
+    "source": "src/assets/splash/Inter.ttf",
+    "original_bytes": 876576,
+    "optimized_bytes": 350408,
+    "glyphs": 2933
+  },
+  {
+    "source": "src/assets/splash/STIXTwoText.ttf",
+    "original_bytes": 418956,
+    "optimized_bytes": 158220,
+    "glyphs": 2221
+  }
+]

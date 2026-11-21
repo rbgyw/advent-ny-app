@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
     <div ref="gradient" class="memory-background" aria-hidden="true"><div class="memory-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="memory-layout">
       <AppHeader class="memory-header">
-        <img class="memory-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
+        <img decoding="async" class="memory-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
         <AppButton class="memory-back" type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.woff2') format('woff2'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.memory-page)) { width: 100%; border: 0; }
 .memory-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: var(--color-ink); background: #c63d0f; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .memory-background { position: absolute; top: 0; left: 0; width: 100%; height: 127.0%; z-index: -1; overflow: hidden; pointer-events: none; }

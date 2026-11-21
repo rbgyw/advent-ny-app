@@ -45,7 +45,7 @@ function cssUrl(url: string) { return `url("${url}")` }
     </div>
     <div class="first-task-layout">
       <AppHeader class="first-task-header">
-        <img class="first-task-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
+        <img decoding="async" class="first-task-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
         <AppButton type="button" class="first-task-back" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
 

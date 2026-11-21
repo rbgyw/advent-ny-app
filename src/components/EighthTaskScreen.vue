@@ -103,7 +103,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
   <TaskLayout class="gratitude-page">
     <div ref="background" class="gratitude-background" aria-hidden="true"><div class="gratitude-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="gratitude-layout">
-      <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="gratitude-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
         <p class="gratitude-date">{{ date }}</p>
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
@@ -122,7 +122,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
           <form ref="formElement" class="gratitude-form" novalidate :aria-busy="sending" @submit.prevent="submit" @input="edit">
             <label class="gratitude-anonymous">
               <input v-model="form.anonymous" type="checkbox" :disabled="sending" />
-              <span class="gratitude-check" :class="{ checked: form.anonymous }" :style="{ '--checkbox-art': cssUrl(checkbox) }" aria-hidden="true"><img v-if="form.anonymous" :src="check" alt="" /></span>
+              <span class="gratitude-check" :class="{ checked: form.anonymous }" :style="{ '--checkbox-art': cssUrl(checkbox) }" aria-hidden="true"><img decoding="async" v-if="form.anonymous" :src="check" alt="" /></span>
               <span>Отправить анонимно</span>
             </label>
             <div v-if="!form.anonymous" class="gratitude-field gratitude-sender">
@@ -148,8 +148,8 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
     </div>
     <AppDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
       <div v-if="sent" class="gratitude-envelope">
-        <img class="envelope-back" :src="envelopeBack" alt="" />
-        <img class="envelope-letter" :src="letterArt" alt="" />
+        <img decoding="async" class="envelope-back" :src="envelopeBack" alt="" />
+        <img decoding="async" class="envelope-letter" :src="letterArt" alt="" />
         <AppButton class="gratitude-close" type="button" aria-label="Закрыть окно «Письмо отправлено»" @click="closePopup">×</AppButton>
         <span class="gratitude-star" aria-hidden="true">✦</span>
         <p class="gratitude-post">ПРАЗДНИЧНАЯ ПОЧТА</p>
@@ -157,9 +157,9 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
         <p id="gratitude-popup-copy">Пусть у вашего коллеги сегодня появится еще один повод улыбнуться.</p>
         <p class="gratitude-warm">С теплом, ГЕРОФАРМ</p>
         <div class="gratitude-confetti" aria-hidden="true">
-          <span v-for="(piece, index) in confetti" :key="index" class="confetti-piece" :style="{ left: `${piece.x}px`, top: `${piece.y}px`, '--from-x': `${158 - piece.x}px`, '--from-y': `${390 - piece.y}px`, '--delay': `${160 + index * 45}ms`, '--turn': `${index % 2 ? 65 : -75}deg` }"><img :src="piece.src" alt="" /></span>
+          <span v-for="(piece, index) in confetti" :key="index" class="confetti-piece" :style="{ left: `${piece.x}px`, top: `${piece.y}px`, '--from-x': `${158 - piece.x}px`, '--from-y': `${390 - piece.y}px`, '--delay': `${160 + index * 45}ms`, '--turn': `${index % 2 ? 65 : -75}deg` }"><img decoding="async" :src="piece.src" alt="" /></span>
         </div>
-        <img class="envelope-front" :src="envelopeFront" alt="" />
+        <img decoding="async" class="envelope-front" :src="envelopeFront" alt="" />
         <AppButton class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
       </div>
     </AppDialog>
@@ -167,7 +167,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent STIX Italic'; src: url('../assets/gratitude/STIXTwoText-Italic.ttf') format('truetype'); font-weight: 400 700; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Advent STIX Italic'; src: url('../assets/gratitude/STIXTwoText-Italic.woff2') format('woff2'); font-weight: 400 700; font-style: italic; font-display: swap; }
 :global(#app:has(.gratitude-page)) { width: 100%; border: 0; }
 .gratitude-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: var(--color-ink); background: #c63d0f; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .gratitude-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }

@@ -160,7 +160,7 @@ function backFromResult() {
   <TaskLayout class="nonogram-page">
     <div class="nonogram-layout">
       <AppHeader class="nonogram-header">
-        <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
+        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard ref="panel" class="nonogram-panel" aria-labelledby="nonogram-title">
@@ -174,7 +174,7 @@ function backFromResult() {
           />
         </div>
         <div class="nonogram-heading">
-          <img class="nonogram-wreath" :src="wreath" alt="" />
+          <img decoding="async" class="nonogram-wreath" :src="wreath" alt="" />
           <p class="nonogram-date">{{ date }}</p>
           <h1 id="nonogram-title">Что скрывает нонограм?</h1>
           <p class="nonogram-badge">Обязательное задание</p>

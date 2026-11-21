@@ -140,7 +140,7 @@ function submit() {
   <TaskLayout class="raskobki-page">
     <div class="raskobki-layout">
       <AppHeader class="raskobki-header">
-        <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
+        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard ref="panel" class="raskobki-panel" aria-labelledby="raskobki-title">
@@ -154,7 +154,7 @@ function submit() {
           />
         </div>
         <div class="raskobki-heading">
-          <img class="raskobki-wreath" :src="wreath" alt="" />
+          <img decoding="async" class="raskobki-wreath" :src="wreath" alt="" />
           <p class="raskobki-date">{{ date }}</p>
           <h1 id="raskobki-title">Ра[скобки]</h1>
           <p class="raskobki-badge">Обязательное задание</p>

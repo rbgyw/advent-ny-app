@@ -257,7 +257,7 @@ import asset252 from '../assets/calendar/be5438cd-524f-4875-93dd-15586a49570b.sv
 import asset253 from '../assets/calendar/c8c47eb4-59e8-4cde-b5a8-518711801edb.svg'
 import asset254 from '../assets/calendar/cfabffde-633d-4e8f-800c-6f8d4ad94fc8.svg'
 import asset255 from '../assets/calendar/ace93455-0209-490e-a868-f984a96d7d09.svg'
-import asset256 from '../assets/calendar/40962ceb-81dc-4a6b-877f-8504f8ce54f6.png'
+import asset256 from '../assets/calendar/40962ceb-81dc-4a6b-877f-8504f8ce54f6.webp'
 import asset257 from '../assets/calendar/9636d32c-5aa4-4113-b591-1c7818b77d97.svg'
 import asset258 from '../assets/calendar/9592defe-f019-409c-a4d8-1de1cc02b75c.svg'
 import asset259 from '../assets/calendar/03ecd471-56d2-4093-8087-7d1e6f9e6229.svg'

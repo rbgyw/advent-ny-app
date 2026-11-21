@@ -13,7 +13,7 @@ import { shortCalendarDate } from '../utils/calendar';
 import { filmError, filmSubmissionOpen, normalizeFilm, type FilmRecommendation } from '../utils/film';
 import wordmark from '../assets/film/wordmark.svg';
 import panelArt from '../assets/film/panel.svg';
-import movieTv from '../assets/film/movie-tv.png';
+import movieTv from '../assets/film/movie-tv.webp';
 import inputArt from '../assets/film/input.svg';
 import textareaArt from '../assets/film/textarea.svg';
 import buttonArt from '../assets/film/button.svg';
@@ -76,7 +76,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
   <TaskLayout class="film-page">
     <div ref="background" class="film-background" aria-hidden="true"><div class="film-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="film-layout">
-      <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="film-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <p class="film-date">{{ date }}</p>
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
@@ -85,7 +85,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
-          <img class="film-tv" :src="movieTv" alt="Винтажный телевизор с надписью Christmas Movies" />
+          <img decoding="async" class="film-tv" :src="movieTv" alt="Винтажный телевизор с надписью Christmas Movies" />
           <div class="film-copy">
             <p>У каждого есть фильм, без которого трудно представить декабрь. Один помогает почувствовать праздник, другой хочется пересматривать всей семьей, а третий вы советуете каждому при первой возможности.</p>
             <p>Какой новогодний фильм, по вашему мнению, обязательно стоит посмотреть хотя бы раз?</p>
@@ -111,7 +111,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <AppDialog ref="dialog" class="film-popup" :style="{ '--popup-art': cssUrl(popupArt) }" aria-labelledby="film-popup-title" aria-describedby="film-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
-      <AppButton class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img :src="closeArt" alt="" /></AppButton>
+      <AppButton class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img decoding="async" :src="closeArt" alt="" /></AppButton>
       <h2 id="film-popup-title">Готово!</h2>
       <p id="film-popup-copy">Спасибо! Ваш совет поможет собрать нашу новогоднюю киноподборку</p>
       <AppButton class="film-button film-calendar" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>

@@ -20,3 +20,5 @@
   --background-night: linear-gradient(to bottom right, #090807 0%, #291209 22%, #743012 48%, #cf5515 73%, #ff941f 100%);
   --background-task-glow: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%);
 }
+
+.advent-page-hidden #app *, .advent-page-hidden #app *::before, .advent-page-hidden #app *::after { animation-play-state:paused !important; }

@@ -163,10 +163,10 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 <template>
   <TaskLayout background-variant="night" class="crossword-page">
     <div class="crossword-layout">
-      <AppHeader class="crossword-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard ref="card" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
-        <div class="card-dots" aria-hidden="true"><img v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
-        <img class="crossword-wreath" :src="wreath" alt="" />
+        <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
+        <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
         <p class="crossword-date">{{ date }}</p>
         <h1 id="crossword-title">Качество<br />начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
@@ -214,7 +214,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <nav class="question-navigation" aria-label="Вопросы кроссворда"><AppButton @click="navigate(-1)">← Предыдущий</AppButton><span>{{ selected }} / 10</span><AppButton @click="navigate(1)">Следующий →</AppButton></nav>
           </section>
           <p class="grid-help">Вводите буквы прямо в клетки или вставьте целое слово через поле выше.</p>
-          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img class="zoom-art" :src="zoomArt" alt="" /><img class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(zoom === 59 ? 41 : 10)">+</AppButton></div>
+          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img decoding="async" class="zoom-art" :src="zoomArt" alt="" /><img decoding="async" class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(zoom === 59 ? 41 : 10)">+</AppButton></div>
           <div class="grid-panel surface" :style="art(gridArt)">
             <div ref="gridViewport" class="grid-viewport" tabindex="0" aria-label="Сетка кроссворда. Стрелки перемещают по клеткам; увеличенную сетку можно прокручивать.">
               <div class="crossword-grid" :style="{ width: `${13 * (size + 2) - 2}px`, height: `${15 * (size + 2) - 2}px`, '--cell-size': `${size}px` }">

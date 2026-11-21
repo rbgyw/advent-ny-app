@@ -16,7 +16,7 @@ import introPanel from '../assets/tarot/intro-panel.svg';
 import choosePanel from '../assets/tarot/choose-panel.svg';
 import resultPanel from '../assets/tarot/result-panel.svg';
 import goldButton from '../assets/tarot/gold-button.svg';
-import cardBack from '../assets/tarot/card-back.png';
+import cardBack from '../assets/tarot/card-back.webp';
 import fanBorder from '../assets/tarot/fan-border.svg';
 import fanBorderLeft from '../assets/tarot/fan-border-left.svg';
 import fanBorderRight from '../assets/tarot/fan-border-right.svg';
@@ -80,9 +80,9 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 
 <template>
   <TaskLayout background-variant="night" ref="page" class="tarot-page" :class="`tarot-state-${stage}`">
-    <div class="tarot-decorations" aria-hidden="true"><img v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
+    <div class="tarot-decorations" aria-hidden="true"><img decoding="async" v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
     <div class="tarot-layout">
-      <AppHeader class="tarot-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img :src="closeRing" alt="" />×</AppButton></AppHeader>
+      <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
         <h1>Что подскажет карта?</h1>
         <LoadingState v-if="loading" role="status" />
@@ -96,7 +96,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p class="tarot-date">{{ date }}</p>
         <h1 id="tarot-intro-title" ref="focusTitle" tabindex="-1">Что подскажет карта?</h1>
         <AppButton ref="fan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
-          <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img class="tarot-fan-image" :src="cardBack" alt="" /><img class="tarot-fan-border" :src="item.border" alt="" /></span><img class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
+          <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img decoding="async" class="tarot-fan-image" :src="cardBack" alt="" /><img decoding="async" class="tarot-fan-border" :src="item.border" alt="" /></span><img decoding="async" class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
         </AppButton>
         <div class="tarot-intro-copy">
           <p>Сегодня добавим в декабрь немного загадочности: предлагаем заглянуть в будущее с помощью карт таро.</p>
@@ -114,14 +114,14 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p v-if="saving" class="tarot-status" role="status">Сохраняем вашу карту…</p>
         <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
-          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img :src="cardBack" alt="" /></AppButton>
+          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
         </div>
       </AppCard>
       <AppCard v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
-        <div class="tarot-chosen-frame"><img :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
+        <div class="tarot-chosen-frame"><img decoding="async" :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
         <p v-if="imageError" role="alert">Не удалось загрузить изображение. <AppButton type="button" @click="imageKey++">Загрузить ещё раз</AppButton></p>
         <section class="tarot-reading tarot-surface" :style="{ '--surface-art': cssUrl(resultPanel) }">
-          <img class="tarot-handle" :src="handle" alt="" />
+          <img decoding="async" class="tarot-handle" :src="handle" alt="" />
           <h1 id="tarot-card-title" ref="focusTitle" tabindex="-1">{{ selectedCard.name }}</h1>
           <div class="tarot-reading-copy" :class="{ 'has-advice': selectedCard.paragraphs[selectedCard.paragraphs.length - 1]?.startsWith('Совет дня:') }"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>

@@ -155,11 +155,11 @@ async function shareCard() {
 <template>
   <TaskLayout class="fortune-page" :data-stage="stage">
     <div class="fortune-sky" aria-hidden="true">
-      <img v-for="(shape, index) in fortuneSky" :key="index" :src="shape.src" :style="{ left: shape.left, top: shape.top }" alt="" />
+      <img decoding="async" v-for="(shape, index) in fortuneSky" :key="index" :src="shape.src" :style="{ left: shape.left, top: shape.top }" alt="" />
     </div>
     <div class="fortune-layout">
       <AppHeader class="fortune-header">
-        <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
+        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="fortune-panel" aria-labelledby="fortune-title">

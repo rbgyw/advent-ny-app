@@ -23,7 +23,7 @@ import leftSnow from "../assets/splash/lamp-snow-left.svg";
 import rightSnow from "../assets/splash/lamp-snow-right.svg";
 import thread from "../assets/splash/star-thread.svg";
 import star from "../assets/splash/star.svg";
-import bow from "../assets/splash/imgRedHolidayRibbonBow2.png";
+import bow from "../assets/splash/imgRedHolidayRibbonBow2.webp";
 
 // Coordinates refer to the 393 × 852 illustration, excluding Figma's version label.
 const decorations = [

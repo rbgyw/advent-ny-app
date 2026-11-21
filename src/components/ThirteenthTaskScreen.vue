@@ -70,7 +70,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
   <TaskLayout class="wish-page" :data-stage="stage" :data-motion-phase="motionPhase">
     <div ref="background" class="wish-background" aria-hidden="true"><div class="wish-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="wish-layout">
-      <AppHeader class="wish-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="wish-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <p class="wish-date">{{ date }}</p>
         <LoadingState v-if="loading" class="wish-notice" role="status" />
@@ -79,9 +79,9 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div v-if="stage === 'accepted'" class="wish-star-scene" role="img" aria-label="Золотая звезда с сияющим следом">
-            <img ref="starTrailImage" class="wish-star-trail" :class="{ 'is-hidden': motionPhase === 'flying' }" :src="starTrail" alt="" />
-            <img class="wish-star-sparkles" :src="starSparkles" alt="" />
-            <div ref="starOuter" class="wish-star-outer"><img ref="starImage" class="wish-main-star" :src="mainStar" alt="" /></div>
+            <img decoding="async" ref="starTrailImage" class="wish-star-trail" :class="{ 'is-hidden': motionPhase === 'flying' }" :src="starTrail" alt="" />
+            <img decoding="async" class="wish-star-sparkles" :src="starSparkles" alt="" />
+            <div ref="starOuter" class="wish-star-outer"><img decoding="async" ref="starImage" class="wish-main-star" :src="mainStar" alt="" /></div>
           </div>
           <h1 id="wish-title" ref="heading" tabindex="-1"><template v-if="stage === 'intro'">А снег идет, а снег идет…</template><template v-else-if="stage === 'wishing'">Загадайте желание</template><template v-else>Пусть желание<br />сбудется!</template></h1>
           <WishGlobe v-if="stage !== 'accepted'" class="wish-illustration" />
@@ -102,7 +102,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <div v-if="stage === 'wishing' && !loading && !error && assignment?.task" class="wish-snow" :class="{ 'is-falling': snowfall }" aria-hidden="true">
-      <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img :src="flake.src" alt="" /></span>
+      <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img decoding="async" :src="flake.src" alt="" /></span>
     </div>
   </TaskLayout>
 </template>

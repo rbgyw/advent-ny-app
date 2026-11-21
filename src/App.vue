@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { inject, onBeforeUnmount, ref, watch } from 'vue';
 import { RouterView, useRouter } from 'vue-router';
+import { usePageMotion } from './composables/usePageMotion';
 import LoadingState from './components/ui/LoadingState.vue';
 import FeedbackState from './components/ui/FeedbackState.vue';
 import type { useAuthStore } from './stores/auth';
 import AppButton from './components/ui/AppButton.vue';
+usePageMotion();
 const router = useRouter();
 const auth = inject<ReturnType<typeof useAuthStore>>('authStore')!;
 watch(() => auth.user?.id, async (id, previous) => {

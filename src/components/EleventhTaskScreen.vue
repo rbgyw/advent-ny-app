@@ -91,10 +91,10 @@ onBeforeUnmount(() => observer?.disconnect());
 <template>
   <TaskLayout background-variant="night" class="stereo-page">
     <div class="stereo-layout">
-      <AppHeader class="stereo-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppHeader class="stereo-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard ref="panel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
-        <div class="stereo-dots" aria-hidden="true"><img v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
-        <img class="stereo-wreath" :src="wreath" alt="" />
+        <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
+        <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
         <p class="stereo-date">{{ date }}</p>
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
