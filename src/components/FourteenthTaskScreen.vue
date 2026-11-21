@@ -224,31 +224,17 @@ function submit() {
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'Advent Inter';
-  src: url('../assets/splash/Inter.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Advent STIX';
-  src: url('../assets/splash/STIXTwoText.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 :global(#app:has(.raskobki-page)) { width: 100%; border: 0; }
 
 .raskobki-page {
-  --raskobki-red: #a7280b;
+  --raskobki-red: var(--color-action);
   --raskobki-gold: #fff1cf;
   box-sizing: border-box;
   min-height: 100svh;
   background: linear-gradient(110deg, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f);
   color: #70492c;
   color-scheme: light;
-  font: 400 14px/20px 'Advent Inter', sans-serif;
+  font: 400 14px/20px var(--font-ui);
   letter-spacing: 0;
   text-align: left;
 }
@@ -317,8 +303,8 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
 
 .raskobki-heading h1 {
   margin: 13px 0 11px;
-  color: #623c28;
-  font: 500 28px/30px 'Advent STIX', serif;
+  color: var(--color-ink);
+  font: 500 28px/30px var(--font-display);
   letter-spacing: 0;
 }
 
@@ -364,7 +350,7 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
 
 .raskobki-letter {
   color: var(--raskobki-red);
-  font: 400 16px/22px 'Advent STIX', serif;
+  font: 400 16px/22px var(--font-display);
   overflow-wrap: anywhere;
 }
 
@@ -388,7 +374,7 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
   border: 0;
   border-radius: inherit;
   background: transparent;
-  color: #623c28;
+  color: var(--color-ink);
   font: inherit;
 }
 
@@ -420,8 +406,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid currentColor; out
 
 .raskobki-result h2 {
   margin: 0 0 12px;
-  color: #623c28;
-  font: 400 22px/28px 'Advent STIX', serif;
+  color: var(--color-ink);
+  font: 400 22px/28px var(--font-display);
   letter-spacing: 0;
 }
 

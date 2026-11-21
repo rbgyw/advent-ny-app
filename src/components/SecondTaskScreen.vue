@@ -217,59 +217,57 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
 @font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.cipher-page)) { width: 100%; border: 0; }
-.cipher-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; box-sizing: border-box; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.cipher-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; box-sizing: border-box; color-scheme: light; color: var(--color-ink); background: #c63d0f; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .cipher-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.cipher-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%); }
+.cipher-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: var(--background-task-glow); }
 .cipher-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 31px; }
 .cipher-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .cipher-wordmark { display: block; margin-inline: auto; }
-.cipher-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; margin: 0; background: transparent; color: #fff1cf; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
+.cipher-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; margin: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); cursor: pointer; }
 .cipher-card { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px); }
 .cipher-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 24px solid transparent; border-image: var(--card-art) 24 fill / 24px stretch; }
-.cipher-date { margin: 0 0 14px; color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
-.cipher-card h1 { margin: 0 0 21px; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; letter-spacing: 0; }
+.cipher-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }
+.cipher-card h1 { margin: 0 0 21px; color: var(--color-ink); font: 500 28px/30px var(--font-display); letter-spacing: 0; }
 .cipher-intro { color: #836045; }
 .cipher-intro p { margin: 0 0 20px; }
 .cipher-intro p:last-child { margin-bottom: 0; }
-.cipher-instruction-title { margin: 17px 0 11px; color: #623c28; font: 500 20px/30px 'Advent Source Serif', serif; letter-spacing: 0; }
+.cipher-instruction-title { margin: 17px 0 11px; color: var(--color-ink); font: 500 20px/30px 'Advent Source Serif', serif; letter-spacing: 0; }
 .cipher-instructions { margin: 0; color: #836045; }
-.cipher-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; align-items: center; box-sizing: border-box; flex: 0 0 auto; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; border: 0; border-radius: 13px; margin-inline: 0; color: #fff7df; background: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
+.cipher-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; align-items: center; box-sizing: border-box; flex: 0 0 auto; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; border: 0; border-radius: 13px; margin-inline: 0; color: #fff7df; background: var(--color-action); font: 700 14px/17px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
 .cipher-button:disabled { cursor: default; opacity: 1; -webkit-text-fill-color: currentColor; }
-.cipher-music { margin-top: 27px; color: #a7280b; background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; }
+.cipher-music { margin-top: 27px; color: var(--color-action); background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; }
 .cipher-alphabet { width: 100%; max-width: 520px; aspect-ratio: 313 / 295; margin: 12px auto 0; position: relative; }
 .cipher-alphabet-inner { position: absolute; top: 0; left: 0; width: 313px; height: 295px; transform-origin: top left; background-size: 100% 100%; background-repeat: no-repeat; }
 .cipher-alphabet-inner img, .cipher-clue { position: absolute; display: block; }
-.cipher-alphabet-inner span { position: absolute; transform: translateX(-50%); font: 400 11px/13px 'Advent Inter', sans-serif; color: #623c28; }
+.cipher-alphabet-inner span { position: absolute; transform: translateX(-50%); font: 400 11px/13px var(--font-ui); color: var(--color-ink); }
 .cipher-form { margin-top: 21px; }
 .cipher-form fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
-.cipher-form legend { padding: 0; margin: 0 0 18px; color: #623c28; font: 500 20px/27px 'Advent Source Serif', serif; }
+.cipher-form legend { padding: 0; margin: 0 0 18px; color: var(--color-ink); font: 500 20px/27px 'Advent Source Serif', serif; }
 .cipher-message { position: relative; width: 100%; max-width: 520px; aspect-ratio: 313 / 155; margin-inline: auto; }
 .cipher-message-inner { position: absolute; left: 0; top: 0; width: 313px; height: 155px; transform-origin: top left; }
 .cipher-word { position: absolute; left: 0; width: 313px; height: 66px; }
 .cipher-cell { position: absolute; width: 26px; height: 66px; }
 .cipher-input-wrap { position: absolute; top: 32px; left: 0; width: 26px; height: 34px; }
 .cipher-input-wrap::before { content: ''; position: absolute; inset: -.5px; background: var(--cell-art) center / 100% 100% no-repeat; pointer-events: none; }
-.cipher-input-wrap input { position: relative; z-index: 1; display: block; box-sizing: border-box; width: 26px; height: 34px; padding: 0; border: 0; border-radius: 4px; margin: 0; background: transparent; color: #623c28; caret-color: #623c28; font: 400 18px/24px 'Advent Inter', sans-serif; text-align: center; text-transform: uppercase; box-shadow: none; }
-.cipher-input-wrap input:disabled { opacity: 1; -webkit-text-fill-color: #623c28; }
+.cipher-input-wrap input { position: relative; z-index: 1; display: block; box-sizing: border-box; width: 26px; height: 34px; padding: 0; border: 0; border-radius: 4px; margin: 0; background: transparent; color: var(--color-ink); caret-color: var(--color-ink); font: 400 18px/24px var(--font-ui); text-align: center; text-transform: uppercase; box-shadow: none; }
+.cipher-input-wrap input:disabled { opacity: 1; -webkit-text-fill-color: var(--color-ink); }
 .cipher-input-wrap input:focus-visible { outline: 1px solid #a7401d; outline-offset: 0; }
-.cipher-warning { color: #a7280b; font: 400 13px/18px 'Advent Inter', sans-serif; overflow-wrap: anywhere; }
+.cipher-warning { color: var(--color-action); font: 400 13px/18px var(--font-ui); overflow-wrap: anywhere; }
 .cipher-incorrect { margin: 12px 0 0; }
 .cipher-check { margin-top: 19px; }
 .cipher-incorrect + .cipher-check { margin-top: 24px; }
-.cipher-button:not(:disabled):not(.cipher-music):hover { background-color: #962107; }
-.cipher-button:focus-visible, .cipher-back:focus-visible, .cipher-close:focus-visible { outline: 2px solid #623c28; outline-offset: 4px; }
+.cipher-button:not(:disabled):not(.cipher-music):hover { background-color: var(--color-action-hover); }
+.cipher-button:focus-visible, .cipher-back:focus-visible, .cipher-close:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 4px; }
 .cipher-footer { margin-top: 24px; font-size: 12px; line-height: 15px; text-align: center; }
 .cipher-notice { min-height: 120px; margin: 0; color: #836045; overflow-wrap: anywhere; }
 .cipher-notice .cipher-button { margin-top: 24px; }
-.cipher-success { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px clamp(16px, calc((100vw - 345px) / 2), 24px) 24px; border: 0; background: transparent; overflow-y: auto; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.cipher-success { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px clamp(16px, calc((100vw - 345px) / 2), 24px) 24px; border: 0; background: transparent; overflow-y: auto; color: var(--color-ink); font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .cipher-success::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 23px solid transparent; border-image: var(--success-art) 23 fill / 23px stretch; }
 .cipher-success::backdrop { background: rgb(66 35 19 / 55%); }
-.cipher-close { position: absolute; right: 6px; top: 0; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
-.cipher-success h2 { margin: 0 0 14px; color: #623c28; font: 500 24px/30px 'Advent STIX', serif; letter-spacing: 0; }
+.cipher-close { position: absolute; right: 6px; top: 0; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--color-ink); font: 400 25px/30px var(--font-ui); cursor: pointer; }
+.cipher-success h2 { margin: 0 0 14px; color: var(--color-ink); font: 500 24px/30px var(--font-display); letter-spacing: 0; }
 .cipher-success > p { width: calc(100% + 14px); margin: 0; color: #836045; }
 .cipher-gift { display: grid; place-items: center; width: 100%; aspect-ratio: 297 / 123; margin-top: 15px; background-repeat: no-repeat; background-size: 100% 100%; color: #836045; font-size: 13px; line-height: 16px; }
 .cipher-calendar { width: 297px; min-width: 297px; max-width: 297px; margin-top: 22px; }

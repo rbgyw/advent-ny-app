@@ -102,18 +102,6 @@ const decorations = [
 </template>
 
 <style scoped>
-@font-face {
-  font-family: "Advent Inter";
-  src: url("../assets/splash/Inter.ttf") format("truetype");
-  font-weight: 100 900;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Advent STIX";
-  src: url("../assets/splash/STIXTwoText.ttf") format("truetype");
-  font-weight: 400 700;
-  font-display: swap;
-}
 .splash-page {
   container-type: inline-size;
   width: 100%;
@@ -203,7 +191,7 @@ const decorations = [
   width: 305px;
   height: 56px;
   margin: 27.5px auto 0;
-  color: #a7280b;
+  color: var(--color-action);
   font-size: 18px;
   font-weight: 700;
   line-height: 22px;

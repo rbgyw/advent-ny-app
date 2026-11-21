@@ -47,7 +47,7 @@ function submit() {
 </script>
 
 <template>
-  <PageLayout class="auth-page">
+  <PageLayout background-variant="warm" class="auth-page">
     <div class="auth-layout">
       <AppHeader class="auth-header">
         <RouterLink to="/rules" class="auth-back" aria-label="Вернуться к правилам"><span aria-hidden="true"></span></RouterLink>

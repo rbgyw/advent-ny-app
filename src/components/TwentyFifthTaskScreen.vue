@@ -227,19 +227,6 @@ async function shareCard() {
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'Advent Inter';
-  src: url('../assets/splash/Inter.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent STIX';
-  src: url('../assets/splash/STIXTwoText.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 :global(#app:has(.fortune-page)) { width: 100%; border: 0; }
 
 .fortune-page {
@@ -250,7 +237,7 @@ async function shareCard() {
   background: linear-gradient(to bottom right, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f);
   color: #fff7e8;
   color-scheme: light;
-  font: 400 14px/20px 'Advent Inter', sans-serif;
+  font: 400 14px/20px var(--font-ui);
   letter-spacing: 0;
   text-align: left;
 }
@@ -291,7 +278,7 @@ button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .fortune-panel h1 {
   margin: 8px 0 0;
   color: var(--fortune-gold);
-  font: 400 28px/30px 'Advent STIX', serif;
+  font: 400 28px/30px var(--font-display);
   letter-spacing: 0;
   text-align: center;
 }
@@ -333,13 +320,13 @@ button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .fortune-card::before { border-image: url('../assets/fortune/paper-card.svg') 21 fill / 21px stretch; }
 .fortune-card h2 {
   margin: 0;
-  color: #a7280b;
-  font: 700 10px/13px 'Advent Inter', sans-serif;
+  color: var(--color-action);
+  font: 700 10px/13px var(--font-ui);
   letter-spacing: 0;
   text-transform: uppercase;
 }
-.fortune-text { margin-top: 13px; color: #623c28; font: 500 22px/26px 'Advent STIX', serif; overflow-wrap: anywhere; }
-.fortune-signature { margin-top: 20px; color: #a7280b; font-style: italic; font-weight: 500; font-synthesis: style; }
+.fortune-text { margin-top: 13px; color: var(--color-ink); font: 500 22px/26px var(--font-display); overflow-wrap: anywhere; }
+.fortune-signature { margin-top: 20px; color: var(--color-action); font-style: italic; font-weight: 500; font-synthesis: style; }
 .fortune-actions { display: grid; gap: 12px; margin-top: 27px; }
 .fortune-message { margin-top: 12px; color: #fff7e8; overflow-wrap: anywhere; }
 .fortune-retry { margin-top: 12px; }

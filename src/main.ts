@@ -5,7 +5,9 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
 
+import './assets/fonts.css'
 import './style.css'
+import './tokens.css'
 
 async function bootstrap() {
   const app = createApp(App)

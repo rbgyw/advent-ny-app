@@ -165,15 +165,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@font-face { font-family:'Calendar Inter'; src:url('../assets/splash/Inter.ttf') format('truetype'); font-weight:100 900; font-display:swap; }
 :global(#app:has(.calendar-page)) { width:100%; border:0; }
-.calendar-page { min-height:100svh; background:linear-gradient(135deg,#110c08,#8b3e16 55%,#ff941f); color:#fff0d0; font:400 12px/1.3 'Calendar Inter',sans-serif; letter-spacing:0; color-scheme:light; }
+.calendar-page { min-height:100svh; background:linear-gradient(135deg,#110c08,#8b3e16 55%,#ff941f); color:#fff0d0; font:400 12px/1.3 'Advent Inter',sans-serif; letter-spacing:0; color-scheme:light; }
 .calendar-layout { max-width:393px; margin:0 auto; padding-bottom:12px; overflow:hidden; background:linear-gradient(135deg,#110c08,#803711 55%,#ff941f); }
 .calendar-stage { position:relative; width:100%; aspect-ratio:393 / 838; }
 .calendar-canvas { position:absolute; width:393px; height:1018px; left:0; top:0; transform:scale(var(--calendar-scale)); transform-origin:top left; }
 .calendar-intro { position:absolute; top:138px; left:77px; width:239px; font-size:10px; line-height:12px; font-weight:500; text-align:center; margin:0; }
 .calendar-brand-link { position:absolute; left:22px; top:10px; width:112px; height:44px; }
-.calendar-daily { position:absolute; top:162px; left:88px; width:217px; min-height:44px; padding:0; border:0; background:transparent; color:#68381f; font:700 9px/11px 'Calendar Inter',sans-serif; cursor:pointer; display:grid; place-items:center; }
+.calendar-daily { position:absolute; top:162px; left:88px; width:217px; min-height:44px; padding:0; border:0; background:transparent; color:#68381f; font:700 9px/11px 'Advent Inter',sans-serif; cursor:pointer; display:grid; place-items:center; }
 .calendar-daily > img { position:absolute; left:10px; top:12px; pointer-events:none; }
 .calendar-daily > span { position:relative; white-space:nowrap; }
 .calendar-daily:disabled { cursor:default; }
@@ -181,7 +180,7 @@ onBeforeUnmount(() => {
 .calendar-menu summary { width:44px; height:44px; list-style:none; cursor:pointer; border-radius:50%; }
 .calendar-menu summary::-webkit-details-marker { display:none; }
 .calendar-menu-panel { position:absolute; top:49px; right:0; width:228px; box-sizing:border-box; padding:10px; border:1px solid #dfbc7f; border-radius:16px; background:#fff3da; color:#68381f; box-shadow:0 12px 35px #160a0666; text-align:left; }
-.calendar-menu-panel a,.calendar-menu-panel button { display:flex; align-items:center; min-height:44px; width:100%; box-sizing:border-box; padding:10px; color:inherit; background:none; border:0; border-radius:8px; text-decoration:none; font:500 13px/20px 'Calendar Inter',sans-serif; text-align:left; cursor:pointer; }
+.calendar-menu-panel a,.calendar-menu-panel button { display:flex; align-items:center; min-height:44px; width:100%; box-sizing:border-box; padding:10px; color:inherit; background:none; border:0; border-radius:8px; text-decoration:none; font:500 13px/20px 'Advent Inter',sans-serif; text-align:left; cursor:pointer; }
 .calendar-menu-panel a:hover,.calendar-menu-panel button:hover { background:#f2dfbd; }
 .calendar-account { padding:8px 10px 12px; margin:0; overflow-wrap:anywhere; color:#846443; font-size:11px; }
 .calendar-window { position:absolute; padding:0; border:0; background:transparent; border-radius:36px 36px 0 0; cursor:pointer; -webkit-tap-highlight-color:#fff0d033; }
@@ -198,7 +197,7 @@ onBeforeUnmount(() => {
 .is-door.is-today { box-shadow:inset 0 0 0 2px #315d44; }
 .is-door .calendar-today-badge { left:26px; }
 .calendar-notice { position:absolute; z-index:4; top:244px; left:38px; width:317px; box-sizing:border-box; padding:18px; border:1px solid #e3c58d; border-radius:16px; color:#68381f; background:#fff4e5f5; box-shadow:0 8px 28px #4d1c0c33; text-align:center; font-size:13px; line-height:20px; }
-.calendar-notice button { min-height:44px; padding:8px 14px; margin-top:12px; border:0; border-radius:12px; background:#a7280b; color:#fff3dd; font:600 12px/18px 'Calendar Inter',sans-serif; cursor:pointer; }
+.calendar-notice button { min-height:44px; padding:8px 14px; margin-top:12px; border:0; border-radius:12px; background:var(--color-action); color:#fff3dd; font:600 12px/18px 'Advent Inter',sans-serif; cursor:pointer; }
 .calendar-auth-error { top:354px; }
 .calendar-progress { position:relative; width:calc(100% - 32px); height:98px; margin:0 16px; box-sizing:border-box; padding:13px 14px 10px; color:#68381f; isolation:isolate; }
 .calendar-progress-background { position:absolute; inset:0; width:100%; height:98px; z-index:-1; }

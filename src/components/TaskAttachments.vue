@@ -401,13 +401,13 @@ figcaption {
 
 .attachments-memory { margin: 19px 0 0; font: inherit; color: #836045; }
 .memory-file-hint, .memory-file-input { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.memory-attach-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; height: 52px; margin: 0; padding: 0 16px; border: 1px solid #dcc8a8; border-radius: 13px; background: #fffaf0; color: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; cursor: pointer; }
+.memory-attach-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; height: 52px; margin: 0; padding: 0 16px; border: 1px solid #dcc8a8; border-radius: 13px; background: #fffaf0; color: var(--color-action); font: 700 14px/17px var(--font-ui); cursor: pointer; }
 .memory-attach-button:disabled { opacity: 1; -webkit-text-fill-color: currentColor; cursor: default; }
-.memory-attach-button:focus-visible { outline: 2px solid #623c28; outline-offset: 0; }
+.memory-attach-button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 0; }
 .attachments-memory .photos { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
 .attachments-memory .photos img { height: 140px; background: #f8e8c8; }
 .attachments-memory .photos figcaption { font-size: 12px; line-height: 18px; }
-.attachments-memory .photos button, .attachments-memory > button:not(.memory-attach-button) { padding: 8px 10px; border: 1px solid #dcc8a8; border-radius: 8px; background: #fffaf0; color: #a7280b; font: inherit; cursor: pointer; }
+.attachments-memory .photos button, .attachments-memory > button:not(.memory-attach-button) { padding: 8px 10px; border: 1px solid #dcc8a8; border-radius: 8px; background: #fffaf0; color: var(--color-action); font: inherit; cursor: pointer; }
 .attachments-memory .photos button:disabled { opacity: .6; cursor: default; }
 .attachments-memory .replacement { font-size: 12px; }
 </style>

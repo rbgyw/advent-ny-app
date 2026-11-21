@@ -245,33 +245,19 @@ function backFromResult() {
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'Advent Inter';
-  src: url('../assets/splash/Inter.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Advent STIX';
-  src: url('../assets/splash/STIXTwoText.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 :global(#app:has(.nonogram-page)) { width: 100%; border: 0; }
 :global(html:has(.nonogram-popup[open])) { overflow: hidden; }
 
 .nonogram-page {
-  --accent: #a7280b;
+  --accent: var(--color-action);
   --light: #fff1cf;
-  --heading-color: #623c28;
+  --heading-color: var(--color-ink);
   box-sizing: border-box;
   min-height: 100svh;
   background: linear-gradient(107.4deg, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f);
   color: #70492c;
   color-scheme: light;
-  font: 400 14px/20px 'Advent Inter', sans-serif;
+  font: 400 14px/20px var(--font-ui);
   letter-spacing: 0;
   text-align: left;
 }
@@ -315,7 +301,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
   max-width: 254px;
   margin: 13px 0 11px;
   color: var(--heading-color);
-  font: 500 28px/30px 'Advent STIX', serif;
+  font: 500 28px/30px var(--font-display);
   letter-spacing: 0;
 }
 
@@ -433,7 +419,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-popup h2 {
   margin: 0 0 21px;
   color: var(--heading-color);
-  font: 600 26px/33px 'Advent STIX', serif;
+  font: 600 26px/33px var(--font-display);
   letter-spacing: 0;
 }
 

@@ -159,7 +159,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </script>
 
 <template>
-  <TaskLayout class="crossword-page">
+  <TaskLayout background-variant="night" class="crossword-page">
     <div class="crossword-layout">
       <AppHeader class="crossword-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard ref="card" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
@@ -235,76 +235,74 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
 :global(#app:has(.crossword-page)) { width: 100%; border: 0; }
-.crossword-page { min-height: 100svh; width: 100%; overflow: clip; color-scheme: light; color: #70492c; background: linear-gradient(to bottom right, #090807 0%, #291209 22%, #743012 48%, #cf5515 73%, #ff941f 100%); font: 400 14px/20px 'Advent Inter', sans-serif; text-align: left; letter-spacing: 0; }
+.crossword-page { min-height: 100svh; width: 100%; overflow: clip; color-scheme: light; color: #70492c;  font: 400 14px/20px var(--font-ui); text-align: left; letter-spacing: 0; }
 .crossword-layout { box-sizing: border-box; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 39px; }
 .crossword-header { position: relative; height: 94px; box-sizing: border-box; padding-top: 34px; }
 .crossword-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .calendar-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font-size: 12px; font-weight: 400; }
-.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, #fff0d2 73.0769%, #efc087 100%); }
+.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, var(--color-cream) 73.0769%, #efc087 100%); }
 .crossword-card.is-playing { padding-bottom: 42px; }
 .card-dots { position: absolute; pointer-events: none; inset: 0; }
 .card-dots img { position: absolute; }
 .crossword-wreath { position: absolute; right: 25.46px; top: 25px; }
-.crossword-date { margin: 0 0 14px; color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
-h1 { margin: 0; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; letter-spacing: 0; }
-.crossword-badge { width: 140px; height: 25px; display: flex; align-items: center; justify-content: center; margin-top: 11px; color: #fff0d2; font-size: 11px; line-height: 13px; background-repeat: no-repeat; }
+.crossword-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }
+h1 { margin: 0; color: var(--color-ink); font: 500 28px/30px var(--font-display); letter-spacing: 0; }
+.crossword-badge { width: 140px; height: 25px; display: flex; align-items: center; justify-content: center; margin-top: 11px; color: var(--color-cream); font-size: 11px; line-height: 13px; background-repeat: no-repeat; }
 .notice, .crossword-copy { margin-top: 24px; color: #836045; }
 .crossword-copy p { margin: 0 0 20px; }
-.crossword-copy .mandatory { margin-bottom: 0; color: #a7280b; font-size: 12px; line-height: 18px; }
+.crossword-copy .mandatory { margin-bottom: 0; color: var(--color-action); font-size: 12px; line-height: 18px; }
 .surface { position: relative; isolation: isolate; }
 .surface::before { content: ''; position: absolute; inset: -.5px; z-index: -1; pointer-events: none; border: 12px solid transparent; border-image: var(--surface-art) 12 fill / 12px stretch; }
 .crossword-rules { margin-top: 28px; padding: 16px; }
-.crossword-rules h2 { margin: 0 0 26px; color: #a7280b; font: 500 20px/24px 'Advent STIX', serif; }
+.crossword-rules h2 { margin: 0 0 26px; color: var(--color-action); font: 500 20px/24px var(--font-display); }
 .crossword-rules ol { padding: 0; margin: 0; list-style: none; display: grid; gap: 12px; }
 .crossword-rules li { display: flex; gap: 10px; align-items: flex-start; }
-.crossword-rules li > span { flex: 0 0 22px; height: 22px; text-align: center; color: #fff0d2; font-weight: 700; font-size: 12px; line-height: 22px; }
+.crossword-rules li > span { flex: 0 0 22px; height: 22px; text-align: center; color: var(--color-cream); font-weight: 700; font-size: 12px; line-height: 22px; }
 .crossword-rules li p { margin: 0; }
-.crossword-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: #a7280b; color: #fff7df; font: 700 14px/17px 'Advent Inter', sans-serif; text-align: center; }
+.crossword-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: var(--color-action); color: #fff7df; font: 700 14px/17px var(--font-ui); text-align: center; }
 .crossword-button:disabled { opacity: .65; cursor: default; }
 .completed .crossword-button:disabled { opacity: 1; }
-.crossword-button > span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, #fff0d2 72.836%, #efc087 99.465%); }
-.crossword-button:not(:disabled):hover { background: #962107; }
-button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid #623c28; outline-offset: 0; }
-.start-button { margin-top: 20px; border: 1px solid #a7280b; }
+.crossword-button > span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
+.crossword-button:not(:disabled):hover { background: var(--color-action-hover); }
+button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 0; }
+.start-button { margin-top: 20px; border: 1px solid var(--color-action); }
 .crossword-game { margin-top: 23px; }
 .crossword-game.is-expanded { margin-top: 24px; }
 .is-expanded .questions { margin-top: 16px; }
-.outline { border: 1px solid #a7280b; background: #fff8e9; color: #a7280b; }
+.outline { border: 1px solid var(--color-action); background: #fff8e9; color: var(--color-action); }
 .outline:not(:disabled):hover { background: #fff1cf; }
 .questions { margin-top: 11px; }
-.questions-toggle { width: 100%; height: 48px; padding: 0 16px; border: 0; background: transparent; color: #a7280b; font-size: 14px; font-weight: 700; text-align: left; }
+.questions-toggle { width: 100%; height: 48px; padding: 0 16px; border: 0; background: transparent; color: var(--color-action); font-size: 14px; font-weight: 700; text-align: left; }
 .all-questions { padding: 2px 16px 22px; }
 .all-questions section + section { margin-top: 24px; }
-.all-questions h2 { margin: 0 0 12px; color: #70492c; letter-spacing: 0; font: 400 18px/22px 'Advent Inter', sans-serif; }
-.clue-option { display: block; width: 100%; padding: 16px; margin: 0 0 12px; border: 0; border-radius: 14px; background: transparent; color: #70492c; text-align: left; font: 400 14px/20px 'Advent Inter', sans-serif; }
+.all-questions h2 { margin: 0 0 12px; color: #70492c; letter-spacing: 0; font: 400 18px/22px var(--font-ui); }
+.clue-option { display: block; width: 100%; padding: 16px; margin: 0 0 12px; border: 0; border-radius: 14px; background: transparent; color: #70492c; text-align: left; font: 400 14px/20px var(--font-ui); }
 .clue-option:last-child { margin-bottom: 0; }
-.clue-option:hover { border-color: #a7280b; }
+.clue-option:hover { border-color: var(--color-action); }
 .filled-count { margin: 26px 0 14px; font-size: 13px; line-height: 16px; font-weight: 700; }
 .is-expanded .filled-count { margin-top: 18px; }
 .active-question { padding: 18px 16px 0; }
-.active-question h2 { margin: 0 0 10px; color: #a7280b; letter-spacing: 0; font: 700 12px/15px 'Advent Inter', sans-serif; }
+.active-question h2 { margin: 0 0 10px; color: var(--color-action); letter-spacing: 0; font: 700 12px/15px var(--font-ui); }
 .clue-copy { margin: 0 0 12px; max-width: 264px; }
 .active-question label { display: block; margin-bottom: 7px; font-weight: 700; line-height: 17px; }
 .word-input { height: 48px; }
 .word-input::before { border-width: 8px; border-image-slice: 8; border-image-width: 8px; }
-.word-input input { display: block; box-sizing: border-box; width: 100%; height: 48px; border: 0; border-radius: 8px; padding: 0 10px; background: transparent; color: #623c28; font: 400 18px/22px 'Advent Inter', sans-serif; text-align: center; }
-.word-input.invalid { outline: 1px solid #a7280b; border-radius: 8px; }
+.word-input input { display: block; box-sizing: border-box; width: 100%; height: 48px; border: 0; border-radius: 8px; padding: 0 10px; background: transparent; color: var(--color-ink); font: 400 18px/22px var(--font-ui); text-align: center; }
+.word-input.invalid { outline: 1px solid var(--color-action); border-radius: 8px; }
 .word-input input:focus-visible { outline: 1px solid #a7401d; outline-offset: 0; }
 .answer-length { margin: 8px 0 12px; min-height: 16px; font-size: 13px; line-height: 16px; }
-.invalid { color: #a7280b; }
+.invalid { color: var(--color-action); }
 .insert-button { width: 281px; min-width: 281px; max-width: 281px; }
 .question-navigation { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 20px; min-height: 47px; font-size: 12px; line-height: 15px; color: #836045; }
-.question-navigation button { min-height: 44px; padding: 0; border: 0; background: transparent; color: #a7280b; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.question-navigation button { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--color-action); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .grid-help { margin: 12px 0 25px; max-width: 297px; color: #836045; font-size: 12px; line-height: 16px; }
 .is-expanded .grid-help { line-height: 18px; }
 .crossword-zoom { position: relative; isolation: isolate; display: flex; align-items: center; width: 118px; height: 34px; margin-bottom: 12px; }
 .zoom-art { position: absolute; top: -.5px; left: -.5px; z-index: -1; pointer-events: none; }
 .zoom-divider { position: absolute; top: 0; left: 36.5px; z-index: -1; pointer-events: none; }
-.crossword-zoom button { flex: 0 0 37px; height: 34px; border: 0; padding: 0; background: transparent; color: #a7280b; font-size: 18px; font-weight: 700; }
+.crossword-zoom button { flex: 0 0 37px; height: 34px; border: 0; padding: 0; background: transparent; color: var(--color-action); font-size: 18px; font-weight: 700; }
 .crossword-zoom button:disabled { opacity: .4; }
 .crossword-zoom output { flex: 1; color: #836045; font-size: 12px; text-align: center; }
 .grid-panel { padding: 11px; }
@@ -313,7 +311,7 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid #623c28;
 .crossword-cell { position: absolute; width: var(--cell-size); height: var(--cell-size); }
 .crossword-cell::before { border: 3px solid transparent; border-image: var(--surface-art) 3 fill / 3px stretch; }
 .cell-number { position: absolute; top: 1px; left: 2px; pointer-events: none; color: #836045; font-size: calc(var(--cell-size) * .22); line-height: 1.2; }
-.crossword-cell input { display: block; box-sizing: border-box; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 3px; outline-offset: 0; background: transparent; color: #623c28; caret-color: #a7280b; font: 400 calc(var(--cell-size) * .5)/1 'Advent Inter', sans-serif; text-align: center; }
+.crossword-cell input { display: block; box-sizing: border-box; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 3px; outline-offset: 0; background: transparent; color: var(--color-ink); caret-color: var(--color-action); font: 400 calc(var(--cell-size) * .5)/1 var(--font-ui); text-align: center; }
 .crossword-cell input:focus-visible { outline: 1px solid #a7401d; }
 .check-button { margin-top: 24px; }
 .result { margin: 20px 16px 0; line-height: 20px; }
