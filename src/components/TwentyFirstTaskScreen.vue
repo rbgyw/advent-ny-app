@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
+import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
@@ -34,7 +35,7 @@ const tool = ref<MarkingTool>(filled);
 const enlarged = ref(false);
 const validation = ref('');
 const panel = ref<HTMLElement>();
-const dialog = ref<HTMLDialogElement>();
+const dialog = ref<InstanceType<typeof PopupDialog>>();
 const dotCount = ref(0);
 let awaitingCompletion = false;
 
@@ -231,12 +232,12 @@ function backFromResult() {
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
 
-    <dialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
+    <PopupDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
       <button class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</button>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
       <button class="nonogram-primary" type="button" @click="backFromResult">К календарю</button>
-    </dialog>
+    </PopupDialog>
   </main>
 </template>
 
@@ -256,7 +257,6 @@ function backFromResult() {
 }
 
 :global(#app:has(.nonogram-page)) { width: 100%; border: 0; }
-:global(html:has(.nonogram-popup[open])) { overflow: hidden; }
 
 .nonogram-page {
   --accent: #a7280b;

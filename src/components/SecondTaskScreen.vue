@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
 import { shortCalendarDate } from '../utils/calendar'
@@ -29,7 +30,6 @@ const letters = ref<string[]>(Array(15).fill(''))
 const inputs = ref<HTMLInputElement[]>([])
 const incorrect = ref(false)
 const popupOpen = ref(false)
-const dialog = ref<HTMLDialogElement | null>(null)
 const gradient = ref<HTMLElement | null>(null)
 const board = ref<HTMLElement | null>(null)
 const message = ref<HTMLElement | null>(null)
@@ -44,7 +44,6 @@ const date = computed(() => props.assignment ? shortCalendarDate(props.assignmen
 const words = [Array.from({ length: 10 }, (_, i) => i), Array.from({ length: 5 }, (_, i) => i + 10)]
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
-let previousOverflow: string | undefined
 
 function cssUrl(url: string) { return `url("${url}")` }
 function focus(index: number) {
@@ -105,9 +104,6 @@ async function toggleMusic() {
   if (playing.value) { audio.value.pause(); return }
   try { await audio.value.play() } catch { musicError.value = 'Не удалось включить музыку. Попробуйте ещё раз.' }
 }
-function unlockScroll() {
-  if (previousOverflow !== undefined) { document.documentElement.style.overflow = previousOverflow; previousOverflow = undefined }
-}
 watch(() => props.assignment?.id, () => {
   letters.value = completed.value ? [...CIPHER_LETTERS] : Array(15).fill('')
   incorrect.value = false; popupOpen.value = false
@@ -119,16 +115,6 @@ watch(completed, (value, before) => {
     if (before === false) popupOpen.value = true
   }
 }, { immediate: true })
-watch(popupOpen, async open => {
-  await nextTick()
-  if (open) {
-    if (previousOverflow === undefined) previousOverflow = document.documentElement.style.overflow
-    document.documentElement.style.overflow = 'hidden'
-    if (!dialog.value?.open) dialog.value?.showModal()
-  } else {
-    dialog.value?.close(); unlockScroll()
-  }
-})
 onMounted(() => {
   observer = new ResizeObserver(entries => {
     for (const entry of entries) {
@@ -142,7 +128,7 @@ onMounted(() => {
 })
 // Board and answer appear after an asynchronous calendar load as well.
 watch([board, message], elements => { for (const element of elements) if (element) observer?.observe(element) })
-onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.value?.close(); unlockScroll() })
+onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
 </script>
 
 <template>
@@ -202,13 +188,13 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
       </article>
       <footer class="cipher-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy" @close="popupOpen = false" @cancel="popupOpen = false">
+    <PopupDialog v-model:open="popupOpen" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy">
       <button class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</button>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
       <p id="cipher-success-copy">Подарок — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнивших все обязательные задания адвента. Продолжайте открывать окошки, ведь впереди у нас еще много интересного!</p>
       <div class="cipher-gift" :style="{ backgroundImage: cssUrl(gift) }" data-figma-node="28:40836">Фото спортивной сумки</div>
       <button class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</button>
-    </dialog>
+    </PopupDialog>
   </main>
 </template>
 
@@ -266,8 +252,8 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause(); dialog.val
 .cipher-success::backdrop { background: rgb(66 35 19 / 55%); }
 .cipher-close { position: absolute; right: 6px; top: 0; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
 .cipher-success h2 { margin: 0 0 14px; color: #623c28; font: 500 24px/30px 'Advent STIX', serif; letter-spacing: 0; }
-.cipher-success > p { width: calc(100% + 14px); margin: 0; color: #836045; }
+.cipher-success > p { width: 100%; margin: 0; color: #836045; }
 .cipher-gift { display: grid; place-items: center; width: 100%; aspect-ratio: 297 / 123; margin-top: 15px; background-repeat: no-repeat; background-size: 100% 100%; color: #836045; font-size: 13px; line-height: 16px; }
-.cipher-calendar { width: 297px; min-width: 297px; max-width: 297px; margin-top: 22px; }
+.cipher-calendar { width: 100%; min-width: 0; max-width: 100%; margin-top: 22px; }
 @media (min-width: 768px) { .cipher-layout { padding-inline: 32px; } .cipher-card { padding-inline: 32px; } }
 </style>

@@ -1,4 +1,4 @@
-import { fortuneHeading, fortuneSignature } from '../content/fortunes';
+import { fortuneHeading } from '../content/fortunes';
 import paperCard from '../assets/fortune/paper-card.svg';
 
 function wrapLines(context: CanvasRenderingContext2D, text: string, width: number) {
@@ -31,7 +31,7 @@ export async function downloadFortuneCard(text: string) {
     paper.decode(),
     document.fonts.load(bodyFont, text),
     document.fonts.load(headingFont, fortuneHeading),
-    document.fonts.load(signatureFont, fortuneSignature),
+    document.fonts.load(signatureFont),
   ]);
 
   context.font = bodyFont;
@@ -51,7 +51,7 @@ export async function downloadFortuneCard(text: string) {
   lines.forEach((line, index) => context.fillText(line, 56, bodyTop + index * lineHeight));
   context.fillStyle = '#a7280b';
   context.font = signatureFont;
-  context.fillText(fortuneSignature, 56, signatureTop);
+  context.fillText('', 56, signatureTop);
 
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('Could not export card');

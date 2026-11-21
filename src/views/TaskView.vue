@@ -25,6 +25,7 @@
   <ThirdTaskScreen
     v-else-if="isMemoryTask"
     v-model="answer"
+    v-model:author="memoryAuthor"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -82,6 +83,143 @@
     @back="goBack"
     @retry="reloadFirstTask"
     @draw="drawTarot"
+    @edit="calendarStore.saveError = null"
+  />
+  <SeventhTaskScreen
+    v-else-if="isSportTask"
+    :key="`task-07:${assignment?.id ?? day}`"
+    v-model="answer"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @choose="saveSportLevel"
+    @submit="submitSportPhoto"
+    @edit="calendarStore.saveError = null"
+  />
+  <FifteenthTaskScreen
+    v-else-if="matchesTask(15)"
+    :key="`task-15:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(15, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <NinthTaskScreen
+    v-else-if="matchesTask(9)"
+    :key="`task-09:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(9, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <TenthTaskScreen
+    v-else-if="matchesTask(10)"
+    :key="`task-10:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(10, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <SixteenthTaskScreen
+    v-else-if="matchesTask(16)"
+    :key="`task-16:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(16, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <SeventeenthTaskScreen
+    v-else-if="matchesTask(17)"
+    :key="`task-17:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(17, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <EighteenthTaskScreen
+    v-else-if="matchesTask(18)"
+    :key="`task-18:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(18, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <NineteenthTaskScreen
+    v-else-if="matchesTask(19)"
+    :key="`task-19:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(19, $event)"
+    @edit="calendarStore.saveError = null"
+  />
+  <TwentiethTaskScreen
+    v-else-if="matchesTask(20)"
+    :key="`task-20:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(20, $event)"
     @edit="calendarStore.saveError = null"
   />
   <EighthTaskScreen
@@ -164,6 +302,48 @@
     @retry="reloadFirstTask"
     @submit="solveNonogram"
     @edit="calendarStore.saveError = null"
+  />
+  <TwentySecondTaskScreen
+    v-else-if="matchesTask(22)"
+    :key="`task-22:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @completed="reloadFirstTask"
+  />
+  <TwentyThirdTaskScreen
+    v-else-if="matchesTask(23)"
+    :key="`task-23:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(23, $event)"
+  />
+  <TwentyFourthTaskScreen
+    v-else-if="matchesTask(24)"
+    :key="`task-24:${assignment?.id ?? day}`"
+    :assignment="assignment"
+    :day="day"
+    :total="calendarStore.totalCount"
+    :loading="calendarStore.loading"
+    :saving="calendarStore.saving"
+    :error="calendarStore.error"
+    :save-error="calendarStore.saveError"
+    @back="goBack"
+    @retry="reloadFirstTask"
+    @save="saveDecemberTask(24, $event)"
   />
   <TwentyFifthTaskScreen
     v-else-if="isFortuneTask"
@@ -308,7 +488,9 @@ import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
 import FirstTaskScreen from "../components/FirstTaskScreen.vue";
 import { memorySubmissionOpen } from "../utils/memory";
+import type { DecemberTaskSave } from '../types/december';
 import type { CrosswordValues } from "../utils/crossword";
+import { isSportLevel, isTeamPose, type SportLevel, type SportSubmission } from '../content/sport-task';
 import type { RaskobkiAnswer } from '../content/raskobki';
 import type { CellMark } from '../content/nonogram';
 const SecondTaskScreen = defineAsyncComponent(() => import("../components/SecondTaskScreen.vue"));
@@ -316,12 +498,24 @@ const ThirdTaskScreen = defineAsyncComponent(() => import("../components/ThirdTa
 const FourthTaskScreen = defineAsyncComponent(() => import("../components/FourthTaskScreen.vue"));
 const FifthTaskScreen = defineAsyncComponent(() => import("../components/FifthTaskScreen.vue"));
 const SixthTaskScreen = defineAsyncComponent(() => import("../components/SixthTaskScreen.vue"));
+const SeventhTaskScreen = defineAsyncComponent(() => import('../components/SeventhTaskScreen.vue'));
+const FifteenthTaskScreen = defineAsyncComponent(() => import('../components/FifteenthTaskScreen.vue'));
+const NinthTaskScreen = defineAsyncComponent(() => import('../components/NinthTaskScreen.vue'));
+const TenthTaskScreen = defineAsyncComponent(() => import('../components/TenthTaskScreen.vue'));
+const SixteenthTaskScreen = defineAsyncComponent(() => import('../components/SixteenthTaskScreen.vue'));
+const SeventeenthTaskScreen = defineAsyncComponent(() => import('../components/SeventeenthTaskScreen.vue'));
+const EighteenthTaskScreen = defineAsyncComponent(() => import('../components/EighteenthTaskScreen.vue'));
+const NineteenthTaskScreen = defineAsyncComponent(() => import('../components/NineteenthTaskScreen.vue'));
+const TwentiethTaskScreen = defineAsyncComponent(() => import('../components/TwentiethTaskScreen.vue'));
 const EighthTaskScreen = defineAsyncComponent(() => import('../components/EighthTaskScreen.vue'));
 const EleventhTaskScreen = defineAsyncComponent(() => import('../components/EleventhTaskScreen.vue'));
 const TwelfthTaskScreen = defineAsyncComponent(() => import('../components/TwelfthTaskScreen.vue'));
 const ThirteenthTaskScreen = defineAsyncComponent(() => import('../components/ThirteenthTaskScreen.vue'));
 const FourteenthTaskScreen = defineAsyncComponent(() => import('../components/FourteenthTaskScreen.vue'));
 const TwentyFirstTaskScreen = defineAsyncComponent(() => import('../components/TwentyFirstTaskScreen.vue'));
+const TwentySecondTaskScreen = defineAsyncComponent(() => import('../components/TwentySecondTaskScreen.vue'));
+const TwentyThirdTaskScreen = defineAsyncComponent(() => import('../components/TwentyThirdTaskScreen.vue'));
+const TwentyFourthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFourthTaskScreen.vue'));
 const TwentyFifthTaskScreen = defineAsyncComponent(() => import('../components/TwentyFifthTaskScreen.vue'));
 
 const route = useRoute();
@@ -331,6 +525,7 @@ const authStore = useAuthStore();
 const calendarStore = useCalendarStore();
 
 const answer = ref("");
+const memoryAuthor = ref("");
 const isAdmin = ref(false);
 const editingCompleted = ref(false);
 const editingSaving = ref(false);
@@ -360,6 +555,8 @@ const isPairsTask = computed(() => assignment.value?.task?.slug === 'task-05' ||
   (!assignment.value?.task && (assignment.value?.task_id === 5 || day.value === 5)));
 const isTarotTask = computed(() => assignment.value?.task?.slug === 'task-06' ||
   (!assignment.value?.task && (assignment.value?.task_id === 6 || day.value === 6)));
+const isSportTask = computed(() => assignment.value?.task?.slug === 'task-07' ||
+  (!assignment.value?.task && (assignment.value?.task_id ?? day.value) === 7));
 
 const isGratitudeTask = computed(() => assignment.value?.task?.slug === 'task-08' ||
   (!assignment.value?.task && (assignment.value?.task_id === 8 || day.value === 8)));
@@ -407,9 +604,15 @@ async function solveNonogram(cells: CellMark[]) {
 const isFortuneTask = computed(() => assignment.value?.task?.slug === 'task-25' ||
   (!assignment.value?.task && (assignment.value?.task_id === 25 || day.value === 25)));
 
-async function completeFortune() {
+async function completeFortune(
+  fortuneIndex: number
+) {
   if (!assignment.value?.task || calendarStore.saving) return;
-  await calendarStore.completeFortuneTask(assignment.value.task_id);
+
+  await calendarStore.completeFortuneTask(
+    assignment.value.task_id,
+    fortuneIndex,
+  );
 }
 
 async function sendLetter(letter: GratitudeLetter, requestId: string) {
@@ -440,12 +643,50 @@ async function solveCrossword(values: CrosswordValues) {
 
 async function shareMemory() {
   if (!isMemoryTask.value || !assignment.value?.task || isCompleted.value ||
-    calendarStore.saving || attachmentsBusy.value || !answer.value.trim()) return;
+    calendarStore.saving || attachmentsBusy.value || !answer.value.trim() || !memoryAuthor.value.trim()) return;
   if (!memorySubmissionOpen(assignment.value.available_date)) {
     calendarStore.saveError = 'Приём воспоминаний завершён 10 декабря.';
     return;
   }
-  await calendarStore.completeTask(assignment.value.task_id, { text: answer.value.trim() });
+  await calendarStore.completeTask(assignment.value.task_id, {
+    text: answer.value.trim(), author: memoryAuthor.value.trim(),
+  });
+}
+
+async function saveSportLevel(level: SportLevel) {
+  const current = assignment.value;
+  const response = current?.response?.response;
+  if (current?.task?.slug !== 'task-07' || current.status === 'completed' ||
+    calendarStore.saving || isSportLevel(response?.level) || response?.submitted_for_review === true) return;
+  await calendarStore.saveDraft(current.task_id, { level, text: answer.value });
+}
+
+async function submitSportPhoto({ attachmentId, teamPose }: SportSubmission) {
+  const current = assignment.value;
+  const response = current?.response?.response;
+  if (current?.task?.slug !== 'task-07' || current.status === 'completed' ||
+    calendarStore.saving || !isSportLevel(response?.level) || response.submitted_for_review === true ||
+    !attachmentId || (response.level === 'team' && !isTeamPose(teamPose))) return;
+  await calendarStore.saveDraft(current.task_id, {
+    level: response.level,
+    text: response.level === 'team' ? '' : answer.value.trim(),
+    attachment_id: attachmentId,
+    ...(response.level === 'team' && { team_pose: teamPose }),
+    submitted_for_review: true,
+  });
+}
+
+function matchesTask(number: number) {
+  const current = assignment.value;
+  return current?.task
+    ? current.task.slug === `task-${String(number).padStart(2, '0')}`
+    : (current?.task_id ?? day.value) === number;
+}
+
+async function saveDecemberTask(number: number, { response, complete }: DecemberTaskSave) {
+  const current = assignment.value;
+  if (!current?.task || !matchesTask(number) || calendarStore.saving || current.status === 'completed') return;
+  await calendarStore.saveProgress(current.task_id, response, complete);
 }
 
 async function solveCipher(letters: string[]) {
@@ -487,7 +728,7 @@ watch(
 const isCompleted = computed(() => assignment.value?.status === "completed");
 
 const supportsPhotos = computed(() =>
-  [7, 17].includes(assignment.value?.task_id ?? -1),
+  assignment.value?.task_id === 17,
 );
 
 watch(
@@ -522,6 +763,9 @@ watch(
     const responseData = assignment.value?.response?.response;
     answer.value =
       typeof responseData?.text === "string" ? responseData.text : "";
+    const fullName = authStore.user?.user_metadata?.full_name;
+    memoryAuthor.value = typeof responseData?.author === 'string' ? responseData.author
+      : typeof fullName === 'string' ? fullName : '';
   },
   { immediate: true },
 );

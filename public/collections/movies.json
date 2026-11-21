@@ -1,0 +1,30 @@
+[
+  {
+    "title": "Название фильма",
+    "year": 1990,
+    "comment": "Почему коллега советует этот фильм",
+    "imageUrl": "images/movie.jpg",
+    "imageAlt": "Кадр из фильма"
+  },   
+  {
+    "title": "Название фильма",
+    "year": 1990,
+    "comment": "Почему коллега советует этот фильм",
+    "imageUrl": "images/movie.jpg",
+    "imageAlt": "Кадр из фильма"
+  },
+  {
+    "title": "Название фильма",
+    "year": 1990,
+    "comment": "Почему коллега советует этот фильм",
+    "imageUrl": "images/movie.jpg",
+    "imageAlt": "Кадр из фильма"
+  },
+  {
+    "title": "Название фильма",
+    "year": 1990,
+    "comment": "Почему коллега советует этот фильм",
+    "imageUrl": "images/movie.jpg",
+    "imageAlt": "Кадр из фильма"
+  }
+]

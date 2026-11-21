@@ -2,10 +2,11 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { fortuneSky } from '../content/fortune-sky';
-import { fortuneHeading, fortuneSignature, fortunes } from '../content/fortunes';
+import { fortuneHeading, fortunes } from '../content/fortunes';
 import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import { downloadFortuneCard } from '../utils/fortune-card';
+import { isFortuneIndex } from '../utils/fortune';
 import FortuneCookieArtwork from './FortuneCookieArtwork.vue';
 import wordmark from '../assets/wish/wordmark.svg';
 
@@ -18,9 +19,25 @@ const props = defineProps<{
   error: string | null;
   saveError: string | null;
 }>();
-const emit = defineEmits<{ back: []; retry: []; complete: []; edit: [] }>();
+const emit = defineEmits<{
+  back: [];
+  retry: [];
+  complete: [fortuneIndex: number];
+  edit: [];
+}>();
 
-const fortuneIndex = ref<number | null>(null);
+const fortuneIndex = computed<number | null>(() => {
+  if (props.assignment?.status !== 'completed') {
+    return null;
+  }
+
+  const value = props.assignment.response?.response.fortune_index;
+  return isFortuneIndex(value) ? value : null;
+});
+
+// Keep only the pending choice in memory. The displayed fortune always comes from Supabase.
+const pendingIndex = ref<number | null>(null);
+const requesting = ref(false);
 const opening = ref(false);
 const animateCard = ref(false);
 const exporting = ref(false);
@@ -29,88 +46,79 @@ const result = ref<HTMLElement>();
 const resultHeading = ref<HTMLElement>();
 
 const completed = computed(() => props.assignment?.status === 'completed');
-const fortune = computed(() => fortuneIndex.value === null ? null : fortunes[fortuneIndex.value]);
+const fortune = computed(() =>
+  fortuneIndex.value === null ? null : fortunes[fortuneIndex.value]
+);
 const stage = computed(() => opening.value ? 'opening' : fortune.value ? 'open' : 'closed');
 const date = computed(() => props.assignment
   ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
   : '25 ДЕКАБРЯ');
-const storageKey = computed(() => {
+const assignmentKey = computed(() => {
   const assignment = props.assignment;
-  return assignment?.task ? `advent:fortune:v1:${assignment.user_id}:${assignment.id}` : null;
+  return assignment ? `${assignment.user_id}:${assignment.id}:${assignment.task_id}` : null;
 });
 const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
+const openingBusy = computed(() => opening.value || props.saving || requesting.value);
 
-function readFortune(key: string) {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved !== null && /^\d+$/.test(saved)) {
-      const index = Number(saved);
-      if (index < fortunes.length) return index;
-    }
-  } catch {
-    // The cookie can still be opened when browser storage is disabled.
+watch(assignmentKey, () => {
+  pendingIndex.value = null;
+  requesting.value = false;
+  opening.value = false;
+  animateCard.value = false;
+  actionMessage.value = '';
+});
+
+watch([fortuneIndex, () => props.saving, () => props.saveError], ([index, saving, error]) => {
+  if (!requesting.value) return;
+  if (index !== null) {
+    requesting.value = false;
+    pendingIndex.value = null;
+    animateCard.value = !reducedMotion();
+    opening.value = animateCard.value;
+    if (!opening.value) void showFortune();
+  } else if (!saving || error) {
+    requesting.value = false;
   }
-  return null;
-}
+});
 
-function drawFortune(key: string) {
-  const saved = readFortune(key);
-  if (saved !== null) return saved;
-
-  const index = Math.floor(Math.random() * fortunes.length);
-  try {
-    localStorage.setItem(key, String(index));
-  } catch {
-    // Keep this draw for the current visit.
-  }
-  return index;
-}
-
-watch([storageKey, completed], ([key, done], [previousKey]) => {
-  if (key !== previousKey) {
-    fortuneIndex.value = key ? readFortune(key) : null;
-    opening.value = false;
-    animateCard.value = false;
-    actionMessage.value = '';
-  }
-  if (key && done && fortuneIndex.value === null) fortuneIndex.value = drawFortune(key);
-}, { immediate: true });
+// Finish even if the browser drops the CSS animation event.
+watch(opening, (active, _, onCleanup) => {
+  if (!active) return;
+  const timeout = window.setTimeout(reveal, 1200);
+  onCleanup(() => window.clearTimeout(timeout));
+});
 
 function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 async function showFortune() {
-  const key = storageKey.value;
+  const key = assignmentKey.value;
   await nextTick();
-  if (key !== storageKey.value || !result.value) return;
+  if (key !== assignmentKey.value || !result.value) return;
   result.value.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'instant' : 'smooth' });
   resultHeading.value?.focus({ preventScroll: true });
 }
 
 function openCookie() {
-  const key = storageKey.value;
-  if (!key || !ready.value || props.saving || stage.value !== 'closed') return;
+  if (
+    !ready.value ||
+    props.saving ||
+    requesting.value ||
+    completed.value ||
+    stage.value !== 'closed'
+  ) return;
 
-  const animate = !reducedMotion();
-  opening.value = animate;
-  animateCard.value = animate;
-  fortuneIndex.value = drawFortune(key);
+  pendingIndex.value ??= Math.floor(Math.random() * fortunes.length);
+  requesting.value = true;
   emit('edit');
-  if (!completed.value) emit('complete');
-  if (!animate) void showFortune();
+  emit('complete', pendingIndex.value);
 }
 
 function reveal() {
   if (!opening.value) return;
   opening.value = false;
   void showFortune();
-}
-
-function retrySave() {
-  if (props.saving || completed.value || !fortune.value) return;
-  emit('edit');
-  emit('complete');
 }
 
 async function saveCard() {
@@ -126,25 +134,6 @@ async function saveCard() {
   }
 }
 
-async function shareCard() {
-  if (!fortune.value) return;
-  actionMessage.value = '';
-  const text = `${fortuneHeading}\n\n${fortune.value}\n\n${fortuneSignature}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: fortuneHeading, text });
-      return;
-    }
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') return;
-  }
-  try {
-    await navigator.clipboard.writeText(text);
-    actionMessage.value = 'Пожелание скопировано.';
-  } catch {
-    actionMessage.value = 'Не удалось поделиться. Можно скачать пожелание.';
-  }
-}
 </script>
 
 <template>
@@ -169,6 +158,10 @@ async function shareCard() {
         <p v-else-if="!assignment.task" class="fortune-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>
+        <div v-else-if="completed && fortuneIndex === null" class="fortune-notice" role="alert">
+          <p>Не удалось загрузить сохранённое пожелание. Попробуйте обновить задание.</p>
+          <button class="fortune-action" type="button" @click="emit('retry')">Обновить задание</button>
+        </div>
         <template v-else>
           <div class="fortune-copy">
             <p>Вот и открылось последнее окошко нашего адвента. Спасибо, что провели этот декабрь вместе с нами: разгадывали загадки, делились историями, пробовали новое и добавляли праздника в рабочие будни.</p>
@@ -183,7 +176,7 @@ async function shareCard() {
               class="fortune-cookie-hit"
               type="button"
               aria-label="Разломить печенье"
-              :disabled="saving"
+              :disabled="saving || requesting"
               @click="openCookie"
             ></button>
           </div>
@@ -191,30 +184,27 @@ async function shareCard() {
             v-if="stage !== 'open'"
             class="fortune-action fortune-open-button"
             type="button"
-            :disabled="opening || saving"
+            :disabled="openingBusy"
             @click="openCookie"
           >
-            <span aria-hidden="true">✦</span> Открыть печеньку <span aria-hidden="true">✦</span>
+            <span aria-hidden="true">✦</span>
+            {{ openingBusy ? 'Открываем печеньку…' : saveError ? 'Попробовать снова' : 'Открыть печеньку' }}
+            <span aria-hidden="true">✦</span>
           </button>
           <div v-else-if="fortune" ref="result" class="fortune-result" :class="{ 'is-revealing': animateCard }">
             <section class="fortune-card" aria-labelledby="fortune-result-title">
               <h2 id="fortune-result-title" ref="resultHeading" tabindex="-1">{{ fortuneHeading }}</h2>
               <p class="fortune-text">{{ fortune }}</p>
-              <p class="fortune-signature">{{ fortuneSignature }}</p>
             </section>
             <div class="fortune-actions">
               <button class="fortune-action" type="button" :disabled="exporting" @click="saveCard">
                 {{ exporting ? 'Готовим открытку…' : 'Сохранить пожелание' }}
               </button>
-              <button class="fortune-action" type="button" @click="shareCard">Поделиться пожеланием</button>
               <button class="fortune-action fortune-calendar-button" type="button" @click="emit('back')">К календарю</button>
             </div>
             <p v-if="actionMessage" class="fortune-message" role="status">{{ actionMessage }}</p>
-            <p v-if="saveError" class="fortune-message" role="alert">{{ saveError }}</p>
-            <button v-if="!completed && !saving" class="fortune-action fortune-retry" type="button" @click="retrySave">
-              Сохранить отметку о выполнении
-            </button>
           </div>
+          <p v-if="saveError" class="fortune-message" role="alert">{{ saveError }}</p>
         </template>
       </article>
       <footer class="fortune-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
@@ -338,7 +328,6 @@ button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .fortune-signature { margin-top: 20px; color: #a7280b; font-style: italic; font-weight: 500; font-synthesis: style; }
 .fortune-actions { display: grid; gap: 12px; margin-top: 27px; }
 .fortune-message { margin-top: 12px; color: #fff7e8; overflow-wrap: anywhere; }
-.fortune-retry { margin-top: 12px; }
 .fortune-footer { margin-top: 24px; color: #fff0c4; font-size: 12px; line-height: 15px; text-align: center; }
 
 .is-revealing .fortune-card { animation: fortune-paper-appear 520ms cubic-bezier(.2,.8,.25,1) both; }

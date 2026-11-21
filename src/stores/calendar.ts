@@ -6,10 +6,16 @@ import { isCrosswordSolution, type CrosswordValues } from "../utils/crossword";
 import { isPairsSolution } from "../utils/pairs";
 import { isTarotCardId, tarotCardId } from "../utils/tarot";
 import { tarotService } from "../services/tarot.service";
-import { isStereogramSolution } from '../utils/stereogram';
-import { filmError, filmSubmissionOpen, normalizeFilm, type FilmRecommendation } from '../utils/film';
-import { isRaskobkiSolution, type RaskobkiAnswer } from '../content/raskobki';
-import { isNonogramSolution, type CellMark } from '../content/nonogram';
+import { isStereogramSolution } from "../utils/stereogram";
+import {
+  filmError,
+  filmSubmissionOpen,
+  normalizeFilm,
+  type FilmRecommendation,
+} from "../utils/film";
+import { isRaskobkiSolution, type RaskobkiAnswer } from "../content/raskobki";
+import { isNonogramSolution, type CellMark } from "../content/nonogram";
+import { isFortuneIndex } from "../utils/fortune";
 
 interface CalendarState {
   tasks: CalendarTask[];
@@ -22,6 +28,13 @@ interface CalendarState {
 
   currentUserId: string | null;
   loadVersion: number;
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return typeof error === "object" && error !== null &&
+    "message" in error && typeof error.message === "string"
+    ? error.message
+    : fallback;
 }
 
 export const useCalendarStore = defineStore("calendar", {
@@ -58,6 +71,7 @@ export const useCalendarStore = defineStore("calendar", {
 
       this.currentUserId = userId;
       this.loading = true;
+      this.saving = false;
       this.error = null;
       this.saveError = null;
       this.tasks = [];
@@ -72,10 +86,7 @@ export const useCalendarStore = defineStore("calendar", {
       } catch (error) {
         if (version !== this.loadVersion) return;
 
-        this.error =
-          error instanceof Error
-            ? error.message
-            : "Не удалось загрузить календарь";
+        this.error = errorMessage(error, "Не удалось загрузить календарь");
       } finally {
         if (version === this.loadVersion) {
           this.loading = false;
@@ -110,7 +121,15 @@ export const useCalendarStore = defineStore("calendar", {
       }
 
       if (
-        ["task-02", "task-04", "task-05", "task-11", "task-14", "task-21", "task-25"].includes(assignment.task.slug) &&
+        [
+          "task-02",
+          "task-04",
+          "task-05",
+          "task-11",
+          "task-14",
+          "task-19",
+          "task-21",
+        ].includes(assignment.task.slug) &&
         (!complete ||
           response.solved !== true ||
           Object.keys(response).length !== 1)
@@ -119,26 +138,57 @@ export const useCalendarStore = defineStore("calendar", {
         return false;
       }
 
+      if (assignment.task.slug === "task-25") {
+        const index = response.fortune_index;
+
+        if (
+          !complete ||
+          response.solved !== true ||
+          !isFortuneIndex(index) ||
+          Object.keys(response).length !== 2
+        ) {
+          this.saveError = "Некорректные данные пожелания";
+          return false;
+        }
+      }
+
       if (assignment.task.slug === "task-06") {
         this.saveError = "Карта выбирается только один раз через колоду.";
         return false;
       }
 
-      if (assignment.task.slug === 'task-12') {
-        if (!complete || typeof response.title !== 'string' || typeof response.reason !== 'string' ||
-          Object.keys(response).length !== 2 || filmError({ title: response.title, reason: response.reason })) {
-          this.saveError = 'Укажите название фильма и проверьте длину комментария.';
+      if (assignment.task.slug === "task-12") {
+        if (
+          !complete ||
+          typeof response.title !== "string" ||
+          typeof response.reason !== "string" ||
+          Object.keys(response).length !== 2 ||
+          filmError({ title: response.title, reason: response.reason })
+        ) {
+          this.saveError =
+            "Укажите название фильма и проверьте длину комментария.";
           return false;
         }
         if (!filmSubmissionOpen(assignment.available_date)) {
-          this.saveError = 'Приём рекомендаций завершён 17 декабря.';
+          this.saveError = "Приём рекомендаций завершён 17 декабря.";
           return false;
         }
       }
 
-      if (assignment.task.slug === 'task-13' &&
-        (!complete || response.wish_made !== true || Object.keys(response).length !== 1)) {
-        this.saveError = 'Подтвердите, что желание загадано.';
+      if (
+        assignment.task.slug === "task-13" &&
+        (!complete ||
+          response.wish_made !== true ||
+          Object.keys(response).length !== 1)
+      ) {
+        this.saveError = "Подтвердите, что желание загадано.";
+        return false;
+      }
+
+      if (assignment.task.slug === "task-20" &&
+        (!complete || Object.keys(response).length !== 1 ||
+          (response.wish_made !== true && response.search_exhausted !== true))) {
+        this.saveError = "Некорректный результат поиска звезды.";
         return false;
       }
 
@@ -166,10 +216,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError =
-            error instanceof Error
-              ? error.message
-              : "Не удалось сохранить задание";
+          this.saveError = errorMessage(error, "Не удалось сохранить задание");
         }
 
         return false;
@@ -223,49 +270,96 @@ export const useCalendarStore = defineStore("calendar", {
       return this.saveProgress(taskId, { solved: true }, true);
     },
 
-    async completeStereogramTask(taskId: number, letters: readonly string[]): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-11' || !isStereogramSolution(letters)) return false;
-      if (assignment.status === 'completed') return true;
+    async completeStereogramTask(
+      taskId: number,
+      letters: readonly string[],
+    ): Promise<boolean> {
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+      if (
+        assignment?.task?.slug !== "task-11" ||
+        !isStereogramSolution(letters)
+      )
+        return false;
+      if (assignment.status === "completed") return true;
       return this.saveProgress(taskId, { solved: true }, true);
     },
 
-    async completeFilmTask(taskId: number, recommendation: FilmRecommendation): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-12') return false;
-      const payload = normalizeFilm(recommendation), validation = filmError(payload);
-      if (validation) { this.saveError = validation.message; return false; }
-      if (assignment.status === 'completed') return true;
+    async completeFilmTask(
+      taskId: number,
+      recommendation: FilmRecommendation,
+    ): Promise<boolean> {
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+      if (assignment?.task?.slug !== "task-12") return false;
+      const payload = normalizeFilm(recommendation),
+        validation = filmError(payload);
+      if (validation) {
+        this.saveError = validation.message;
+        return false;
+      }
+      if (assignment.status === "completed") return true;
       return this.saveProgress(taskId, { ...payload }, true);
     },
 
     async completeWishTask(taskId: number): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-13') return false;
-      if (assignment.status === 'completed') return true;
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+      if (assignment?.task?.slug !== "task-13") return false;
+      if (assignment.status === "completed") return true;
       // The wish stays private: only the confirmation flag is saved.
       return this.saveProgress(taskId, { wish_made: true }, true);
     },
 
-    async completeRaskobkiTask(taskId: number, answers: readonly RaskobkiAnswer[]): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-14' || !isRaskobkiSolution(answers)) return false;
-      if (assignment.status === 'completed') return true;
+    async completeRaskobkiTask(
+      taskId: number,
+      answers: readonly RaskobkiAnswer[],
+    ): Promise<boolean> {
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+      if (assignment?.task?.slug !== "task-14" || !isRaskobkiSolution(answers))
+        return false;
+      if (assignment.status === "completed") return true;
       return this.saveProgress(taskId, { solved: true }, true);
     },
 
-    async completeNonogramTask(taskId: number, cells: readonly CellMark[]): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-21' || !isNonogramSolution(cells)) return false;
-      if (assignment.status === 'completed') return true;
+    async completeNonogramTask(
+      taskId: number,
+      cells: readonly CellMark[],
+    ): Promise<boolean> {
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+      if (assignment?.task?.slug !== "task-21" || !isNonogramSolution(cells))
+        return false;
+      if (assignment.status === "completed") return true;
       return this.saveProgress(taskId, { solved: true }, true);
     },
 
-    async completeFortuneTask(taskId: number): Promise<boolean> {
-      const assignment = this.tasks.find(item => item.task_id === taskId);
-      if (assignment?.task?.slug !== 'task-25') return false;
-      if (assignment.status === 'completed') return true;
-      return this.saveProgress(taskId, { solved: true }, true);
+    async completeFortuneTask(
+      taskId: number,
+      fortuneIndex: number,
+    ): Promise<boolean> {
+      const assignment = this.tasks.find((item) => item.task_id === taskId);
+
+      if (assignment?.task?.slug !== "task-25") return false;
+
+      if (assignment.status === "completed") {
+        return isFortuneIndex(assignment.response?.response.fortune_index);
+      }
+
+      if (!isFortuneIndex(fortuneIndex)) {
+        this.saveError = "Некорректное пожелание";
+        return false;
+      }
+
+      const saved = await this.saveProgress(
+        taskId,
+        { solved: true, fortune_index: fortuneIndex },
+        true,
+      );
+      if (!saved) return false;
+
+      const updated = this.tasks.find((item) => item.task_id === taskId);
+      if (updated?.status !== "completed" || !isFortuneIndex(updated.response?.response.fortune_index)) {
+        this.saveError = "Не удалось загрузить сохранённое пожелание. Попробуйте ещё раз.";
+        return false;
+      }
+      return true;
     },
 
     async drawTarotTask(taskId: number, candidate: number): Promise<boolean> {
@@ -309,10 +403,7 @@ export const useCalendarStore = defineStore("calendar", {
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError =
-            error instanceof Error
-              ? error.message
-              : "Не удалось сохранить карту.";
+          this.saveError = errorMessage(error, "Не удалось сохранить карту.");
         }
 
         return false;

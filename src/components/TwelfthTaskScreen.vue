@@ -10,14 +10,12 @@ import movieTv from '../assets/film/movie-tv.png';
 import inputArt from '../assets/film/input.svg';
 import textareaArt from '../assets/film/textarea.svg';
 import buttonArt from '../assets/film/button.svg';
-import popupArt from '../assets/film/popup.svg';
-import popupButton from '../assets/film/popup-button.svg';
-import closeArt from '../assets/film/close.svg';
+import AdventPopup from './AdventPopup.vue';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [recommendation: FilmRecommendation]; edit: [] }>();
 const form = reactive<FilmRecommendation>({ title: '', reason: '' });
-const formElement = ref<HTMLFormElement>(), dialog = ref<HTMLDialogElement>(), background = ref<HTMLElement>();
+const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof AdventPopup>>(), background = ref<HTMLElement>();
 const validation = ref(''), invalidField = ref(''), now = ref(Date.now()), ratio = ref(1529 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const closed = computed(() => !filmSubmissionOpen(props.assignment?.available_date, new Date(now.value)));
@@ -25,19 +23,12 @@ const date = computed(() => props.assignment ? shortCalendarDate(props.assignmen
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
 let observer: ResizeObserver | undefined, timer: ReturnType<typeof setInterval> | undefined;
-let previousOverflow: string | undefined;
-let previousScroll = 0;
 function refreshClock() { now.value = Date.now(); }
 function edit() { validation.value = ''; invalidField.value = ''; emit('edit'); }
-function unlockScroll() {
-  if (previousOverflow !== undefined) { document.documentElement.style.overflow = previousOverflow; previousOverflow = undefined; window.scrollTo({ top: previousScroll, behavior: 'instant' }); }
-}
-function closePopup() { dialog.value?.close(); unlockScroll(); }
+function closePopup() { dialog.value?.close(); }
 async function showPopup() {
   await nextTick();
-  if (!dialog.value?.isConnected || dialog.value.open) return;
-  previousOverflow = document.documentElement.style.overflow; previousScroll = window.scrollY;
-  window.scrollTo({ top: 0, behavior: 'instant' }); document.documentElement.style.overflow = 'hidden'; dialog.value.showModal();
+  await dialog.value?.showModal();
 }
 async function submit() {
   if (props.saving || props.loading || !props.assignment?.task || props.error) return;
@@ -104,12 +95,13 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
       </article>
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <dialog ref="dialog" class="film-popup" :style="{ '--popup-art': cssUrl(popupArt) }" aria-labelledby="film-popup-title" aria-describedby="film-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
-      <button class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img :src="closeArt" alt="" /></button>
-      <h2 id="film-popup-title">Готово!</h2>
-      <p id="film-popup-copy">Спасибо! Ваш совет поможет собрать нашу новогоднюю киноподборку</p>
-      <button class="film-button film-calendar" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="closePopup(); emit('back')">К календарю</button>
-    </dialog>
+    <AdventPopup
+      ref="dialog"
+      title="Готово!"
+      message="Спасибо! Ваш совет поможет собрать нашу новогоднюю киноподборку"
+      button-text="К календарю"
+      @action="emit('back')"
+    />
   </main>
 </template>
 
@@ -153,15 +145,7 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .film-footer { margin-top: 27px; color: #623c28; font-size: 12px; line-height: 15px; text-align: center; }
 .film-notice { min-height: 140px; margin-top: 24px; color: #836045; }
 .film-notice .film-button { margin-top: 24px; }
-.film-popup { position: fixed; isolation: isolate; top: 50%; left: 50%; transform: translate(-50%, -50%); box-sizing: border-box; width: 345px; max-width: calc(100vw - 24px); max-height: calc(100svh - 32px); margin: 0; padding: 28px 24px; border: 0; border-radius: 23px; background: transparent; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; overflow-y: auto; }
-.film-popup::before { content: ''; position: absolute; z-index: -1; inset: 0; border: 23px solid transparent; border-image: var(--popup-art) 23 fill / 23px stretch; pointer-events: none; }
-.film-popup::backdrop { background: rgb(66 35 19 / 55%); }
-.film-close { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; }
-.film-close img { display: block; }
-.film-popup h2 { margin: 0 32px 16px 0; color: #623c28; font: 600 26px/33px 'Advent STIX', serif; letter-spacing: 0; }
-#film-popup-copy { margin: 0; color: #836045; font-size: 14px; line-height: 20px; }
-.film-calendar { margin-top: 26px; }
 button:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
-@media (max-width: 360px) { .film-layout { padding-inline: 12px; } .film-panel { padding-inline: 18px; } .film-panel h1 { font-size: 26px; } .film-popup { padding-inline: 20px; } }
+@media (max-width: 360px) { .film-layout { padding-inline: 12px; } .film-panel { padding-inline: 18px; } .film-panel h1 { font-size: 26px; } }
 @media (min-width: 768px) { .film-layout { padding-inline: 32px; } .film-panel { padding-inline: 32px; } .film-tv { width: min(100%, 470px); margin-inline: auto; } }
 </style>
