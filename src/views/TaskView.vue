@@ -179,8 +179,8 @@
     @complete="completeFortune"
     @edit="calendarStore.saveError = null"
   />
-  <main v-else class="task-page">
-    <button type="button" @click="goBack">← Назад к календарю</button>
+  <TaskLayout v-else class="task-page">
+    <AppButton type="button" @click="goBack">← Назад к календарю</AppButton>
 
     <h1>День {{ day }}</h1>
 
@@ -240,31 +240,31 @@
       <div v-if="isCompleted">
         <p class="success">Задание выполнено!</p>
 
-        <button
+        <AppButton
           v-if="isAdmin && !editingCompleted"
           type="button"
           :disabled="calendarStore.loading || attachmentsBusy"
           @click="editingCompleted = true"
         >
           Редактировать ответ
-        </button>
+        </AppButton>
 
         <div v-if="isAdmin && editingCompleted" class="task-actions">
-          <button
+          <AppButton
             type="button"
             :disabled="editingSaving || attachmentsBusy || !answer.trim()"
             @click="saveCompletedEdit"
           >
             {{ editingSaving ? "Сохраняем..." : "Сохранить изменения" }}
-          </button>
+          </AppButton>
 
-          <button
+          <AppButton
             type="button"
             :disabled="editingSaving || attachmentsBusy"
             @click="cancelCompletedEdit"
           >
             Отмена
-          </button>
+          </AppButton>
         </div>
 
         <p v-if="editingError" class="error">
@@ -273,27 +273,29 @@
       </div>
 
       <div v-else class="task-actions">
-        <button
+        <AppButton
           type="button"
           :disabled="calendarStore.saving || attachmentsBusy"
           @click="saveDraft"
         >
           Сохранить черновик
-        </button>
+        </AppButton>
 
-        <button
+        <AppButton
           type="button"
           :disabled="calendarStore.saving || attachmentsBusy || !answer.trim()"
           @click="completeTask"
         >
           Завершить задание
-        </button>
+        </AppButton>
       </div>
     </section>
-  </main>
+  </TaskLayout>
 </template>
 
 <script setup lang="ts">
+import AppButton from '../components/ui/AppButton.vue';
+import TaskLayout from '../components/ui/TaskLayout.vue';
 import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../lib/supabase";

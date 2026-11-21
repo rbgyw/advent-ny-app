@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
@@ -34,24 +38,24 @@ function cssUrl(url: string) { return `url("${url}")` }
 </script>
 
 <template>
-  <main class="first-task-page">
+  <TaskLayout class="first-task-page">
     <div ref="gradient" class="first-task-background" aria-hidden="true">
       <div class="first-task-gradient" :style="{ transform: gradientTransform }"></div>
     </div>
     <div class="first-task-layout">
-      <header class="first-task-header">
+      <AppHeader class="first-task-header">
         <img class="first-task-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-        <button type="button" class="first-task-back" @click="emit('back')">← К календарю</button>
-      </header>
+        <AppButton type="button" class="first-task-back" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
 
-      <article class="first-task-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="first-task-title" data-figma-node="28:39189">
+      <AppCard class="first-task-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="first-task-title" data-figma-node="28:39189">
         <p class="first-task-date">1 ДЕКАБРЯ</p>
         <h1 id="first-task-title">Праздник в каждую переписку</h1>
 
         <p v-if="loading" class="first-task-notice" role="status">Загружаем задание…</p>
         <div v-else-if="error" class="first-task-notice">
           <p role="alert">{{ error }}</p>
-          <button class="first-task-button first-task-primary" type="button" @click="emit('retry')">Попробовать ещё раз</button>
+          <AppButton class="first-task-button first-task-primary" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton>
         </div>
         <p v-else-if="!assignment" class="first-task-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="first-task-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
@@ -65,14 +69,14 @@ function cssUrl(url: string) { return `url("${url}")` }
           <div class="first-task-actions" aria-label="Праздничные наборы">
             <template v-for="pack in firstTaskPacks" :key="pack.id">
               <a v-if="pack.href" :href="pack.href" target="_blank" rel="noopener noreferrer" class="first-task-button" :class="pack.primary ? 'first-task-primary' : 'first-task-secondary'">{{ pack.label }}</a>
-              <button v-else type="button" class="first-task-button" :class="pack.primary ? 'first-task-primary' : 'first-task-secondary'" disabled>{{ pack.label }}</button>
+              <AppButton v-else type="button" class="first-task-button" :class="pack.primary ? 'first-task-primary' : 'first-task-secondary'" disabled>{{ pack.label }}</AppButton>
             </template>
           </div>
         </template>
-      </article>
+      </AppCard>
       <footer class="first-task-footer">1 / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

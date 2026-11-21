@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -105,15 +109,15 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 </script>
 
 <template>
-  <main class="pairs-page">
+  <TaskLayout class="pairs-page">
     <div ref="background" class="pairs-background" aria-hidden="true"><div class="pairs-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="pairs-layout">
-      <header class="pairs-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" class="pairs-back" @click="emit('back')">← К календарю</button></header>
-      <article class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
+      <AppHeader class="pairs-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" class="pairs-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
         <p class="pairs-date">{{ date }}</p>
         <h1 id="pairs-title">Что скрывают карточки?</h1>
         <p v-if="loading" class="pairs-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="pairs-notice"><p role="alert">{{ error }}</p><button type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></button></div>
+        <div v-else-if="error" class="pairs-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></div>
         <p v-else-if="!assignment" class="pairs-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -124,26 +128,26 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
           </div>
           <div class="pairs-counters" aria-live="polite" aria-atomic="true"><p>Найдено пар: {{ matched.length }} / 8</p><p>Ходов: {{ completed && won && !moves ? '—' : moves }}</p></div>
           <div ref="board" class="pairs-board" :style="{ '--card-scale': cardScale }" role="group" aria-label="Игровое поле: 16 карточек, 8 пар">
-            <button v-for="(id, index) in deck" :key="`${index}:${id}`" class="pair-card" :class="{ 'is-open': isOpen(index), 'is-matched': matched.includes(id) }" type="button" :disabled="!playable || isOpen(index)" :aria-label="`Карточка ${index + 1}. ${isOpen(index) ? pairProducts[id]!.name + (matched.includes(id) ? ', пара найдена' : '') : 'Закрыта'}`" :aria-pressed="isOpen(index)" @click="flip(index)">
+            <AppButton v-for="(id, index) in deck" :key="`${index}:${id}`" class="pair-card" :class="{ 'is-open': isOpen(index), 'is-matched': matched.includes(id) }" type="button" :disabled="!playable || isOpen(index)" :aria-label="`Карточка ${index + 1}. ${isOpen(index) ? pairProducts[id]!.name + (matched.includes(id) ? ', пара найдена' : '') : 'Закрыта'}`" :aria-pressed="isOpen(index)" @click="flip(index)">
               <span class="pair-card-scale"><span class="pair-card-rotator">
                 <span class="pair-card-face pair-card-back" aria-hidden="true"><img class="pair-art" :src="backArt(index)" alt="" /><img v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
                 <span class="pair-card-face pair-card-front" aria-hidden="true"><img class="pair-art" :src="front" alt="" /><img class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /><span class="pair-product-name">{{ pairProducts[id]!.name }}</span></span>
               </span></span>
-            </button>
+            </AppButton>
           </div>
-          <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <button type="button" @click="loadImages">Попробовать ещё раз</button></p>
+          <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <AppButton type="button" @click="loadImages">Попробовать ещё раз</AppButton></p>
           <p v-else-if="!ready" class="pairs-loading" role="status">Загружаем карточки…</p>
-          <button class="pairs-button pairs-start" type="button" :disabled="!ready || saving" @click="restart"><span>{{ started ? 'Начать заново' : 'Начать игру' }}</span></button>
+          <AppButton class="pairs-button pairs-start" type="button" :disabled="!ready || saving" @click="restart"><span>{{ started ? 'Начать заново' : 'Начать игру' }}</span></AppButton>
           <div v-if="won" class="pairs-result" role="status"><p>Все пары найдены!</p><p>Вы были внимательны к каждой детали.</p></div>
           <p v-if="saving" class="pairs-save-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><button v-if="won" type="button" class="pairs-button" @click="submitWin"><span>Сохранить результат</span></button></div>
-          <p v-else-if="won && !completed" class="pairs-save-status">Результат ещё не сохранён. <button type="button" @click="submitWin">Сохранить результат</button></p>
+          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
+          <p v-else-if="won && !completed" class="pairs-save-status">Результат ещё не сохранён. <AppButton type="button" @click="submitWin">Сохранить результат</AppButton></p>
           <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
         </template>
-      </article>
+      </AppCard>
       <footer class="pairs-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

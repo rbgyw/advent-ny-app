@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { fortuneSky } from '../content/fortune-sky';
@@ -148,22 +152,22 @@ async function shareCard() {
 </script>
 
 <template>
-  <main class="fortune-page" :data-stage="stage">
+  <TaskLayout class="fortune-page" :data-stage="stage">
     <div class="fortune-sky" aria-hidden="true">
       <img v-for="(shape, index) in fortuneSky" :key="index" :src="shape.src" :style="{ left: shape.left, top: shape.top }" alt="" />
     </div>
     <div class="fortune-layout">
-      <header class="fortune-header">
+      <AppHeader class="fortune-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <button type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article class="fortune-panel" aria-labelledby="fortune-title">
+        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard class="fortune-panel" aria-labelledby="fortune-title">
         <p class="fortune-date">{{ date }}</p>
         <h1 id="fortune-title">Печенье на счастье</h1>
         <p v-if="loading" class="fortune-notice" role="status">Загружаем задание…</p>
         <div v-else-if="error" class="fortune-notice" role="alert">
           <p>{{ error }}</p>
-          <button class="fortune-action" type="button" @click="emit('retry')">Попробовать снова</button>
+          <AppButton class="fortune-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </div>
         <p v-else-if="!assignment" class="fortune-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="fortune-notice">
@@ -178,16 +182,16 @@ async function shareCard() {
           </div>
           <div class="fortune-artwork">
             <FortuneCookieArtwork :stage="stage" @reveal="reveal" />
-            <button
+            <AppButton
               v-if="stage === 'closed'"
               class="fortune-cookie-hit"
               type="button"
               aria-label="Разломить печенье"
               :disabled="saving"
               @click="openCookie"
-            ></button>
+            ></AppButton>
           </div>
-          <button
+          <AppButton
             v-if="stage !== 'open'"
             class="fortune-action fortune-open-button"
             type="button"
@@ -195,7 +199,7 @@ async function shareCard() {
             @click="openCookie"
           >
             <span aria-hidden="true">✦</span> Открыть печеньку <span aria-hidden="true">✦</span>
-          </button>
+          </AppButton>
           <div v-else-if="fortune" ref="result" class="fortune-result" :class="{ 'is-revealing': animateCard }">
             <section class="fortune-card" aria-labelledby="fortune-result-title">
               <h2 id="fortune-result-title" ref="resultHeading" tabindex="-1">{{ fortuneHeading }}</h2>
@@ -203,23 +207,23 @@ async function shareCard() {
               <p class="fortune-signature">{{ fortuneSignature }}</p>
             </section>
             <div class="fortune-actions">
-              <button class="fortune-action" type="button" :disabled="exporting" @click="saveCard">
+              <AppButton class="fortune-action" type="button" :disabled="exporting" @click="saveCard">
                 {{ exporting ? 'Готовим открытку…' : 'Сохранить пожелание' }}
-              </button>
-              <button class="fortune-action" type="button" @click="shareCard">Поделиться пожеланием</button>
-              <button class="fortune-action fortune-calendar-button" type="button" @click="emit('back')">К календарю</button>
+              </AppButton>
+              <AppButton class="fortune-action" type="button" @click="shareCard">Поделиться пожеланием</AppButton>
+              <AppButton class="fortune-action fortune-calendar-button" type="button" @click="emit('back')">К календарю</AppButton>
             </div>
             <p v-if="actionMessage" class="fortune-message" role="status">{{ actionMessage }}</p>
             <p v-if="saveError" class="fortune-message" role="alert">{{ saveError }}</p>
-            <button v-if="!completed && !saving" class="fortune-action fortune-retry" type="button" @click="retrySave">
+            <AppButton v-if="!completed && !saving" class="fortune-action fortune-retry" type="button" @click="retrySave">
               Сохранить отметку о выполнении
-            </button>
+            </AppButton>
           </div>
         </template>
-      </article>
+      </AppCard>
       <footer class="fortune-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

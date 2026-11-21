@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -74,61 +78,61 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </script>
 
 <template>
-  <main ref="page" class="tarot-page" :class="`tarot-state-${stage}`">
+  <TaskLayout ref="page" class="tarot-page" :class="`tarot-state-${stage}`">
     <div class="tarot-decorations" aria-hidden="true"><img v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
     <div class="tarot-layout">
-      <header class="tarot-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button class="tarot-back" type="button" @click="emit('back')">← К календарю</button><button v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img :src="closeRing" alt="" />×</button></header>
+      <AppHeader class="tarot-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
         <h1>Что подскажет карта?</h1>
         <p v-if="loading" role="status">Загружаем задание…</p>
-        <template v-else-if="error"><p role="alert">{{ error }}</p><button class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</button></template>
+        <template v-else-if="error"><p role="alert">{{ error }}</p><AppButton class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></template>
         <p v-else-if="!assignment">Задание не найдено.</p>
         <p v-else-if="!assignment.task">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <p v-else>Для задания уже сохранён результат. Повторный выбор карты недоступен. Обратитесь к организатору, чтобы уточнить сохранённый результат.</p>
       </section>
-      <article v-else-if="stage === 'intro'" class="tarot-intro-panel tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }" aria-labelledby="tarot-intro-title">
-        <button class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</button>
+      <AppCard v-else-if="stage === 'intro'" class="tarot-intro-panel tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }" aria-labelledby="tarot-intro-title">
+        <AppButton class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</AppButton>
         <p class="tarot-date">{{ date }}</p>
         <h1 id="tarot-intro-title" ref="focusTitle" tabindex="-1">Что подскажет карта?</h1>
-        <button ref="fan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
+        <AppButton ref="fan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
           <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img class="tarot-fan-image" :src="cardBack" alt="" /><img class="tarot-fan-border" :src="item.border" alt="" /></span><img class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
-        </button>
+        </AppButton>
         <div class="tarot-intro-copy">
           <p>Сегодня добавим в декабрь немного загадочности: предлагаем заглянуть в будущее с помощью карт таро.</p>
           <p>Подумайте, что вам хотелось бы узнать у карт, и задайте свой сокровенный вопрос про себя. Не торопитесь: вытянуть карту можно только один раз за весь адвент.</p>
           <p>Когда будете готовы, нажмите на любую карту в колоде. Перед вами появится карта с небольшим пояснением. Какой смысл найти в ее образах и словах — решать вам.</p>
           <p>Помните: это игра, а не точный прогноз. Пусть карта станет поводом для размышлений, а решения остаются за вами.</p>
         </div>
-        <button class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</button>
-      </article>
-      <article v-else-if="stage === 'choose'" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
-        <button class="tarot-close" type="button" :disabled="saving" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</button>
+        <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</AppButton>
+      </AppCard>
+      <AppCard v-else-if="stage === 'choose'" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
+        <AppButton class="tarot-close" type="button" :disabled="saving" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
         <h1 id="tarot-choose-title" ref="focusTitle" tabindex="-1">Выберите карту</h1>
         <p class="tarot-instruction">Нажмите на любую карту в колоде.</p>
         <p class="tarot-once">Выбрать можно только один раз за весь адвент.</p>
         <p v-if="saving" class="tarot-status" role="status">Сохраняем вашу карту…</p>
-        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><button class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</button></div>
+        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
-          <button v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img :src="cardBack" alt="" /></button>
+          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img :src="cardBack" alt="" /></AppButton>
         </div>
-      </article>
-      <article v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
+      </AppCard>
+      <AppCard v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
         <div class="tarot-chosen-frame"><img :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
-        <p v-if="imageError" role="alert">Не удалось загрузить изображение. <button type="button" @click="imageKey++">Загрузить ещё раз</button></p>
+        <p v-if="imageError" role="alert">Не удалось загрузить изображение. <AppButton type="button" @click="imageKey++">Загрузить ещё раз</AppButton></p>
         <section class="tarot-reading tarot-surface" :style="{ '--surface-art': cssUrl(resultPanel) }">
           <img class="tarot-handle" :src="handle" alt="" />
           <h1 id="tarot-card-title" ref="focusTitle" tabindex="-1">{{ selectedCard.name }}</h1>
           <div class="tarot-reading-copy" :class="{ 'has-advice': selectedCard.paragraphs[selectedCard.paragraphs.length - 1]?.startsWith('Совет дня:') }"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>
           <p v-if="saving" class="tarot-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><button class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</button></div>
-          <button v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</button>
-          <button class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="emit('back')">✦ К календарю ✦</button>
+          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>
+          <AppButton v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</AppButton>
+          <AppButton class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="emit('back')">✦ К календарю ✦</AppButton>
         </section>
-      </article>
+      </AppCard>
       <footer class="tarot-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

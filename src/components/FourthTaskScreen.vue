@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -155,17 +159,17 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </script>
 
 <template>
-  <main class="crossword-page">
+  <TaskLayout class="crossword-page">
     <div class="crossword-layout">
-      <header class="crossword-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button class="calendar-back" @click="emit('back')">← К календарю</button></header>
-      <article ref="card" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
+      <AppHeader class="crossword-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard ref="card" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
         <div class="card-dots" aria-hidden="true"><img v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img class="crossword-wreath" :src="wreath" alt="" />
         <p class="crossword-date">{{ date }}</p>
         <h1 id="crossword-title">Качество<br />начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
         <p v-if="loading" class="notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="notice"><p role="alert">{{ error }}</p><button class="crossword-button" @click="emit('retry')">Попробовать ещё раз</button></div>
+        <div v-else-if="error" class="notice"><p role="alert">{{ error }}</p><AppButton class="crossword-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else-if="!started">
@@ -182,16 +186,16 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
             </ol>
           </section>
-          <button class="crossword-button start-button" @click="started = true"><span>Начать кроссворд</span></button>
+          <AppButton class="crossword-button start-button" @click="started = true"><span>Начать кроссворд</span></AppButton>
         </template>
         <div v-else class="crossword-game" :class="{ completed, 'is-expanded': expanded }" :aria-busy="saving">
-          <button class="crossword-button outline" @click="started = false">← К описанию задания</button>
+          <AppButton class="crossword-button outline" @click="started = false">← К описанию задания</AppButton>
           <section class="questions surface" :style="art(questionsArt)">
-            <button class="questions-toggle" :aria-expanded="expanded" aria-controls="all-crossword-questions" @click="expanded = !expanded">{{ expanded ? '▾' : '▸' }} Все вопросы · 10</button>
+            <AppButton class="questions-toggle" :aria-expanded="expanded" aria-controls="all-crossword-questions" @click="expanded = !expanded">{{ expanded ? '▾' : '▸' }} Все вопросы · 10</AppButton>
             <div v-if="expanded" id="all-crossword-questions" class="all-questions">
               <section v-for="direction in ['across', 'down']" :key="direction">
                 <h2>{{ direction === 'across' ? 'По горизонтали' : 'По вертикали' }}</h2>
-                <button v-for="item in crosswordWords.filter(w => w.direction === direction)" :key="item.number" class="clue-option surface" :style="art(clueArt)" :aria-pressed="selected === item.number" @click="selectWord(item.number); expanded = false; nextTick(() => activeCard?.scrollIntoView({ block: 'nearest' }))">{{ item.number }}. {{ item.clue }} ({{ item.answer.length }} {{ item.answer.length === 4 ? 'буквы' : 'букв' }})</button>
+                <AppButton v-for="item in crosswordWords.filter(w => w.direction === direction)" :key="item.number" class="clue-option surface" :style="art(clueArt)" :aria-pressed="selected === item.number" @click="selectWord(item.number); expanded = false; nextTick(() => activeCard?.scrollIntoView({ block: 'nearest' }))">{{ item.number }}. {{ item.clue }} ({{ item.answer.length }} {{ item.answer.length === 4 ? 'буквы' : 'букв' }})</AppButton>
               </section>
             </div>
           </section>
@@ -203,12 +207,12 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               <label for="crossword-answer">Ответ</label>
               <div class="word-input surface" :class="{ invalid: lengthError }" :style="art(inputArt)"><input id="crossword-answer" :value="bulk" :readonly="completed" :disabled="saving" autocomplete="off" autocapitalize="characters" spellcheck="false" :aria-invalid="lengthError" aria-describedby="active-clue-copy answer-length" @input="inputBulk" /></div>
               <p id="answer-length" class="answer-length" :class="{ invalid: lengthError }" :role="lengthError ? 'alert' : 'status'">{{ lengthError ? `Нужно ${word.answer.length} букв. Введено ${bulk.length}` : inserted ? 'Ответ вставлен в сетку' : `${bulk.length} из ${word.answer.length} букв` }}</p>
-              <button class="crossword-button insert-button" :disabled="saving || completed"><span>Вставить в сетку</span></button>
+              <AppButton class="crossword-button insert-button" :disabled="saving || completed"><span>Вставить в сетку</span></AppButton>
             </form>
-            <nav class="question-navigation" aria-label="Вопросы кроссворда"><button @click="navigate(-1)">← Предыдущий</button><span>{{ selected }} / 10</span><button @click="navigate(1)">Следующий →</button></nav>
+            <nav class="question-navigation" aria-label="Вопросы кроссворда"><AppButton @click="navigate(-1)">← Предыдущий</AppButton><span>{{ selected }} / 10</span><AppButton @click="navigate(1)">Следующий →</AppButton></nav>
           </section>
           <p class="grid-help">Вводите буквы прямо в клетки или вставьте целое слово через поле выше.</p>
-          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img class="zoom-art" :src="zoomArt" alt="" /><img class="zoom-divider" :src="zoomDivider" alt="" /><button :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</button><output aria-live="polite">{{ zoom }}%</output><button :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(zoom === 59 ? 41 : 10)">+</button></div>
+          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img class="zoom-art" :src="zoomArt" alt="" /><img class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(zoom === 59 ? 41 : 10)">+</AppButton></div>
           <div class="grid-panel surface" :style="art(gridArt)">
             <div ref="gridViewport" class="grid-viewport" tabindex="0" aria-label="Сетка кроссворда. Стрелки перемещают по клеткам; увеличенную сетку можно прокручивать.">
               <div class="crossword-grid" :style="{ width: `${13 * (size + 2) - 2}px`, height: `${15 * (size + 2) - 2}px`, '--cell-size': `${size}px` }">
@@ -219,15 +223,15 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               </div>
             </div>
           </div>
-          <button class="crossword-button check-button" :disabled="saving || completed" @click="check"><span>{{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}</span></button>
+          <AppButton class="crossword-button check-button" :disabled="saving || completed" @click="check"><span>{{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}</span></AppButton>
           <p v-if="completed" class="result success" role="status">Все слова на своих местах! Кроссворд разгадан, обязательное задание выполнено</p>
           <p v-else-if="saveError" class="result invalid" role="alert">{{ saveError }}</p>
           <p v-else-if="checked && !isCrosswordSolution(values)" class="result invalid" role="alert">Не все ответы совпали. Проверьте вопросы и пересечения слов — и попробуйте еще раз</p>
         </div>
-      </article>
+      </AppCard>
       <footer class="crossword-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

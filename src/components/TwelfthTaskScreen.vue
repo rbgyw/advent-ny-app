@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -67,15 +71,15 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
 </script>
 
 <template>
-  <main class="film-page">
+  <TaskLayout class="film-page">
     <div ref="background" class="film-background" aria-hidden="true"><div class="film-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="film-layout">
-      <header class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" @click="emit('back')">← К календарю</button></header>
-      <article class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
+      <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <p class="film-date">{{ date }}</p>
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
         <p v-if="loading" class="film-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><button class="film-button" @click="emit('retry')">Попробовать снова</button></div>
+        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -98,19 +102,19 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
             </div>
             <p v-if="validation || saveError" id="film-feedback" class="film-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" id="film-feedback" class="film-error" role="status">Приём рекомендаций завершён 17 декабря.</p>
-            <button class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></button>
+            <AppButton class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <dialog ref="dialog" class="film-popup" :style="{ '--popup-art': cssUrl(popupArt) }" aria-labelledby="film-popup-title" aria-describedby="film-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
-      <button class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img :src="closeArt" alt="" /></button>
+      <AppButton class="film-close" type="button" aria-label="Закрыть окно «Готово»" @click="closePopup"><img :src="closeArt" alt="" /></AppButton>
       <h2 id="film-popup-title">Готово!</h2>
       <p id="film-popup-copy">Спасибо! Ваш совет поможет собрать нашу новогоднюю киноподборку</p>
-      <button class="film-button film-calendar" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="closePopup(); emit('back')">К календарю</button>
+      <AppButton class="film-button film-calendar" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
     </dialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

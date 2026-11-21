@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import PageLayout from './ui/PageLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import brand from '../assets/verification/0-imgBrandWordmark.svg'
 import back from '../assets/verification/0-imgIconBack.svg'
@@ -107,14 +110,14 @@ onUnmounted(() => clearInterval(timer))
 </script>
 
 <template>
-  <main class="auth-page verification-page">
+  <PageLayout class="auth-page verification-page">
     <div class="auth-layout">
-      <header class="auth-header verification-header">
-        <button class="auth-back verification-back" type="button" aria-label="Вернуться ко входу" :disabled="busy" @click="emit('back')">
+      <AppHeader class="auth-header verification-header">
+        <AppButton class="auth-back verification-back" type="button" aria-label="Вернуться ко входу" :disabled="busy" @click="emit('back')">
           <img :src="back" alt="" data-figma-node="39:39" />
-        </button>
+        </AppButton>
         <img class="verification-brand" :src="brand" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-      </header>
+      </AppHeader>
       <section class="auth-card verification-card" :class="{ 'has-message': message }" :style="{ backgroundImage: cssUrl(message ? errorCard : card) }" aria-labelledby="verification-title">
         <h1 id="verification-title">Подтвердите вход</h1>
         <p id="verification-description" class="auth-intro verification-intro">Код подтверждения отправлен<br class="verification-line-break" /> на вашу корпоративную почту.</p>
@@ -139,16 +142,16 @@ onUnmounted(() => clearInterval(timer))
               </div>
             </div>
             <p v-if="message" id="verification-error" class="verification-error" role="alert">{{ message }}</p>
-            <button class="auth-submit verification-submit" type="submit">{{ loading ? 'Проверяем…' : 'Подтвердить' }}</button>
+            <AppButton class="auth-submit verification-submit" type="submit">{{ loading ? 'Проверяем…' : 'Подтвердить' }}</AppButton>
           </fieldset>
         </form>
-        <button class="verification-resend" :style="{ '--underline': cssUrl(underline) }" type="button" :disabled="busy || remaining > 0" @click="emit('resend')">
+        <AppButton class="verification-resend" :style="{ '--underline': cssUrl(underline) }" type="button" :disabled="busy || remaining > 0" @click="emit('resend')">
           {{ resending ? 'Отправляем…' : remaining ? `Отправить повторно через ${remaining} с` : 'Отправить код повторно' }}
-        </button>
+        </AppButton>
         <p class="verification-status" role="status">{{ remaining ? 'Новый код отправлен на вашу почту.' : '' }}</p>
       </section>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped src="../assets/auth-form.css"></style>

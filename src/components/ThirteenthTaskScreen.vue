@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -62,14 +66,14 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
 </script>
 
 <template>
-  <main class="wish-page" :data-stage="stage" :data-motion-phase="motionPhase">
+  <TaskLayout class="wish-page" :data-stage="stage" :data-motion-phase="motionPhase">
     <div ref="background" class="wish-background" aria-hidden="true"><div class="wish-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="wish-layout">
-      <header class="wish-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" @click="emit('back')">← К календарю</button></header>
-      <article class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
+      <AppHeader class="wish-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <p class="wish-date">{{ date }}</p>
         <p v-if="loading" class="wish-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="wish-notice" role="alert"><p>{{ error }}</p><button class="wish-button" @click="emit('retry')">Попробовать снова</button></div>
+        <div v-else-if="error" class="wish-notice" role="alert"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="wish-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -88,18 +92,18 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
           <div v-else class="wish-copy" role="status"><p>Желание принято! Эльфы уже засучили рукава и приступили к работе. Пусть у вашей мечты появится шанс стать настоящим новогодним чудом.</p></div>
           <p v-if="stage === 'accepted'" class="wish-note">Сохраните это настроение с собой</p>
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
-          <button v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Впустить волшебство</span></button>
-          <button v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></button>
-          <button v-else class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="emit('back')"><span>К календарю</span></button>
+          <AppButton v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Впустить волшебство</span></AppButton>
+          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
+          <AppButton v-else class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="emit('back')"><span>К календарю</span></AppButton>
           <p v-if="stage !== 'accepted'" class="wish-note">{{ stage === 'intro' ? 'Маленький момент — только для вас' : 'Ваше желание останется только вашим' }}</p>
         </template>
-      </article>
+      </AppCard>
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <div v-if="stage === 'wishing' && !loading && !error && assignment?.task" class="wish-snow" :class="{ 'is-falling': snowfall }" aria-hidden="true">
       <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img :src="flake.src" alt="" /></span>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

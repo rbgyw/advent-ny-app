@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import PageLayout from './ui/PageLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { RegistrationFormData } from '../types/registration'
@@ -44,12 +47,12 @@ function submit() {
 </script>
 
 <template>
-  <main class="auth-page">
+  <PageLayout class="auth-page">
     <div class="auth-layout">
-      <header class="auth-header">
+      <AppHeader class="auth-header">
         <RouterLink to="/rules" class="auth-back" aria-label="Вернуться к правилам"><span aria-hidden="true"></span></RouterLink>
         <p>ГЕРОФАРМ</p>
-      </header>
+      </AppHeader>
       <section class="auth-card" aria-labelledby="auth-title">
         <h1 id="auth-title">Регистрация</h1>
         <p class="auth-intro">Присоединяйтесь к новогоднему адвенту.<br />Все поля обязательны для заполнения.</p>
@@ -89,13 +92,13 @@ function submit() {
               <p v-if="!consent" id="register-consent-hint" class="auth-consent-hint">Для регистрации необходимо ваше согласие.</p>
             </div>
             <p v-if="validationError || error" class="auth-error" role="alert">{{ validationError || error }}</p>
-            <button class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</button>
+            <AppButton class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</AppButton>
           </fieldset>
         </form>
       </section>
-      <button class="auth-login" type="button" :disabled="loading" @click="emit('login')">Уже есть аккаунт? Войти</button>
+      <AppButton class="auth-login" type="button" :disabled="loading" @click="emit('login')">Уже есть аккаунт? Войти</AppButton>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped src="../assets/auth-form.css"></style>

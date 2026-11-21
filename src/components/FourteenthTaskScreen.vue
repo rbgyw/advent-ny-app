@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { shortCalendarDate } from '../utils/calendar';
@@ -130,13 +134,13 @@ function submit() {
 </script>
 
 <template>
-  <main class="raskobki-page">
+  <TaskLayout class="raskobki-page">
     <div class="raskobki-layout">
-      <header class="raskobki-header">
+      <AppHeader class="raskobki-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <button type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article ref="panel" class="raskobki-panel" aria-labelledby="raskobki-title">
+        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard ref="panel" class="raskobki-panel" aria-labelledby="raskobki-title">
         <div class="raskobki-dots" aria-hidden="true">
           <img
             v-for="n in dotCount"
@@ -155,7 +159,7 @@ function submit() {
         <p v-if="loading" class="raskobki-notice" role="status">Загружаем задание…</p>
         <div v-else-if="error" class="raskobki-notice" role="alert">
           <p>{{ error }}</p>
-          <button class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</button>
+          <AppButton class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </div>
         <p v-else-if="!assignment" class="raskobki-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="raskobki-notice">
@@ -168,10 +172,10 @@ function submit() {
             <p>Подсказки можно разгадывать в любом порядке.</p>
           </div>
           <section class="raskobki-chain" aria-labelledby="raskobki-chain-title">
-            <header class="raskobki-chain-header">
+            <AppHeader class="raskobki-chain-header">
               <h2 id="raskobki-chain-title">Словесная цепочка</h2>
               <span role="status">{{ solvedCount }} из {{ raskobkiSlots.length }}</span>
-            </header>
+            </AppHeader>
             <div class="raskobki-letter">
               <p v-for="(paragraph, index) in raskobkiLetter" :key="index">
                 <template v-for="(part, partIndex) in paragraph" :key="partIndex">
@@ -185,9 +189,9 @@ function submit() {
           <section v-if="completed" class="raskobki-result" aria-labelledby="raskobki-result-title">
             <h2 id="raskobki-result-title" ref="resultHeading" tabindex="-1">Цепочка раскрыта!</h2>
             <p>Вы разгадали все подсказки и восстановили поздравление.</p>
-            <button class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
+            <AppButton class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
               К календарю
-            </button>
+            </AppButton>
           </section>
           <form v-else class="raskobki-form" :aria-busy="saving" @submit.prevent="submit">
             <template v-if="!allSolved">
@@ -208,15 +212,15 @@ function submit() {
               </div>
             </template>
             <p id="raskobki-feedback" class="raskobki-feedback" role="status">{{ saveError || feedback }}</p>
-            <button class="raskobki-button" type="submit" :disabled="saving">
+            <AppButton class="raskobki-button" type="submit" :disabled="saving">
               {{ saving ? 'Сохраняем…' : allSolved ? 'Сохранить результат' : 'Вставить слово' }}
-            </button>
+            </AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="raskobki-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

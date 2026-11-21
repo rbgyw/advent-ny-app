@@ -4,7 +4,7 @@
 
     <p :class="{ 'memory-file-hint': variant === 'memory' }">До 3 фотографий. JPG, PNG или WebP, до 5 МБ каждая.</p>
 
-    <button v-if="variant === 'memory'" class="memory-attach-button" type="button" :disabled="readonly || busy || disabled || !listLoaded" @click="fileInput?.click()">＋ Прикрепить фотографии</button>
+    <AppButton v-if="variant === 'memory'" class="memory-attach-button" type="button" :disabled="readonly || busy || disabled || !listLoaded" @click="fileInput?.click()">＋ Прикрепить фотографии</AppButton>
 
     <input
       v-if="!readonly"
@@ -24,9 +24,9 @@
       {{ errorMessage }}
     </p>
 
-    <button v-if="!busy && errorMessage" type="button" @click="reload">
+    <AppButton v-if="!busy && errorMessage" type="button" @click="reload">
       Обновить фотографии
-    </button>
+    </AppButton>
 
     <div v-if="variant !== 'memory' || photos.length" class="photos">
       <figure v-for="photo in photos" :key="photo.id">
@@ -46,14 +46,14 @@
           />
         </label>
 
-        <button
+        <AppButton
           v-if="!readonly"
           type="button"
           :disabled="busy || disabled"
           @click="deletePhoto(photo.id)"
         >
           Удалить фотографию
-        </button>
+        </AppButton>
       </figure>
     </div>
 
@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import {
   attachmentsService,

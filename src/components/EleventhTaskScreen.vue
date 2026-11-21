@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -84,17 +88,17 @@ onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <template>
-  <main class="stereo-page">
+  <TaskLayout class="stereo-page">
     <div class="stereo-layout">
-      <header class="stereo-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" @click="emit('back')">← К календарю</button></header>
-      <article ref="panel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
+      <AppHeader class="stereo-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard ref="panel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img class="stereo-wreath" :src="wreath" alt="" />
         <p class="stereo-date">{{ date }}</p>
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <p v-if="loading" class="stereo-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="stereo-notice" role="alert"><p>{{ error }}</p><button class="stereo-check" @click="emit('retry')">Попробовать снова</button></div>
+        <div v-else-if="error" class="stereo-notice" role="alert"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="stereo-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -113,16 +117,16 @@ onBeforeUnmount(() => observer?.disconnect());
                 </div>
               </div>
             </fieldset>
-            <button class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></button>
+            <AppButton class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
             <p v-if="completed" id="stereo-feedback" class="stereo-feedback stereo-success stereo-surface" :style="{ '--surface-art': cssUrl(successArt) }" role="status">Изображение раскрыто! Вы увидели, что скрывалось за узором. Обязательное задание выполнено</p>
             <p v-else-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
           </form>
-          <button v-if="completed" class="stereo-calendar" type="button" @click="emit('back')">К календарю</button>
+          <AppButton v-if="completed" class="stereo-calendar" type="button" @click="emit('back')">К календарю</AppButton>
         </template>
-      </article>
+      </AppCard>
       <footer class="stereo-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

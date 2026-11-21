@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
@@ -89,18 +93,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main class="memory-page">
+  <TaskLayout class="memory-page">
     <div ref="gradient" class="memory-background" aria-hidden="true"><div class="memory-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="memory-layout">
-      <header class="memory-header">
+      <AppHeader class="memory-header">
         <img class="memory-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-        <button class="memory-back" type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
+        <AppButton class="memory-back" type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
         <p class="memory-date">{{ date }}</p>
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
         <p v-if="loading" class="memory-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><button class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</button></div>
+        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="memory-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -118,19 +122,19 @@ onBeforeUnmount(() => {
             <TaskAttachments v-if="userId" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <button class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</button>
+            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="memory-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <dialog ref="dialog" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy" @close="popupOpen = false" @cancel="popupOpen = false">
-      <button class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</button>
+      <AppButton class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</AppButton>
       <h2 id="memory-thanks-title">Спасибо,<br />что поделились!</h2>
       <p id="memory-thanks-copy">В конце адвента соберём воспоминания коллег в праздничную подборку.</p>
-      <button class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></button>
+      <AppButton class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></AppButton>
     </dialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageLayout from '../components/ui/PageLayout.vue';
 import { RouterLink } from "vue-router";
 import background from "../assets/splash/imgBackground.svg";
 import frame from "../assets/splash/imgArchitecturalFrame.svg";
@@ -52,7 +53,7 @@ const decorations = [
 </script>
 
 <template>
-  <main class="splash-page">
+  <PageLayout class="splash-page">
     <section class="splash-scene" aria-labelledby="splash-title">
       <div class="splash-art" aria-hidden="true">
         <img
@@ -97,7 +98,7 @@ const decorations = [
         </RouterLink>
       </div>
     </section>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped>

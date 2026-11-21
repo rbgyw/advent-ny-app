@@ -1,20 +1,23 @@
 <script setup lang="ts">
+import PageLayout from '../components/ui/PageLayout.vue';
+import AppHeader from '../components/ui/AppHeader.vue';
+import AppCard from '../components/ui/AppCard.vue';
 import { RouterLink } from 'vue-router';
 
 import windowExample from '../assets/rules/window-example.svg';
 </script>
 
 <template>
-  <main class="rules-page">
+  <PageLayout class="rules-page">
     <div class="rules-layout">
-      <header class="rules-header">
+      <AppHeader class="rules-header">
         <RouterLink class="rules-back" to="/" aria-label="Вернуться к заставке">‹</RouterLink>
         <p class="rules-brand">ГЕРОФАРМ</p>
         <p class="rules-eyebrow">КАК УЧАСТВОВАТЬ</p>
         <h1>Пусть начнётся<br />волшебство</h1>
-      </header>
+      </AppHeader>
 
-      <article class="rules-card" aria-label="Правила участия">
+      <AppCard class="rules-card" aria-label="Правила участия">
         <div class="rules-dates">
           <strong>1–25 декабря</strong>
           <span>Новое задание каждый день</span>
@@ -42,9 +45,9 @@ import windowExample from '../assets/rules/window-example.svg';
         <p>Пусть этот декабрь станет немного теплее, веселее и волшебнее. Начнем?</p>
 
         <RouterLink class="rules-register" :to="{ name: 'auth', query: { mode: 'register' } }">Зарегистрироваться</RouterLink>
-      </article>
+      </AppCard>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped>

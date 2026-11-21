@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -94,15 +98,15 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
 </script>
 
 <template>
-  <main class="gratitude-page">
+  <TaskLayout class="gratitude-page">
     <div ref="background" class="gratitude-background" aria-hidden="true"><div class="gratitude-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="gratitude-layout">
-      <header class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" @click="emit('back')">← К календарю</button></header>
-      <article class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
+      <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
         <p class="gratitude-date">{{ date }}</p>
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
         <p v-if="loading" class="gratitude-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><button class="gratitude-send" @click="emit('retry')">Попробовать снова</button></div>
+        <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="gratitude-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="gratitude-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -134,17 +138,17 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
             </div>
             <div class="gratitude-signature"><p>С наилучшими пожеланиями,</p><p>{{ !form.anonymous && form.senderName.trim() ? form.senderName.trim() : 'Твой тайный Дед Мороз' }}</p></div>
             <p v-if="sendError" id="gratitude-error" class="gratitude-error" role="alert">{{ sendError }}</p>
-            <button class="gratitude-send" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></button>
+            <AppButton class="gratitude-send" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="gratitude-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <dialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy" @close="unlockScroll" @cancel="unlockScroll">
       <div v-if="sent" class="gratitude-envelope">
         <img class="envelope-back" :src="envelopeBack" alt="" />
         <img class="envelope-letter" :src="letterArt" alt="" />
-        <button class="gratitude-close" type="button" aria-label="Закрыть окно «Письмо отправлено»" @click="closePopup">×</button>
+        <AppButton class="gratitude-close" type="button" aria-label="Закрыть окно «Письмо отправлено»" @click="closePopup">×</AppButton>
         <span class="gratitude-star" aria-hidden="true">✦</span>
         <p class="gratitude-post">ПРАЗДНИЧНАЯ ПОЧТА</p>
         <h2 id="gratitude-popup-title">Письмо<br />отправлено!</h2>
@@ -154,10 +158,10 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
           <span v-for="(piece, index) in confetti" :key="index" class="confetti-piece" :style="{ left: `${piece.x}px`, top: `${piece.y}px`, '--from-x': `${158 - piece.x}px`, '--from-y': `${390 - piece.y}px`, '--delay': `${160 + index * 45}ms`, '--turn': `${index % 2 ? 65 : -75}deg` }"><img :src="piece.src" alt="" /></span>
         </div>
         <img class="envelope-front" :src="envelopeFront" alt="" />
-        <button class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</button>
+        <AppButton class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
       </div>
     </dialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>

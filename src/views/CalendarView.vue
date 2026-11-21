@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AppButton from '../components/ui/AppButton.vue';
+import PageLayout from '../components/ui/PageLayout.vue';
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
@@ -104,7 +106,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main class="calendar-page" @keydown.esc="closeMenu">
+  <PageLayout class="calendar-page" @keydown.esc="closeMenu">
     <div ref="layout" class="calendar-layout" :style="{ '--calendar-scale': scale }">
       <h1 class="sr-only">Новогодний адвент ГЕРОФАРМ</h1>
       <section class="calendar-stage" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
@@ -112,21 +114,21 @@ onBeforeUnmount(() => {
           <CalendarIllustration />
           <RouterLink class="calendar-brand-link" to="/" aria-label="ГЕРОФАРМ — на главную" />
           <p class="calendar-intro">Каждый день — маленькое праздничное чудо.<br />Нажмите на окошко и откройте задание.</p>
-          <button class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
+          <AppButton class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
             <img :src="dailyButton" alt="" width="197" height="21" />
             <span>{{ dailyLabel }}</span>
-          </button>
+          </AppButton>
 
           <details ref="menu" class="calendar-menu">
             <summary aria-label="Открыть меню"><span class="sr-only">Меню</span></summary>
             <nav class="calendar-menu-panel" aria-label="Меню календаря">
               <p v-if="user?.email" class="calendar-account">{{ user.email }}</p>
               <RouterLink to="/rules">Правила участия</RouterLink>
-              <button type="button" :disabled="loading" @click="handleLogout">{{ loading ? 'Выходим…' : 'Выйти из аккаунта' }}</button>
+              <AppButton type="button" :disabled="loading" @click="handleLogout">{{ loading ? 'Выходим…' : 'Выйти из аккаунта' }}</AppButton>
             </nav>
           </details>
 
-          <button v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25 }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
+          <AppButton v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25 }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
             <template v-if="window.isToday">
               <img class="calendar-today-outline" :src="todayOutline" alt="" width="70.3" height="61.3" />
               <span class="calendar-today-badge"><img :src="todayBadge" alt="" width="48" height="14" />Сегодня</span>
@@ -135,10 +137,10 @@ onBeforeUnmount(() => {
               <img :src="completedCircle" alt="" width="12" height="12" />
               <img :src="completedCheck" alt="" width="6.3" height="4.8" />
             </span>
-          </button>
+          </AppButton>
 
           <div v-if="calendarStore.loading" class="calendar-notice" role="status">Загружаем задания…</div>
-          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><button type="button" @click="loadCalendar(user?.id)">Попробовать ещё раз</button></div>
+          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id)">Попробовать ещё раз</AppButton></div>
           <p v-else-if="!calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>
@@ -159,7 +161,7 @@ onBeforeUnmount(() => {
         <p class="calendar-date">Сегодня · {{ shortCalendarDate(today) }}</p>
       </section>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped>
