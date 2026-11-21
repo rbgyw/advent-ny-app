@@ -26,6 +26,8 @@ const emit = defineEmits<{
   back: []; retry: []; submit: []; edit: []
   busy: [busy: boolean]; 'update:modelValue': [value: string]
 }>()
+const author = defineModel<string>('author', { default: '' })
+const authorInput = ref<HTMLInputElement | null>(null)
 const gradient = ref<HTMLElement | null>(null)
 const textarea = ref<HTMLTextAreaElement | null>(null)
 const attachmentsBusy = ref(false)
@@ -36,7 +38,7 @@ const ratio = ref(1477 / 393)
 const completed = computed(() => props.assignment?.status === 'completed')
 const closed = computed(() => !memorySubmissionOpen(props.assignment?.available_date, new Date(now.value)))
 const busy = computed(() => props.saving || attachmentsBusy.value)
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '4 ДЕКАБРЯ')
+const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '3 ДЕКАБРЯ')
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
 let timer: ReturnType<typeof setInterval> | undefined
@@ -55,6 +57,10 @@ function submit() {
   if (!props.modelValue.trim()) {
     validation.value = 'Расскажите о своём воспоминании перед отправкой.'
     textarea.value?.focus(); return
+  }
+  if (!author.value.trim()) {
+    validation.value = 'Укажите, от кого воспоминание.'
+    authorInput.value?.focus(); return
   }
   validation.value = ''; emit('submit')
 }
@@ -97,24 +103,18 @@ onBeforeUnmount(() => {
             <p>Если вам есть чем поделиться, расскажите о своем самом ярком воспоминании или достижении в компании за этот год. Что произошло и почему этот момент остался с вами? Вы также можете поделиться своими фотографиями.</p>
             <p>В конце адвента мы соберем истории коллег и вспомним этот год вместе.</p>
           </div>
-          <p id="memory-deadline" class="memory-deadline">*Принимаем воспоминания до 10 декабря.<br />Это задание не является обязательным и не влияет на получение подарка.</p>
+          <p id="memory-deadline" class="memory-deadline">*Принимаем воспоминания до 10 декабря. Это задание необязательное и не влияет на получение подарка.</p>
           <form class="memory-form" novalidate :aria-busy="busy" @submit.prevent="submit">
             <label for="memory-answer">Мое яркое воспоминание</label>
-            <TaskAttachments
-              v-if="userId"
-              :key="`${userId}:${assignment.task_id}`"
-              :task-id="assignment.task_id"
-              :readonly="completed"
-              :disabled="saving || closed"
-              variant="memory"
-              @busy="setAttachmentsBusy"
-            />
             <div class="memory-input" :style="{ '--textarea-art': cssUrl(textareaArt) }" data-figma-node="28:40852">
-              <textarea id="memory-answer" ref="textarea" :value="modelValue" :readonly="completed || closed" :disabled="saving" aria-describedby="memory-deadline" placeholder="Описание фото" @input="input"></textarea>
+              <textarea id="memory-answer" ref="textarea" :value="modelValue" :readonly="completed || closed" :disabled="saving" aria-describedby="memory-deadline" placeholder="Что произошло и почему запомнилось?" @input="input"></textarea>
             </div>
+            <label for="memory-author" class="memory-author-label">От кого</label>
+            <input id="memory-author" ref="authorInput" v-model="author" class="memory-author" name="author" type="text" autocomplete="name" maxlength="150" placeholder="Имя и фамилия" :readonly="completed || closed" :disabled="saving" required @input="validation = ''; emit('edit')" />
+            <TaskAttachments v-if="userId" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <button class="memory-button" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться воспоминанием' }}</button>
+            <button class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</button>
           </form>
         </template>
       </article>
@@ -135,9 +135,9 @@ onBeforeUnmount(() => {
 @font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.memory-page)) { width: 100%; border: 0; }
 .memory-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
-.memory-background { position: absolute; top: 0; left: 0; width: 100%; height: 124.22%; z-index: -1; overflow: hidden; pointer-events: none; }
+.memory-background { position: absolute; top: 0; left: 0; width: 100%; height: 127.0%; z-index: -1; overflow: hidden; pointer-events: none; }
 .memory-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%); }
-.memory-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 680px; margin-inline: auto; padding: 0 16px 27px; }
+.memory-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 27px; }
 .memory-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .memory-wordmark { display: block; margin-inline: auto; }
 .memory-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; margin: 0; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
@@ -148,19 +148,23 @@ onBeforeUnmount(() => {
 .memory-copy { color: #836045; }
 .memory-copy p { margin: 0 0 20px; }
 .memory-deadline { margin: 0; color: #a7280b; font-size: 12px; line-height: 20px; }
-.memory-form { display: grid; gap: 14px; margin-top: 19px; }
-.memory-form > label { color: #623c28; font: 500 20px/27px 'Advent Source Serif', serif; }
+.memory-form { margin-top: 19px; }
+.memory-form > label { display: block; margin-bottom: 16px; color: #623c28; font: 500 20px/27px 'Advent Source Serif', serif; }
+.memory-form > .memory-author-label { margin-top: 16px; }
+.memory-author { box-sizing: border-box; width: 100%; min-width: 0; min-height: 52px; padding: 12px 14px; border: 1px solid #dcc8a8; border-radius: 14px; background: #fffaf0; color: #623c28; font: 400 16px/22px 'Advent Inter', sans-serif; }
+.memory-author:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
 .memory-input { position: relative; min-height: 156px; }
 .memory-input::before { content: ''; position: absolute; inset: -.5px; border: 14px solid transparent; border-image: var(--textarea-art) 14 fill / 14px stretch; pointer-events: none; }
 .memory-input textarea { position: relative; display: block; box-sizing: border-box; width: 100%; height: 156px; min-height: 156px; padding: 12px 14px; border: 0; border-radius: 14px; background: transparent; color: #623c28; font: 400 13px/18px 'Advent Inter', sans-serif; resize: none; box-shadow: none; }
 .memory-input textarea::placeholder { color: #947a62; opacity: 1; }
 .memory-input textarea:disabled { opacity: .7; }
 .memory-input textarea:focus-visible { outline: 1px solid #a7401d; outline-offset: 0; }
-.memory-button { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 100%; min-height: 52px; padding: 8px 16px; margin-inline: 0; border: 0; border-radius: 13px; background: #a7280b; color: #fff7df; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
+.memory-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: #a7280b; color: #fff7df; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
 .memory-button:disabled { cursor: default; opacity: .65; -webkit-text-fill-color: currentColor; }
 .memory-button:not(:disabled):hover { background: #962107; }
 .memory-button:focus-visible, .memory-back:focus-visible, .memory-close:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
-.memory-error { margin: 0; color: #a7280b; font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
+.memory-share { margin-top: 12px; }
+.memory-error { margin: 12px 0 0; color: #a7280b; font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
 .memory-footer { margin-top: 27px; font-size: 12px; line-height: 15px; text-align: center; }
 .memory-notice { min-height: 120px; margin: 0; color: #836045; overflow-wrap: anywhere; }
 .memory-notice .memory-button { margin-top: 24px; }

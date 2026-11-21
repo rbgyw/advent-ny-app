@@ -25,6 +25,7 @@
   <ThirdTaskScreen
     v-else-if="isMemoryTask"
     v-model="answer"
+    v-model:author="memoryAuthor"
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
@@ -524,6 +525,7 @@ const authStore = useAuthStore();
 const calendarStore = useCalendarStore();
 
 const answer = ref("");
+const memoryAuthor = ref("");
 const isAdmin = ref(false);
 const editingCompleted = ref(false);
 const editingSaving = ref(false);
@@ -641,12 +643,14 @@ async function solveCrossword(values: CrosswordValues) {
 
 async function shareMemory() {
   if (!isMemoryTask.value || !assignment.value?.task || isCompleted.value ||
-    calendarStore.saving || attachmentsBusy.value || !answer.value.trim()) return;
+    calendarStore.saving || attachmentsBusy.value || !answer.value.trim() || !memoryAuthor.value.trim()) return;
   if (!memorySubmissionOpen(assignment.value.available_date)) {
     calendarStore.saveError = 'Приём воспоминаний завершён 10 декабря.';
     return;
   }
-  await calendarStore.completeTask(assignment.value.task_id, { text: answer.value.trim() });
+  await calendarStore.completeTask(assignment.value.task_id, {
+    text: answer.value.trim(), author: memoryAuthor.value.trim(),
+  });
 }
 
 async function saveSportLevel(level: SportLevel) {
@@ -759,6 +763,9 @@ watch(
     const responseData = assignment.value?.response?.response;
     answer.value =
       typeof responseData?.text === "string" ? responseData.text : "";
+    const fullName = authStore.user?.user_metadata?.full_name;
+    memoryAuthor.value = typeof responseData?.author === 'string' ? responseData.author
+      : typeof fullName === 'string' ? fullName : '';
   },
   { immediate: true },
 );
