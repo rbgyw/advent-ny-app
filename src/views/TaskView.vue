@@ -1,5 +1,5 @@
 <template>
-  <TaskLayout v-if="calendarStore.loading && !assignment" class="task-page"><AppButton type="button" @click="goBack">← Назад к календарю</AppButton><LoadingState /></TaskLayout>
+  <TaskLoading v-if="calendarStore.loading && !assignment" @back="goBack" />
   <FirstTaskScreen
     v-else-if="day === 1"
     :assignment="assignment"
@@ -296,6 +296,7 @@
 <script setup lang="ts">
 import { asyncScreen } from '../utils/async-screen';
 import FeedbackState from '../components/ui/FeedbackState.vue';
+import TaskLoading from '../components/ui/TaskLoading.vue';
 import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import TaskLayout from '../components/ui/TaskLayout.vue';

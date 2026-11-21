@@ -24,7 +24,7 @@ import legendSoon from '../assets/calendar/bd28fbb2-2dc6-4874-8e24-a7793b940428.
 import progressTrack from '../assets/calendar/4460766a-65d8-43d4-adfa-3815be36befc.svg'
 import progressFill from '../assets/calendar/91922ebb-c2f8-4f13-9e88-bae94e5c002f.svg'
 
-const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'))
+const CalendarIllustration = asyncScreen(() => import('../components/CalendarIllustration.vue'), 'illustration')
 const router = useRouter()
 const authStore = useAuthStore()
 const calendarStore = useCalendarStore()
