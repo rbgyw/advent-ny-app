@@ -60,7 +60,8 @@ const dailyLabel = computed(() => {
 })
 const total = computed(() => calendarStore.totalCount || 25)
 let observer: ResizeObserver | undefined
-watch(today, () => { void loadCalendar(user.value?.id) })
+watch(today, () => { void loadCalendar(user.value?.id, true) })
+function refreshVisibleCalendar() { if (!document.hidden) void loadCalendar(user.value?.id, true) }
 function closeMenu() {
   if (menu.value?.open) {
     menu.value.open = false
@@ -72,9 +73,9 @@ function openWindow(day: number) {
     void router.push({ name: 'task', params: { id: day } })
   }
 }
-async function loadCalendar(userId: string | undefined) {
+async function loadCalendar(userId: string | undefined, force = false) {
   if (!userId) { calendarStore.reset(); return }
-  await calendarStore.loadCalendar(userId)
+  await calendarStore.loadCalendar(userId, force)
 }
 async function handleLogout() {
   if (await authStore.logout()) {
@@ -84,6 +85,7 @@ async function handleLogout() {
 }
 watch(() => user.value?.id, userId => { void loadCalendar(userId) }, { immediate: true })
 onMounted(() => {
+  document.addEventListener('visibilitychange', refreshVisibleCalendar)
   observer = new ResizeObserver(entries => {
     const width = entries[0]?.contentRect.width
     if (width) scale.value = width / 393
@@ -91,6 +93,7 @@ onMounted(() => {
   if (layout.value) observer.observe(layout.value)
 })
 onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', refreshVisibleCalendar)
   observer?.disconnect()
 })
 </script>
@@ -130,7 +133,7 @@ onBeforeUnmount(() => {
           </AppButton>
 
           <LoadingState v-if="calendarStore.loading && !calendarStore.tasks.length" compact class="calendar-notice" label="Загружаем задания…" />
-          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id)">Попробовать ещё раз</AppButton></div>
+          <div v-else-if="calendarStore.error" class="calendar-notice" role="alert"><p>{{ calendarStore.error }}</p><AppButton type="button" @click="loadCalendar(user?.id, true)">Попробовать ещё раз</AppButton></div>
           <p v-else-if="!calendarStore.tasks.length" class="calendar-notice" role="status">Задания пока не назначены. Загляните чуть позже.</p>
           <p v-if="error" class="calendar-notice calendar-auth-error" role="alert">{{ error }}</p>
         </div>

@@ -30,7 +30,7 @@
 
     <div v-if="variant !== 'memory' || photos.length" class="photos">
       <figure v-for="photo in photos" :key="photo.id">
-        <img v-if="photo.url" :src="photo.url" :alt="photo.file_name" />
+        <img v-if="photo.url" loading="lazy" decoding="async" :src="photo.url" :alt="photo.file_name" />
         <p v-else>Не удалось загрузить предпросмотр.</p>
 
         <figcaption>{{ photo.file_name }}</figcaption>
@@ -156,24 +156,22 @@ async function loadPhotos() {
   const attachments = await attachmentsService.list(props.taskId);
   if (disposed) return;
 
-  releasePhotos();
-  photos.value = attachments.map((item) => ({
-    ...item,
-    url: null,
-  }));
-
+  const previous = new Map(photos.value.map(photo => [photo.id, photo]));
+  photos.value = attachments.map(item => {
+    const existing = previous.get(item.id);
+    previous.delete(item.id);
+    if (existing?.storage_path === item.storage_path) return existing;
+    if (existing?.url) URL.revokeObjectURL(existing.url);
+    return { ...item, url: null };
+  });
+  for (const photo of previous.values()) if (photo.url) URL.revokeObjectURL(photo.url);
   let previewFailed = false;
-
-  for (const photo of photos.value) {
+  await Promise.all(photos.value.filter(photo => !photo.url).map(async photo => {
     try {
       const blob = await attachmentsService.download(photo.storage_path);
-
-      if (disposed) return;
-      photo.url = URL.createObjectURL(blob);
-    } catch {
-      previewFailed = true;
-    }
-  }
+      if (!disposed) photo.url = URL.createObjectURL(blob);
+    } catch { previewFailed = true; }
+  }));
 
   if (disposed) return;
 

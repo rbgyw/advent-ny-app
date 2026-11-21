@@ -1,10 +1,10 @@
 <template>
-  <LoadingState v-if="calendarStore.loading && !assignment" />
+  <TaskLayout v-if="calendarStore.loading && !assignment" class="task-page"><AppButton type="button" @click="goBack">← Назад к календарю</AppButton><LoadingState /></TaskLayout>
   <FirstTaskScreen
     v-else-if="day === 1"
     :assignment="assignment"
-    :loading="calendarStore.loading"
-    :error="calendarStore.error"
+    :loading="calendarStore.loading && !assignment"
+    :error="assignment ? null : calendarStore.error"
     :total="calendarStore.totalCount"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -14,9 +14,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -30,9 +30,9 @@
     :day="day"
     :total="calendarStore.totalCount"
     :user-id="authStore.user?.id"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -46,9 +46,9 @@
     :day="day"
     :total="calendarStore.totalCount"
     :user-id="authStore.user?.id"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -61,9 +61,9 @@
     :day="day"
     :total="calendarStore.totalCount"
     :user-id="authStore.user?.id"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -76,9 +76,9 @@
     :day="day"
     :total="calendarStore.totalCount"
     :user-id="authStore.user?.id"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -90,8 +90,8 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
-    :error="calendarStore.error"
+    :loading="calendarStore.loading && !assignment"
+    :error="assignment ? null : calendarStore.error"
     :send="sendLetter"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -101,9 +101,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -115,9 +115,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -129,9 +129,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -143,9 +143,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -157,9 +157,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -171,9 +171,9 @@
     :assignment="assignment"
     :day="day"
     :total="calendarStore.totalCount"
-    :loading="calendarStore.loading"
+    :loading="calendarStore.loading && !assignment"
     :saving="calendarStore.saving"
-    :error="calendarStore.error"
+    :error="assignment ? null : calendarStore.error"
     :save-error="calendarStore.saveError"
     @back="goBack"
     @retry="reloadFirstTask"
@@ -187,11 +187,9 @@
 
     <LoadingState v-if="calendarStore.loading && !assignment" />
 
-    <p v-else-if="calendarStore.error" class="error">
-      {{ calendarStore.error }}
-    </p>
+    <FeedbackState v-else-if="calendarStore.error" kind="error" class="error"><p>{{ calendarStore.error }}</p><AppButton variant="outline" @click="reloadFirstTask">Попробовать снова</AppButton></FeedbackState>
 
-    <p v-else-if="!assignment">Задание не найдено.</p>
+    <FeedbackState v-else-if="!assignment" message="Задание не найдено." />
 
     <section v-else-if="!assignment.task">
       <h2>Задание пока закрыто</h2>
@@ -292,10 +290,12 @@
       </div>
     </section>
   </TaskLayout>
+  <FeedbackState v-if="calendarStore.error && assignment" kind="error" class="task-refresh-error"><p>Не удалось обновить задание. Ваш ответ остаётся на экране.</p><AppButton variant="outline" @click="reloadFirstTask">Попробовать снова</AppButton></FeedbackState>
 </template>
 
 <script setup lang="ts">
 import { asyncScreen } from '../utils/async-screen';
+import FeedbackState from '../components/ui/FeedbackState.vue';
 import LoadingState from '../components/ui/LoadingState.vue';
 import AppButton from '../components/ui/AppButton.vue';
 import TaskLayout from '../components/ui/TaskLayout.vue';
@@ -459,8 +459,8 @@ async function solveCipher(letters: string[]) {
 }
 
 watch(
-  () => authStore.user?.id,
-  async (userId, _previous, onCleanup) => {
+  () => [authStore.user?.id, assignment.value?.task?.slug] as const,
+  async ([userId, slug], _previous, onCleanup) => {
     let cancelled = false;
     onCleanup(() => {
       cancelled = true;
@@ -470,7 +470,7 @@ watch(
     editingCompleted.value = false;
     editingError.value = "";
 
-    if (!userId) return;
+    if (!userId || !slug || ["task-01", "task-02", "task-03", "task-04", "task-05", "task-06", "task-08", "task-11", "task-12", "task-13", "task-14", "task-21", "task-25"].includes(slug)) return;
 
     const { data, error } = await supabase.rpc("is_admin");
 
@@ -510,12 +510,7 @@ watch(
       return;
     }
 
-    if (
-      calendarStore.currentUserId !== userId ||
-      calendarStore.tasks.length === 0
-    ) {
-      await calendarStore.loadCalendar(userId);
-    }
+    await calendarStore.loadCalendar(userId);
   },
   { immediate: true },
 );
@@ -611,11 +606,12 @@ async function goBack() {
 }
 
 async function reloadFirstTask() {
-  if (authStore.user?.id) await calendarStore.loadCalendar(authStore.user.id);
+  if (authStore.user?.id) await calendarStore.loadCalendar(authStore.user.id, true);
 }
 </script>
 
 <style scoped>
+.task-refresh-error { padding:16px; color:var(--color-ink); background:var(--color-paper); }
 .task-page {
   max-width: 760px;
   margin: 0 auto;

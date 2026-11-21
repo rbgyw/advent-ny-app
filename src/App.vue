@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue';
+import { inject, onBeforeUnmount, ref, watch } from 'vue';
 import { RouterView, useRouter } from 'vue-router';
 import LoadingState from './components/ui/LoadingState.vue';
 import FeedbackState from './components/ui/FeedbackState.vue';
+import type { useAuthStore } from './stores/auth';
 import AppButton from './components/ui/AppButton.vue';
 const router = useRouter();
+const auth = inject<ReturnType<typeof useAuthStore>>('authStore')!;
+watch(() => auth.user?.id, async (id, previous) => {
+  if (!previous || id === previous) return;
+  const { useCalendarStore } = await import('./stores/calendar');
+  const calendar = useCalendarStore();
+  if (calendar.currentUserId === previous) calendar.reset();
+});
 const navigating = ref(false), navigationError = ref(''), destination = ref('');
 const removeBefore = router.beforeEach(to => { destination.value = to.fullPath; navigationError.value = ''; navigating.value = true; });
 const removeAfter = router.afterEach(() => { navigating.value = false; });

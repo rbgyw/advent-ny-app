@@ -16,7 +16,9 @@ async function bootstrap() {
   const pinia = createPinia()
   app.use(pinia)
   // Guards still await initialization before entering protected routes.
-  void useAuthStore(pinia).initialize()
+  const auth = useAuthStore(pinia)
+  app.provide('authStore', auth)
+  void auth.initialize()
   app.use(router)
   await router.isReady()
   app.mount('#app')
