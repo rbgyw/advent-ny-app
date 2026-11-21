@@ -587,7 +587,7 @@ async function saveCompletedEdit() {
 
     // Обновляем ответ в календарном store.
     if (authStore.user?.id === userId) {
-      await calendarStore.loadCalendar(userId);
+      await calendarStore.loadCalendar(userId, true);
     }
 
     editingCompleted.value = false;
