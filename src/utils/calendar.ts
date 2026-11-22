@@ -1,6 +1,6 @@
 import type { CalendarTask } from '../types/models'
 
-export const mandatoryCalendarDays = [4, 7, 9, 11, 14, 17, 19, 21] as const
+export const mandatoryCalendarDays = [4, 7, 11, 14, 17, 19, 21] as const
 
 export function isMandatoryCalendarDay(day: number): boolean {
   return (mandatoryCalendarDays as readonly number[]).includes(day)

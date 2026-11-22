@@ -17,7 +17,7 @@ const theme = computed(() => {
   const day = Number(path.match(/^\/task\/(\d+)/)?.[1]);
   const assignment = pinia.state.value.calendar?.tasks?.find((item: { position: number }) => item.position === day);
   const number = Number(assignment?.task?.slug?.match(/^task-(\d+)$/)?.[1] ?? assignment?.task_id ?? day);
-  return task.value && [4, 6, 7, 9, 11, 14, 17, 19, 21, 25].includes(number) ? 'night' : 'warm';
+  return task.value && [4, 6, 7, 11, 14, 17, 19, 21, 25].includes(number) ? 'night' : 'warm';
 });
 function retry() { window.location.reload(); }
 </script>
