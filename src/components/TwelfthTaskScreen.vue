@@ -82,14 +82,14 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
             <p>Напишите название и, если хотите, добавьте пару слов: за что вы его любите и какое настроение он создает.</p>
             <p>В конце адвента поделимся подборкой фильмов от сотрудников ГЕРОФАРМ. Можно будет открыть для себя что-то новое, пересмотреть любимое или выбрать кино для дороги к родным и близким.</p>
           </div>
-          <p id="film-deadline" class="film-deadline">*Принимаем названия фильмов до 17 декабря. Это задание необязательное и не влияет на получение подарка.</p>
+          <p id="film-deadline" class="film-deadline">Принимаем названия фильмов до 17 декабря.</p>
           <form ref="formElement" class="film-form" novalidate :aria-busy="saving" @submit.prevent="submit" @input="edit">
             <div class="film-field">
-              <label for="film-name">Название фильма</label>
+              <label for="film-name">Название фильма <span aria-hidden="true">*</span></label>
               <div class="film-surface" :style="{ '--surface-art': cssUrl(inputArt) }"><input id="film-name" v-model="form.title" name="title" type="text" autocomplete="off" placeholder="Введите название" maxlength="200" :readonly="completed || closed" :disabled="saving" :aria-invalid="invalidField === 'title'" aria-describedby="film-deadline film-feedback" required /></div>
             </div>
             <div class="film-field film-reason">
-              <label for="film-reason">Почему советую — необязательно</label>
+              <label for="film-reason">Почему советую</label>
               <div class="film-surface" :style="{ '--surface-art': cssUrl(textareaArt) }"><textarea id="film-reason" v-model="form.reason" name="reason" maxlength="2000" :readonly="completed || closed" :disabled="saving" :aria-invalid="invalidField === 'reason'" aria-describedby="film-feedback"></textarea></div>
             </div>
             <p v-if="validation || saveError" id="film-feedback" class="film-error" role="alert">{{ validation || saveError }}</p>
