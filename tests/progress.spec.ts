@@ -12,7 +12,7 @@ test('draft and completion preserve progress and reuse the calendar on return', 
   await expect(page.getByText('Задание выполнено!', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '← Назад к календарю', exact: true }).click();
   await expect(page).toHaveURL(/\/calendar$/);
-  expect(backend.calls.filter(path => path.endsWith('/initialize_user_calendar'))).toHaveLength(1);
+  expect(backend.calls.filter(path => path.endsWith('/prepare_advent_calendar'))).toHaveLength(1);
   expect(backend.calls.filter(path => path.endsWith('/tasks'))).toHaveLength(1);
   await page.locator('.calendar-window').nth(8).click();
   await expect(page.locator('textarea')).toHaveValue('Мой ответ');

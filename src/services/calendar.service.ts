@@ -7,14 +7,27 @@ import type {
   SaveTaskProgressResult,
 } from "../types/models";
 
+type StoredAssignment = UserTask & { calendar_position?: number | null };
+
+function readAssignment({ calendar_position, ...assignment }: StoredAssignment): UserTask {
+  return { ...assignment, position: calendar_position ?? assignment.position };
+}
+
+const inconsistentCalendar = "Calendar assignments are inconsistent";
+
 export const calendarService = {
   async getUserCalendar(userId: string, options: { initialize?: boolean; signal?: AbortSignal } = {}): Promise<CalendarTask[]> {
     const signal = options.signal ?? new AbortController().signal;
+    let initializationFailed = false;
     if (options.initialize !== false) {
-      const { error: initializationError } = await supabase.rpc(
-        "initialize_user_calendar",
-      ).abortSignal(signal);
-      if (initializationError) throw initializationError;
+      let { error } = await supabase.rpc("prepare_advent_calendar").abortSignal(signal);
+      if (error?.code === "PGRST202") {
+        ({ error } = await supabase.rpc("initialize_user_calendar").abortSignal(signal));
+      }
+      if (error) {
+        if (error.message !== inconsistentCalendar) throw error;
+        initializationFailed = true;
+      }
     }
 
     // 1. Получаем персональные назначения
@@ -28,11 +41,14 @@ export const calendarService = {
       throw assignmentsError;
     }
 
-    if (!assignments?.length) {
-      return [];
-    }
+    const userTasks = ((assignments ?? []) as StoredAssignment[]).map(readAssignment)
+      .sort((left, right) => left.position - right.position);
 
-    const userTasks = assignments as UserTask[];
+    if (initializationFailed && (userTasks.length !== 25 ||
+      userTasks.some((assignment, index) => assignment.position !== index + 1))) {
+      throw new Error("Не удалось восстановить календарь. Попробуйте ещё раз.");
+    }
+    if (!userTasks.length) return [];
 
     // 2. Получаем открытые задания
     const taskIds = userTasks.map((item) => item.task_id);
@@ -73,7 +89,7 @@ export const calendarService = {
     ]);
     if (assignment.error) throw assignment.error;
     if (response.error) throw response.error;
-    return { assignment: assignment.data as UserTask, response: response.data as TaskResponse | null };
+    return { assignment: readAssignment(assignment.data as StoredAssignment), response: response.data as TaskResponse | null };
   },
 
   async saveTaskProgress(

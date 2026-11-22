@@ -5,7 +5,7 @@ test('slow initial request is shared across a task-to-calendar transition', asyn
   await page.goto('/task/9');
   await page.getByRole('button', { name: /Назад к календарю|К календарю/ }).first().click();
   await expect(page.locator('.calendar-window').nth(0)).toBeEnabled();
-  expect(backend.calls.filter(path => path.endsWith('/initialize_user_calendar'))).toHaveLength(1);
+  expect(backend.calls.filter(path => path.endsWith('/prepare_advent_calendar'))).toHaveLength(1);
 });
 test('calendar failure retries without losing navigation', async ({ page }) => {
   const backend = await mockBackend(page, { failCalendar: true });
@@ -54,4 +54,23 @@ test('generic fallback tasks save and reopen their own response', async ({ page 
     await page.reload(); await expect(page.locator('textarea')).toHaveValue(`Ответ ${day}`);
     expect(backend.responses[taskIdAtPosition(day)]).toEqual({ text: `Ответ ${day}` });
   }
+});
+
+test('an already generated calendar opens when the legacy initializer reports an inconsistency', async ({ page }) => {
+  const backend = await mockBackend(page);
+  backend.completed.add(15);
+  backend.responses[15] = { word: 'уют' };
+  await page.route('**/rest/v1/rpc/prepare_advent_calendar', route => route.fulfill({
+    status: 404, json: { code: 'PGRST202', message: 'Could not find the function' },
+  }));
+  await page.route('**/rest/v1/rpc/initialize_user_calendar', route => route.fulfill({
+    status: 400, json: { code: 'P0001', message: 'Calendar assignments are inconsistent' },
+  }));
+  await page.goto('/calendar');
+  await expect(page.getByText('Calendar assignments are inconsistent')).toHaveCount(0);
+  const predictionWindow = page.getByRole('button', { name: /^День 10\./ });
+  await expect(predictionWindow).toHaveAccessibleName(/Выполнено/);
+  await predictionWindow.click();
+  await expect(page.getByRole('heading', { name: 'Ваше напутствие на 2027 год' })).toBeVisible();
+  await expect(page.getByText(/уют начинается с того/)).toBeVisible();
 });
