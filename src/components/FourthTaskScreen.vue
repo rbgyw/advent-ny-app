@@ -152,7 +152,10 @@ onMounted(() => {
       resizeFrame = 0;
       for (const [element, dimensions] of pendingSizes) {
         if (element === card.value) { cardWidth.value = (element as HTMLElement).offsetWidth; cardHeight.value = (element as HTMLElement).offsetHeight; }
-        else if (!manualZoom.value) zoom.value = Math.min(100, Math.max(40, Math.floor((dimensions.width - 26) / 442 * 100)));
+        else if (!manualZoom.value) {
+          const fittingCellSize = Math.floor((dimensions.width + 2) / 13) - 2;
+          zoom.value = Math.min(100, Math.max(40, Math.floor(fittingCellSize / 34 * 100)));
+        }
       }
       pendingSizes.clear();
     });
@@ -171,7 +174,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
         <p class="crossword-date">{{ date }}</p>
-        <h1 id="crossword-title">Качество<br />начинается с деталей</h1>
+        <h1 id="crossword-title">Качество начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
         <LoadingState v-if="loading" class="notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="notice"><p>{{ error }}</p><AppButton class="crossword-button" @click="emit('retry')">Попробовать ещё раз</AppButton></FeedbackState>
@@ -186,7 +189,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <section class="crossword-rules surface" :style="art(rulesArt)" aria-labelledby="rules-title">
             <h2 id="rules-title">Правила</h2>
             <ol>
-              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">1</span><p>Номер вопроса соответствует<br />номеру начальной клетки слова.<br />Ответы вписывайте по горизонтали или вертикали —<br />в зависимости от раздела с вопросами.</p></li>
+              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">1</span><p>Номер вопроса соответствует номеру начальной клетки слова. Ответы вписывайте по горизонтали или вертикали — в зависимости от раздела с вопросами.</p></li>
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">2</span><p>В каждую клетку впишите только одну букву.</p></li>
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
             </ol>
@@ -217,7 +220,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <nav class="question-navigation" aria-label="Вопросы кроссворда"><AppButton @click="navigate(-1)">← Предыдущий</AppButton><span>{{ selected }} / 10</span><AppButton @click="navigate(1)">Следующий →</AppButton></nav>
           </section>
           <p class="grid-help">Вводите буквы прямо в клетки или вставьте целое слово через поле выше.</p>
-          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img decoding="async" class="zoom-art" :src="zoomArt" alt="" /><img decoding="async" class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(zoom === 59 ? 41 : 10)">+</AppButton></div>
+          <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img decoding="async" class="zoom-art" :src="zoomArt" alt="" /><img decoding="async" class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(10)">+</AppButton></div>
           <div class="grid-panel surface" :style="art(gridArt)">
             <div ref="gridViewport" class="grid-viewport" tabindex="0" aria-label="Сетка кроссворда. Стрелки перемещают по клеткам; увеличенную сетку можно прокручивать.">
               <div class="crossword-grid" :style="{ width: `${13 * (size + 2) - 2}px`, height: `${15 * (size + 2) - 2}px`, '--cell-size': `${size}px` }">
@@ -266,7 +269,7 @@ h1 { margin: 0; color: var(--color-ink); font: 500 28px/30px var(--font-display)
 .crossword-rules li { display: flex; gap: 10px; align-items: flex-start; }
 .crossword-rules li > span { flex: 0 0 22px; height: 22px; text-align: center; color: var(--color-cream); font-weight: 700; font-size: 12px; line-height: 22px; }
 .crossword-rules li p { margin: 0; }
-.crossword-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: var(--color-action); color: #fff7df; font: 700 14px/17px var(--font-ui); text-align: center; }
+.crossword-button { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: min(100%, 313px); min-height: 52px; padding: 10px 16px; margin-inline: auto; border: 0; border-radius: 13px; background: var(--color-action); color: #fff7df; font: 700 14px/17px var(--font-ui); text-align: center; }
 .crossword-button:disabled { opacity: .65; cursor: default; }
 .completed .crossword-button:disabled { opacity: 1; }
 .crossword-button > span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
@@ -290,7 +293,7 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .is-expanded .filled-count { margin-top: 18px; }
 .active-question { padding: 18px 16px 0; }
 .active-question h2 { margin: 0 0 10px; color: var(--color-action); letter-spacing: 0; font: 700 12px/15px var(--font-ui); }
-.clue-copy { margin: 0 0 12px; max-width: 264px; }
+.clue-copy { margin: 0 0 12px; }
 .active-question label { display: block; margin-bottom: 7px; font-weight: 700; line-height: 17px; }
 .word-input { height: 48px; }
 .word-input::before { border-width: 8px; border-image-slice: 8; border-image-width: 8px; }
@@ -299,7 +302,7 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .word-input input:focus-visible { outline: 1px solid #a7401d; outline-offset: 0; }
 .answer-length { margin: 8px 0 12px; min-height: 16px; font-size: 13px; line-height: 16px; }
 .invalid { color: var(--color-action); }
-.insert-button { width: 281px; min-width: 281px; max-width: 281px; }
+.insert-button { width: min(100%, 281px); }
 .question-navigation { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 20px; min-height: 47px; font-size: 12px; line-height: 15px; color: #836045; }
 .question-navigation button { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--color-action); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .grid-help { margin: 12px 0 25px; max-width: 297px; color: #836045; font-size: 12px; line-height: 16px; }
@@ -311,8 +314,8 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .crossword-zoom button:disabled { opacity: .4; }
 .crossword-zoom output { flex: 1; color: #836045; font-size: 12px; text-align: center; }
 .grid-panel { padding: 11px; }
-.grid-viewport { overflow-x: auto; overflow-y: hidden; padding: 0; scrollbar-width: thin; scrollbar-color: #cfaa7e #fff8e9; touch-action: pan-x pan-y; }
-.crossword-grid { position: relative; margin-inline: auto; flex-shrink: 0; }
+.grid-viewport { display: flex; overflow: auto; padding: 4px; scrollbar-width: thin; scrollbar-color: #cfaa7e #fff8e9; touch-action: pan-x pan-y; }
+.crossword-grid { position: relative; margin-inline: auto; flex: none; }
 .crossword-cell { position: absolute; width: var(--cell-size); height: var(--cell-size); }
 .crossword-cell::before { border: 3px solid transparent; border-image: var(--surface-art) 3 fill / 3px stretch; }
 .cell-number { position: absolute; top: 1px; left: 2px; pointer-events: none; color: #836045; font-size: calc(var(--cell-size) * .22); line-height: 1.2; }
@@ -322,5 +325,5 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .result { margin: 20px 16px 0; line-height: 20px; }
 .success { color: #447047; }
 .crossword-footer { margin-top: 27px; color: #fff1cf; font-size: 12px; line-height: 15px; font-weight: 400; text-align: center; }
-@media (min-width: 768px) { .crossword-layout { padding-inline: 32px; } .crossword-card { padding-inline: 32px; } .clue-copy { max-width: none; } .all-questions section { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .all-questions h2 { grid-column: 1 / -1; } .clue-option { margin: 0; } }
+@media (min-width: 768px) { .crossword-layout { padding-inline: 32px; } .crossword-card { padding-inline: 32px; } }
 </style>
