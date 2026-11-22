@@ -11,10 +11,9 @@ import { formatDate } from '../utils/date'
 import { shortCalendarDate } from '../utils/calendar'
 import { CIPHER_LETTERS, cipherLettersFromText, isCipherSolution } from '../utils/cipher'
 import { cipherAlphabet, cipherFigures } from '../content/cipher-art'
-import { cipherMusicUrl } from '../content/cipher'
 import wordmark from '../assets/first-task/wordmark.svg'
 import card from '../assets/cipher/imgVector.svg'
-import musicButton from '../assets/cipher/imgVector1.svg'
+import TaskMusicButton from './TaskMusicButton.vue'
 import alphabetFrame from '../assets/cipher/imgFrame.svg'
 import cell from '../assets/cipher/imgVector2.svg'
 import cellVariant from '../assets/cipher/imgVector3.svg'
@@ -38,9 +37,6 @@ const popupOpen = ref(false)
 const gradient = ref<HTMLElement | null>(null)
 const board = ref<HTMLElement | null>(null)
 const message = ref<HTMLElement | null>(null)
-const audio = ref<HTMLAudioElement | null>(null)
-const playing = ref(false)
-const musicError = ref('')
 const ratio = ref(1452 / 393)
 const boardScale = ref(1)
 const messageScale = ref(1)
@@ -103,12 +99,6 @@ function clueStyle(index: number) {
   const position = index < 10 ? index : index - 10
   return { left: `${figure.x - (40 + position * 31.3)}px`, top: `${figure.y - (index < 10 ? 1103 : 1192)}px` }
 }
-async function toggleMusic() {
-  if (!audio.value || !cipherMusicUrl) return
-  musicError.value = ''
-  if (playing.value) { audio.value.pause(); return }
-  try { await audio.value.play() } catch { musicError.value = 'Не удалось включить музыку. Попробуйте ещё раз.' }
-}
 watch(() => props.assignment?.id, () => {
   letters.value = completed.value ? [...CIPHER_LETTERS] : Array(15).fill('')
   incorrect.value = false; popupOpen.value = false
@@ -133,7 +123,7 @@ onMounted(() => {
 })
 // Board and answer appear after an asynchronous calendar load as well.
 watch([board, message], elements => { for (const element of elements) if (element) observer?.observe(element) })
-onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
+onBeforeUnmount(() => { observer?.disconnect() })
 </script>
 
 <template>
@@ -158,9 +148,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
           </div>
           <h2 class="cipher-instruction-title">Задание</h2>
           <p id="cipher-instructions" class="cipher-instructions">Перед вами алфавит: каждой позе человечка соответствует определенная буква. Посмотрите на зашифрованное сообщение, найдите каждую позу в алфавите и введите соответствующую букву в ячейку. В итоге вы узнаете, какой подарок вас ждет.</p>
-          <AppButton class="cipher-button cipher-music" :style="{ backgroundImage: cssUrl(musicButton) }" type="button" :disabled="!cipherMusicUrl" :aria-pressed="playing" @click="toggleMusic">{{ playing ? '♫ Выключить музыку' : '♫ Включить музыку' }}</AppButton>
-          <audio v-if="cipherMusicUrl" ref="audio" :src="cipherMusicUrl" preload="none" loop @play="playing = true" @pause="playing = false" @error="musicError = 'Не удалось загрузить музыку.'"></audio>
-          <p v-if="musicError" class="cipher-warning" role="status">{{ musicError }}</p>
+          <TaskMusicButton class="cipher-music" />
           <div ref="board" class="cipher-alphabet" aria-label="Алфавит спортивных человечков" data-figma-node="28:39861">
             <div class="cipher-alphabet-inner" :style="{ transform: `scale(${boardScale})`, backgroundImage: cssUrl(alphabetFrame) }">
               <template v-for="(figure, index) in cipherAlphabet" :key="figure.node">
@@ -224,9 +212,9 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
 .cipher-intro p:last-child { margin-bottom: 0; }
 .cipher-instruction-title { margin: 17px 0 11px; color: #623c28; font: 500 20px/30px 'Advent Source Serif', serif; letter-spacing: 0; }
 .cipher-instructions { margin: 0; color: #836045; }
-.cipher-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; align-items: center; box-sizing: border-box; flex: 0 0 auto; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; border: 0; border-radius: 13px; margin-inline: 0; color: #fff7df; background: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
+.cipher-button { display: flex; justify-content: center; align-items: center; box-sizing: border-box; flex: 0 0 auto; width: min(100%, 313px); min-height: 52px; padding: 10px 16px; border: 0; border-radius: 13px; margin-inline: auto; color: #fff7df; background: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
 .cipher-button:disabled { cursor: default; opacity: 1; -webkit-text-fill-color: currentColor; }
-.cipher-music { margin-top: 27px; color: #a7280b; background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; }
+.cipher-music { margin-top: 27px; }
 .cipher-alphabet { width: 100%; max-width: 520px; aspect-ratio: 313 / 295; margin: 12px auto 0; position: relative; }
 .cipher-alphabet-inner { position: absolute; top: 0; left: 0; width: 313px; height: 295px; transform-origin: top left; background-size: 100% 100%; background-repeat: no-repeat; }
 .cipher-alphabet-inner img, .cipher-clue { position: absolute; display: block; }
@@ -247,7 +235,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
 .cipher-incorrect { margin: 12px 0 0; }
 .cipher-check { margin-top: 19px; }
 .cipher-incorrect + .cipher-check { margin-top: 24px; }
-.cipher-button:not(:disabled):not(.cipher-music):hover { background-color: #962107; }
+.cipher-button:not(:disabled):hover { background-color: #962107; }
 .cipher-button:focus-visible, .cipher-back:focus-visible, .cipher-close:focus-visible { outline: 2px solid #623c28; outline-offset: 4px; }
 .cipher-footer { margin-top: 24px; font-size: 12px; line-height: 15px; text-align: center; }
 .cipher-notice { min-height: 120px; margin: 0; color: #836045; overflow-wrap: anywhere; }
