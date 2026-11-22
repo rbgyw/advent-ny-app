@@ -9,15 +9,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import { shortCalendarDate } from '../utils/calendar';
-import { animateWishStar } from '../utils/wish-motion';
 import { wishSnow } from '../content/wish-snow';
 import WishGlobe from './WishGlobe.vue';
+import TaskMusicButton from './TaskMusicButton.vue';
 import wordmark from '../assets/wish/wordmark.svg';
 import panelArt from '../assets/wish/panel.svg';
 import buttonArt from '../assets/wish/button.svg';
-import mainStar from '../assets/wish/star-main.svg';
-import starTrail from '../assets/wish/star-trail.svg';
-import starSparkles from '../assets/wish/star-sparkles.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; confirm: []; edit: [] }>();
@@ -26,16 +23,12 @@ const completed = computed(() => props.assignment?.status === 'completed');
 const stage = computed(() => completed.value ? 'accepted' : started.value ? 'wishing' : 'intro');
 const snowfall = computed(() => started.value && !completed.value && !confirmed.value);
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
-const background = ref<HTMLElement>(), heading = ref<HTMLElement>(), starOuter = ref<HTMLElement>(), starImage = ref<HTMLImageElement>(), starTrailImage = ref<HTMLImageElement>();
-const ratio = ref(1529 / 393), motionPhase = ref<'idle' | 'flying' | 'spinning'>('idle');
+const background = ref<HTMLElement>(), heading = ref<HTMLElement>();
+const ratio = ref(1529 / 393);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
-let observer: ResizeObserver | undefined, motion: AbortController | undefined, reducedMotion: MediaQueryList | undefined;
+let observer: ResizeObserver | undefined;
 let disposed = false;
-let motionViewportWidth = 0;
-function settleMotion() { motion?.abort(); motion = undefined; motionPhase.value = 'idle'; }
-function onMotionPreference() { if (reducedMotion?.matches) settleMotion(); }
-function onResize() { if (motionPhase.value !== 'idle' && innerWidth !== motionViewportWidth) settleMotion(); }
 async function focusHeading() { await nextTick(); if (!disposed) { window.scrollTo({ top: 0, behavior: 'instant' }); heading.value?.focus({ preventScroll: true }); } }
 function activate() {
   if (props.loading || props.saving || !props.assignment?.task || props.error || completed.value) return;
@@ -46,29 +39,17 @@ function confirmWish() {
   // User action is the only in-page event that stops the endless snowfall.
   confirmed.value = true; emit('edit'); emit('confirm');
 }
-watch(completed, async (value, previous) => {
-  if (!value || previous !== false) return;
-  await focusHeading();
-  if (disposed || !confirmed.value || !starOuter.value || !starImage.value || !starTrailImage.value) return;
-  motion = new AbortController(); const current = motion;
-  if (reducedMotion?.matches) return;
-  motionViewportWidth = innerWidth;
-  motionPhase.value = 'flying';
-  try { await animateWishStar(starOuter.value, starImage.value, starTrailImage.value, current.signal, () => { if (!disposed && !current.signal.aborted) motionPhase.value = 'spinning'; }); }
-  finally { if (motion === current) { motion = undefined; motionPhase.value = 'idle'; } }
-});
-watch(() => props.assignment?.id, () => { settleMotion(); started.value = false; confirmed.value = false; });
+watch(completed, value => { if (value) void focusHeading(); });
+watch(() => props.assignment?.id, () => { started.value = false; confirmed.value = false; });
 onMounted(() => {
   observer = new ResizeObserver(entries => { const size = entries[0]?.contentRect; if (size?.width) ratio.value = size.height / size.width; });
   if (background.value) observer.observe(background.value);
-  reducedMotion = matchMedia('(prefers-reduced-motion: reduce)'); reducedMotion.addEventListener('change', onMotionPreference);
-  window.addEventListener('resize', onResize);
 });
-onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect(); reducedMotion?.removeEventListener('change', onMotionPreference); window.removeEventListener('resize', onResize); });
+onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
 </script>
 
 <template>
-  <TaskLayout class="wish-page" :data-stage="stage" :data-motion-phase="motionPhase">
+  <TaskLayout class="wish-page" :data-stage="stage">
     <div ref="background" class="wish-background" aria-hidden="true"><div class="wish-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="wish-layout">
       <AppHeader variant="task" class="wish-header" :wordmark="wordmark" @back="emit('back')" />
@@ -79,11 +60,6 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
         <FeedbackState v-else-if="!assignment" class="wish-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
-          <div v-if="stage === 'accepted'" class="wish-star-scene" role="img" aria-label="Золотая звезда с сияющим следом">
-            <img decoding="async" ref="starTrailImage" class="wish-star-trail" :class="{ 'is-hidden': motionPhase === 'flying' }" :src="starTrail" alt="" />
-            <img decoding="async" class="wish-star-sparkles" :src="starSparkles" alt="" />
-            <div ref="starOuter" class="wish-star-outer"><img decoding="async" ref="starImage" class="wish-main-star" :src="mainStar" alt="" /></div>
-          </div>
           <h1 id="wish-title" ref="heading" tabindex="-1"><template v-if="stage === 'intro'">А снег идет, а снег идет…</template><template v-else-if="stage === 'wishing'">Загадайте желание</template><template v-else>Пусть желание<br />сбудется!</template></h1>
           <WishGlobe v-if="stage !== 'accepted'" class="wish-illustration" />
           <div v-if="stage === 'intro'" class="wish-copy">
@@ -94,6 +70,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
           <div v-else class="wish-copy" role="status"><p>Желание принято! Эльфы уже засучили рукава и приступили к работе. Пусть у вашей мечты появится шанс стать настоящим новогодним чудом.</p></div>
           <p v-if="stage === 'accepted'" class="wish-note">Сохраните это настроение с собой</p>
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
+          <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" />
           <AppButton v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Впустить волшебство</span></AppButton>
           <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
           <AppButton v-else class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="emit('back')"><span>К календарю</span></AppButton>
@@ -102,7 +79,7 @@ onBeforeUnmount(() => { disposed = true; settleMotion(); observer?.disconnect();
       </AppCard>
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <div v-if="stage === 'wishing' && !loading && !error && assignment?.task" class="wish-snow" :class="{ 'is-falling': snowfall }" aria-hidden="true">
+    <div v-if="stage !== 'intro' && !loading && !error && assignment?.task" class="wish-snow" :class="{ 'is-falling': snowfall, 'is-settled': completed }" aria-hidden="true">
       <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img decoding="async" :src="flake.src" alt="" /></span>
     </div>
   </TaskLayout>
@@ -135,13 +112,8 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .wish-wishing .wish-copy { margin-top: 10px; }
 .wish-wishing .wish-button { margin-top: 22px; }
 .wish-accepted { padding-bottom: 24px; }
-.wish-accepted .wish-date { margin-bottom: 0; }
-.wish-star-scene { position: relative; width: 230px; height: 140px; margin: 17px auto 15px; }
-.wish-star-trail { position: absolute; left: 54.132px; top: 31.893px; display: block; }
-.wish-star-trail.is-hidden { opacity: 0; clip-path: inset(0 100% 0 0); transform: translate(-12px, 12px); }
-.wish-star-sparkles { position: absolute; left: 30.804px; top: 29.75px; display: block; }
-.wish-star-outer { position: absolute; left: 19.714px; top: 71.643px; width: 57.5px; height: 55.8571px; }
-.wish-main-star { display: block; transform-origin: center; }
+.wish-music { margin-top: 22px; }
+.wish-accepted .wish-date { margin-bottom: 14px; }
 .wish-accepted .wish-copy { margin-top: 21px; }
 .wish-accepted .wish-note { margin-top: 18px; }
 .wish-accepted .wish-button { margin-top: 26px; }
@@ -151,6 +123,7 @@ button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px;
 .wish-snow { position: fixed; z-index: 3; inset: 0; overflow: hidden; pointer-events: none; }
 .wish-flake { position: absolute; top: -48px; opacity: .9; animation-name: wish-snowfall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; animation-play-state: paused; }
 .wish-flake img { display: block; }
+.wish-snow.is-settled .wish-flake { top: var(--rest-y); animation: none; }
 .wish-snow.is-falling .wish-flake { animation-play-state: running; }
 @keyframes wish-snowfall { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(var(--drift), calc(100svh + 96px), 0) rotate(var(--turn)); } }
 @media (prefers-reduced-motion: reduce) { .wish-flake { top: var(--rest-y); animation: none; } }
