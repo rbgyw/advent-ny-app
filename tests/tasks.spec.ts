@@ -71,12 +71,16 @@ test('wish stores only confirmation and never the private wish', async ({ page }
   await page.getByRole('button', { name: 'Желание загадано', exact: true }).click();
   await expect(page.locator('main')).toHaveAttribute('data-stage', 'accepted'); expect(backend.responses[13]).toEqual({ wish_made: true });
 });
-test('raskobki preserves the existing answer chain and saves completion', async ({ page }) => {
+test('raskobki reveals the nested clue and saves the new solution', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/14');
-  for (const guess of ['препарат', 'тирзепатид', 'Узбекистан', 'Азербайджан', 'Беларусь', 'семаглутид', 'Венесуэла', 'Эквадор', 'Работодатель нового поколения', '2030']) {
+  await page.getByLabel('Ваш ответ', { exact: true }).fill('технолог');
+  await page.getByRole('button', { name: 'Вставить слово', exact: true }).click();
+  await expect(page.getByText('Пока не подходит.', { exact: false })).toBeVisible();
+  for (const guess of ['ГЕРО', 'процесс', 'технолог', 'лидер', 'актив']) {
     await page.getByLabel('Ваш ответ', { exact: true }).fill(guess); await page.getByRole('button', { name: 'Вставить слово', exact: true }).click();
   }
   await expect.poll(() => backend.completed.has(14)).toBe(true); expect(backend.responses[14]).toEqual({ solved: true });
+  await expect(page.locator('.raskobki-letter')).toContainText('ГЕРОФАРМ — биотехнологическая компания');
 });
 test('nonogram paints the solution with native keyboard controls and saves', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/21');
