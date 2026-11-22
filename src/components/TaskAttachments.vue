@@ -57,6 +57,7 @@ const props = withDefaults(defineProps<{
   readonly: boolean;
   disabled: boolean;
   limit?: 1 | typeof MAX_ATTACHMENTS;
+  optional?: boolean;
 }>(), { limit: MAX_ATTACHMENTS });
 
 const emit = defineEmits<{
@@ -89,11 +90,11 @@ watch([listLoaded, photos], () => emit('change', listLoaded.value ? photos.value
 
 let disposed = false;
 
-function setBusy(value: boolean, label = '') {
+function setBusy(value: boolean, label = '', blockForm = true) {
   if (disposed) return;
   busyLabel.value = label;
   busy.value = value;
-  emit("busy", value);
+  if (blockForm) emit("busy", value);
 }
 
 function describeError(error: unknown): string {
@@ -107,7 +108,9 @@ function describeError(error: unknown): string {
   }
 
   if (text.includes("Task is not available for upload")) {
-    return "Задание пока недоступно или уже завершено.";
+    return props.optional
+      ? "Не удалось прикрепить фото. Историю можно отправить без фотографии."
+      : "Задание пока недоступно или уже завершено.";
   }
 
   if (text.includes("Upload reservation expired")) {
@@ -224,15 +227,7 @@ async function replacePhoto(event: Event) {
     }
   } finally {
     if (!disposed) {
-      try {
-        await loadPhotos();
-      } catch (error) {
-        if (!disposed) {
-          errorMessage.value = describeError(error);
-        }
-      }
-
-      setBusy(false);
+      await refreshAfterChange();
     }
   }
 }
@@ -258,16 +253,20 @@ async function deletePhoto(attachmentId: string) {
     }
   } finally {
     if (!disposed) {
-      try {
-        await loadPhotos();
-      } catch (error) {
-        if (!disposed) {
-          errorMessage.value = describeError(error);
-        }
-      }
-
-      setBusy(false);
+      await refreshAfterChange();
     }
+  }
+}
+
+async function refreshAfterChange() {
+  // At this point the mutation has finished. Optional previews can load while the form is submitted.
+  if (props.optional) emit('busy', false);
+  try {
+    await loadPhotos();
+  } catch (error) {
+    if (!disposed && !errorMessage.value) errorMessage.value = describeError(error);
+  } finally {
+    setBusy(false, '', !props.optional);
   }
 }
 
@@ -276,14 +275,14 @@ async function reload() {
 
   errorMessage.value = "";
   message.value = "";
-  setBusy(true, "Загружаем список фотографий…");
+  setBusy(true, "Загружаем список фотографий…", !props.optional);
 
   try {
     await loadPhotos();
   } catch (error) {
     if (!disposed) errorMessage.value = describeError(error);
   } finally {
-    setBusy(false);
+    setBusy(false, '', !props.optional);
   }
 }
 
@@ -339,20 +338,15 @@ async function uploadSelected(event: Event) {
 
       // Показываем и успешно загруженные файлы,
       // если следующая фотография завершилась ошибкой.
-      try {
-        await loadPhotos();
-      } catch (error) {
-        if (!disposed) {
-          errorMessage.value = describeError(error);
-        }
-      }
-
-      setBusy(false);
+      await refreshAfterChange();
     }
   }
 }
 
-onMounted(() => { void track(reload()); });
+onMounted(() => {
+  const load = reload();
+  if (!props.optional) void track(load);
+});
 
 onBeforeUnmount(() => {
   disposed = true;

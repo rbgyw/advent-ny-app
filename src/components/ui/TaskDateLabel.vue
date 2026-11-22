@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { shortCalendarDate } from '../../utils/calendar';
 
-defineProps<{ availableDate?: string; day: number }>();
+const props = defineProps<{ availableDate?: string; day: number }>();
+const labelDate = computed(() => props.availableDate
+  ? props.availableDate.slice(0, 8) + String(props.day).padStart(2, '0')
+  : undefined);
 </script>
 
 <template>
-  <p data-task-date>
-    <span v-if="!availableDate || Number(availableDate.slice(8, 10)) !== day">ОКОШКО {{ day }}<template v-if="availableDate"> · </template></span>
-    <time v-if="availableDate" :datetime="availableDate">{{ shortCalendarDate(availableDate).toLocaleUpperCase('ru-RU') }}</time>
+  <p v-if="labelDate" data-task-date>
+    <time :datetime="labelDate">{{ shortCalendarDate(labelDate).toLocaleUpperCase('ru-RU') }}</time>
   </p>
 </template>

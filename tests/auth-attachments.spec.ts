@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { mockBackend, userId } from './fixture';
+
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jAE0AAAAASUVORK5CYII=', 'base64');
+
 test('verification handles an invalid code and then restores an authenticated calendar', async ({ page }) => {
   await mockBackend(page, { authenticated: false });
   await page.addInitScript(() => sessionStorage.setItem('advent.pending-confirmation-email', 'audit@geropharm.com'));
@@ -26,7 +29,6 @@ test('invalid attachments are rejected before reserving storage or sending a fil
 
 test('photo actions attach, replace and remove a photo with a temporary confirmation', async ({ page }) => {
   await mockBackend(page);
-  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jAE0AAAAASUVORK5CYII=', 'base64');
   type Photo = { id: string; task_id: number; file_name: string; mime_type: string; file_size: number; storage_path: string };
   let photo: Photo | undefined;
   let reserved: Photo | undefined;
@@ -71,4 +73,41 @@ test('photo actions attach, replace and remove a photo with a temporary confirma
   await expect(removed).toBeVisible();
   await expect(page.getByRole('img', { name: 'new-photo.png' })).toHaveCount(0);
   await expect(removed).toHaveCount(0, { timeout: 6500 });
+});
+
+test('a memory can be submitted while optional photos load or the upload is denied', async ({ page }) => {
+  const backend = await mockBackend(page);
+  let releaseInitial!: () => void;
+  let releaseRefresh!: () => void;
+  const initial = new Promise<void>(resolve => { releaseInitial = resolve; });
+  const refresh = new Promise<void>(resolve => { releaseRefresh = resolve; });
+  let reads = 0;
+  await page.route('**/rest/v1/attachments?*', async route => {
+    await (++reads === 1 ? initial : refresh);
+    await route.fulfill({ json: [] });
+  });
+  await page.route('**/rest/v1/rpc/reserve_task_attachment', route => route.fulfill({
+    status: 400, json: { code: 'P0001', message: 'Task is not available for upload' },
+  }));
+
+  try {
+    await page.goto('/task/3');
+    const submit = page.getByRole('button', { name: 'Поделиться историей', exact: true });
+    await expect(submit).toBeEnabled();
+    await page.locator('#memory-answer').fill('Наше воспоминание');
+    await page.locator('#memory-author').fill('Тестовый автор');
+    releaseInitial();
+
+    const input = page.locator('input[type=file][multiple]');
+    await expect(input).toBeEnabled();
+    await input.setInputFiles({ name: 'photo.png', mimeType: 'image/png', buffer: png });
+    await expect(page.getByRole('alert')).toHaveText('Не удалось прикрепить фото. Историю можно отправить без фотографии.');
+    await expect(submit).toBeEnabled();
+    await submit.click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    expect(backend.responses[3]).toEqual({ text: 'Наше воспоминание', author: 'Тестовый автор' });
+  } finally {
+    releaseInitial();
+    releaseRefresh();
+  }
 });

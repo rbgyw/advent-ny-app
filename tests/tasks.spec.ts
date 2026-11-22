@@ -129,9 +129,9 @@ test('nonogram paints the solution with native keyboard controls and saves', asy
 
 test('the 10th window opens the word search and restores its prediction, and the 15th opens the pairs', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-11-22T12:00:00Z'));
-  const backend = await mockBackend(page, { dateAtPosition: () => '2026-10-01' });
+  const backend = await mockBackend(page, { dateAtPosition: day => day === 10 ? '2026-10-15' : '2026-10-10' });
   await page.goto('/task/10');
-  await expect(page.locator('[data-task-date]')).toHaveText('ОКОШКО 10 · 1 ОКТЯБРЯ');
+  await expect(page.locator('[data-task-date]')).toHaveText('10 ОКТЯБРЯ');
   await expect(page.getByRole('heading', { name: 'Найдите свое предсказание на Новый год' })).toBeVisible();
   await page.getByLabel('Первое найденное слово').fill('Уют');
   await page.getByRole('button', { name: 'Сверить курс' }).click();
@@ -142,6 +142,6 @@ test('the 10th window opens the word search and restores its prediction, and the
   await expect(page.getByText(/уют начинается с того/)).toBeVisible();
   await expect(page.getByLabel('Первое найденное слово')).toHaveCount(0);
   await page.goto('/task/15');
-  await expect(page.locator('[data-task-date]')).toHaveText('ОКОШКО 15 · 1 ОКТЯБРЯ');
+  await expect(page.locator('[data-task-date]')).toHaveText('15 ОКТЯБРЯ');
   await expect(page.getByRole('heading', { name: 'Кто здесь Дед Мороз?' })).toBeVisible();
 });
