@@ -1,75 +1,40 @@
 <template>
-  <section class="attachments" :class="{ 'attachments-styled': styled }">
-    <h3 v-if="!styled">Фотографии</h3>
+  <section class="attachments" aria-label="Фотографии">
+    <template v-if="!readonly && photos.length < limit">
+      <AppButton class="photo-action" variant="outline" type="button" :aria-describedby="hintId"
+        :disabled="controlsDisabled" @click="fileInput?.click()">
+        {{ photos.length ? 'Добавить ещё фото' : 'Прикрепить фото' }}
+      </AppButton>
+      <p :id="hintId" class="photo-hint">
+        {{ limit === 1 ? 'Одна фотография.' : `До ${limit} фотографий.` }} JPG, PNG или WebP, до 5 МБ на фото.
+      </p>
+    </template>
+    <input v-if="!readonly" ref="fileInput" hidden type="file" :accept="photoTypes"
+      :multiple="limit > 1" :disabled="controlsDisabled || photos.length >= limit" @change="uploadSelected" />
+    <input v-if="!readonly" ref="replacementInput" hidden type="file" :accept="photoTypes"
+      :disabled="controlsDisabled" @change="replacePhoto" />
 
-    <p v-if="variant !== 'sport'" :class="{ 'visually-hidden': styled }" :id="hintId">До 3 фотографий. JPG, PNG или WebP, до 5 МБ каждая.</p>
-    <p v-else :id="hintId" class="visually-hidden">Одна фотография JPG, PNG или WebP до 5 МБ.</p>
-
-    <AppButton
-      v-if="styled && !readonly && (variant !== 'sport' || !photos.length)"
-      class="attach-button"
-      type="button"
-      :disabled="busy || disabled || !listLoaded"
-      :aria-describedby="hintId"
-      @click="fileInput?.click()"
-    >{{ uploadLabel ?? (variant === 'sport' ? 'Загрузить фотографию' : '＋ Прикрепить фотографии') }}</AppButton>
-
-    <input
-      v-if="!readonly"
-      ref="fileInput"
-      :class="{ 'visually-hidden': styled }"
-      type="file"
-      accept="image/jpeg,image/png,image/webp"
-      :multiple="variant !== 'sport'"
-      :tabindex="styled ? -1 : undefined"
-      :aria-hidden="styled || undefined"
-      :disabled="busy || disabled || !listLoaded"
-      aria-label="Выбрать фотографии"
-      @change="uploadSelected"
-    />
-
-    <LoadingState v-if="busy" compact label="Обрабатываем фотографии…" />
-    <p v-if="message" role="status">{{ message }}</p>
-    <p v-if="errorMessage" class="error" role="alert">
-      {{ errorMessage }}
-    </p>
-
-    <AppButton v-if="!busy && errorMessage" type="button" @click="reload">
+    <LoadingState v-if="busy" compact :label="busyLabel" />
+    <p v-if="message" class="photo-message" role="status">{{ message }}</p>
+    <p v-if="errorMessage" class="photo-error" role="alert">{{ errorMessage }}</p>
+    <AppButton v-if="reloadNeeded && !busy" class="photo-action" variant="outline" type="button" @click="reload">
       Обновить фотографии
     </AppButton>
 
-    <div v-if="!styled || photos.length" class="photos">
+    <div v-if="photos.length" class="photos">
       <figure v-for="photo in photos" :key="photo.id">
-        <img loading="lazy" decoding="async" v-if="photo.url" :src="photo.url" :alt="photo.file_name" />
-        <p v-else>Не удалось загрузить предпросмотр.</p>
-
+        <img v-if="photo.url" decoding="async" :src="photo.url" :alt="photo.file_name" />
+        <p v-else-if="!busy">Предпросмотр фотографии недоступен.</p>
         <figcaption>{{ photo.file_name }}</figcaption>
-
-        <label v-if="!readonly" class="replacement">
-          Заменить фотографию
-
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            :disabled="busy || disabled || !listLoaded"
-            @change="replacePhoto(photo.id, $event)"
-          />
-        </label>
-
-        <AppButton
-          v-if="!readonly"
-          type="button"
-          :disabled="busy || disabled"
-          @click="deletePhoto(photo.id)"
-        >
-          Удалить фотографию
-        </AppButton>
+        <div v-if="!readonly" class="photo-actions">
+          <AppButton variant="outline" type="button" class="photo-action" :disabled="controlsDisabled"
+            @click="chooseReplacement(photo.id)">Заменить фото</AppButton>
+          <AppButton variant="outline" type="button" class="photo-action" :disabled="controlsDisabled"
+            @click="deletePhoto(photo.id)">Удалить фото</AppButton>
+        </div>
       </figure>
     </div>
-
-    <p v-if="!styled && listLoaded && !busy && photos.length === 0">
-      Фотографии пока не добавлены.
-    </p>
+    <p v-else-if="readonly && listLoaded && !busy" class="photo-hint">Фотографии не добавлены.</p>
   </section>
 </template>
 
@@ -91,9 +56,8 @@ const props = withDefaults(defineProps<{
   taskId: number;
   readonly: boolean;
   disabled: boolean;
-  variant?: 'default' | 'memory' | 'sport';
-  uploadLabel?: string;
-}>(), { variant: 'default' });
+  limit?: 1 | typeof MAX_ATTACHMENTS;
+}>(), { limit: MAX_ATTACHMENTS });
 
 const emit = defineEmits<{
   busy: [value: boolean];
@@ -102,21 +66,32 @@ const emit = defineEmits<{
 
 type Photo = TaskAttachment & { url: string | null };
 
-const styled = computed(() => props.variant !== 'default');
+const photoTypes = 'image/jpeg,image/png,image/webp';
 const hintId = useId();
 const photos = ref<Photo[]>([]);
-const fileInput = ref<HTMLInputElement | null>(null);
+const fileInput = ref<HTMLInputElement>();
+const replacementInput = ref<HTMLInputElement>();
+let replacementId: string | undefined;
 const busy = ref(false);
 const listLoaded = ref(false);
+const busyLabel = ref('');
+const reloadNeeded = computed(() => !listLoaded.value || photos.value.some(photo => !photo.url));
+const controlsDisabled = computed(() => busy.value || props.disabled || !listLoaded.value);
 const errorMessage = ref("");
 const message = ref("");
 
+watch(message, (value, _, onCleanup) => {
+  if (!value) return;
+  const timer = window.setTimeout(() => { message.value = ''; }, 5000);
+  onCleanup(() => window.clearTimeout(timer));
+});
 watch([listLoaded, photos], () => emit('change', listLoaded.value ? photos.value : []));
 
 let disposed = false;
 
-function setBusy(value: boolean) {
+function setBusy(value: boolean, label = '') {
   if (disposed) return;
+  busyLabel.value = label;
   busy.value = value;
   emit("busy", value);
 }
@@ -202,12 +177,20 @@ async function loadPhotos() {
   }
 }
 
-async function replacePhoto(attachmentId: string, event: Event) {
+function chooseReplacement(attachmentId: string) {
+  replacementId = attachmentId;
+  replacementInput.value?.click();
+}
+
+async function replacePhoto(event: Event) {
+  const attachmentId = replacementId;
+  replacementId = undefined;
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   input.value = "";
 
   if (
+    !attachmentId ||
     !file ||
     busy.value ||
     props.readonly ||
@@ -227,7 +210,7 @@ async function replacePhoto(attachmentId: string, event: Event) {
     return;
   }
 
-  setBusy(true);
+  setBusy(true, "Заменяем фотографию…");
 
   try {
     await attachmentsService.replace(attachmentId, file);
@@ -259,7 +242,7 @@ async function deletePhoto(attachmentId: string) {
 
   errorMessage.value = "";
   message.value = "";
-  setBusy(true);
+  setBusy(true, "Удаляем фотографию…");
 
   try {
     const removed = await attachmentsService.remove(attachmentId);
@@ -293,7 +276,7 @@ async function reload() {
 
   errorMessage.value = "";
   message.value = "";
-  setBusy(true);
+  setBusy(true, "Загружаем список фотографий…");
 
   try {
     await loadPhotos();
@@ -326,7 +309,7 @@ async function uploadSelected(event: Event) {
     // Проверяем весь выбор до первой загрузки.
     for (const file of files) validatePhoto(file);
 
-    const limit = props.variant === 'sport' ? 1 : MAX_ATTACHMENTS;
+    const limit = props.limit;
     if (photos.value.length + files.length > limit) {
       if (limit === 1) throw new Error("К заданию можно добавить одну фотографию.");
       throw new Error("К заданию можно добавить максимум 3 фотографии.");
@@ -336,7 +319,7 @@ async function uploadSelected(event: Event) {
     return;
   }
 
-  setBusy(true);
+  setBusy(true, "Загружаем фотографии…");
   let uploaded = 0;
 
   try {
@@ -351,7 +334,7 @@ async function uploadSelected(event: Event) {
   } finally {
     if (!disposed) {
       if (uploaded > 0) {
-        message.value = `Фотографий сохранено: ${uploaded}.`;
+        message.value = uploaded === 1 ? 'Фотография прикреплена.' : `Прикреплено фотографий: ${uploaded}.`;
       }
 
       // Показываем и успешно загруженные файлы,
@@ -378,57 +361,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.attachments {
-  margin: 24px 0;
-}
-
-.photos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-figure {
-  margin: 0;
-  min-width: 0;
-}
-
-img {
-  display: block;
-  width: 100%;
-  height: 180px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #f3f4f6;
-}
-
-figcaption {
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-}
-
-.error {
-  color: #dc2626;
-}
-
-.replacement {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 12px 0;
-}
-
-.attachments-styled { margin: 0; font: inherit; color: #836045; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.attach-button { display: block; box-sizing: border-box; width: 100%; min-height: 52px; margin: 0; padding: 8px 16px; border: 1px solid var(--attachment-border, #dcc8a8); border-radius: 13px; background: var(--attachment-background, #fffaf0); color: #a7280b; font: 700 14px/17px 'Advent Inter', sans-serif; cursor: pointer; }
-.attach-button:disabled { opacity: .65; cursor: default; }
-.attach-button:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
-.attachments-styled .photos { grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 12px; }
-.attachments-styled .photos img { height: 140px; background: #f8e8c8; }
-.attachments-styled .photos figcaption { font-size: 12px; line-height: 18px; }
-.attachments-styled .photos button, .attachments-styled > button:not(.attach-button) { padding: 8px 10px; border: 1px solid #dcc8a8; border-radius: 8px; background: #fffaf0; color: #a7280b; font: inherit; cursor: pointer; }
-.attachments-styled .photos button:disabled { opacity: .6; cursor: default; }
-.attachments-styled .replacement { font-size: 12px; }
-.attachments-styled .replacement input { max-width: 100%; }
+.attachments { display: grid; min-width: 0; gap: 8px; color: var(--color-ink); font: 400 14px/20px var(--font-ui); }
+.photo-action { width: 100%; padding-block: 8px; }
+.photo-hint, .photo-message, .photo-error, figcaption { margin: 0; overflow-wrap: anywhere; font-size: 12px; line-height: 17px; }
+.photo-error { color: var(--color-action); }
+.photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
+figure { display: grid; min-width: 0; gap: 8px; margin: 0; padding: 10px; border: 1px solid #dcc8a8; border-radius: var(--radius-control); background: var(--color-paper); }
+figure img { display: block; width: 100%; height: clamp(128px, 32vw, 210px); object-fit: contain; border-radius: 8px; }
+.photo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-actions .photo-action { flex: 1 1 120px; min-height: 44px; padding-inline: 8px; font-size: 12px; }
 </style>

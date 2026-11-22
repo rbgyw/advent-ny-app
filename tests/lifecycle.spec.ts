@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockBackend } from './fixture';
+import { mockBackend, taskIdAtPosition } from './fixture';
 test('slow initial request is shared across a task-to-calendar transition', async ({ page }) => {
   const backend = await mockBackend(page, { delay: 200 });
   await page.goto('/task/9');
@@ -52,6 +52,6 @@ test('generic fallback tasks save and reopen their own response', async ({ page 
     await page.getByRole('button', { name: 'Завершить задание', exact: true }).click();
     await expect(page.getByText('Задание выполнено!', { exact: true })).toBeVisible();
     await page.reload(); await expect(page.locator('textarea')).toHaveValue(`Ответ ${day}`);
-    expect(backend.responses[day]).toEqual({ text: `Ответ ${day}` });
+    expect(backend.responses[taskIdAtPosition(day)]).toEqual({ text: `Ответ ${day}` });
   }
 });

@@ -150,7 +150,7 @@ function submit() {
               :task-id="assignment.task_id"
               :readonly="false"
               :disabled="saving"
-              variant="sport"
+              :limit="1"
               @busy="uploadBusy = $event"
               @change="updatePhotos"
             />
@@ -273,7 +273,7 @@ h2 { font-size: 20px; line-height: 25px; }
 button:disabled { opacity: .65; cursor: default; }
 button:focus-visible, textarea:focus-visible { outline: 2px solid var(--sport-ink); outline-offset: 2px; }
 .sport-status { margin: 18px 0 12px; font-size: 12px; line-height: 16px; }
-.sport-form { display: grid; gap: 16px; margin-top: 24px; --attachment-border: var(--sport-red); --attachment-background: var(--sport-paper); }
+.sport-form { display: grid; gap: 16px; margin-top: 24px; }
 .sport-description { display: grid; gap: 8px; font-weight: 700; }
 .sport-description textarea { box-sizing: border-box; width: 100%; min-height: 132px; padding: 14px; border: 1px solid #dcc8a8; border-radius: 14px; background: var(--sport-paper); color: var(--sport-ink); font: 400 14px/20px 'Advent Inter', sans-serif; resize: vertical; }
 .sport-description textarea::placeholder { color: #947a62; }

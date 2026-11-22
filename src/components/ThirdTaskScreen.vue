@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
             </div>
             <label for="memory-author" class="memory-author-label">От кого</label>
             <input id="memory-author" ref="authorInput" v-model="author" class="memory-author" name="author" type="text" autocomplete="name" maxlength="150" placeholder="Имя и фамилия" :readonly="completed || closed" :disabled="saving" required @input="validation = ''; emit('edit')" />
-            <TaskAttachments v-if="userId" class="memory-attachments" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
+            <TaskAttachments v-if="userId" class="memory-attachments" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
             <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>

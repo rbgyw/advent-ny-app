@@ -91,3 +91,19 @@ test('nonogram paints the solution with native keyboard controls and saves', asy
   await page.getByRole('button', { name: 'Проверить кроссворд', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible(); expect(backend.responses[21]).toEqual({ solved: true });
 });
+
+test('the 10th window opens the word search and restores its prediction, and the 15th opens the pairs', async ({ page }) => {
+  const backend = await mockBackend(page);
+  await page.goto('/task/10');
+  await expect(page.getByRole('heading', { name: 'Найдите свое предсказание на Новый год' })).toBeVisible();
+  await page.getByLabel('Первое найденное слово').fill('Уют');
+  await page.getByRole('button', { name: 'Сверить курс' }).click();
+  await expect(page.getByRole('heading', { name: 'Ваше напутствие на 2027 год' })).toBeVisible();
+  await expect(page.locator('.word-grid')).toHaveCount(0);
+  expect(backend.responses[15]).toEqual({ word: 'уют' });
+  await page.reload();
+  await expect(page.getByText(/уют начинается с того/)).toBeVisible();
+  await expect(page.getByLabel('Первое найденное слово')).toHaveCount(0);
+  await page.goto('/task/15');
+  await expect(page.getByRole('heading', { name: 'Кто здесь Дед Мороз?' })).toBeVisible();
+});

@@ -49,7 +49,7 @@ function pairStyle(place: number) {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="10" title="Кто здесь Дед Мороз?" @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" :task-number="day" title="Кто здесь Дед Мороз?" @back="emit('back')" @retry="emit('retry')">
     <img class="frost-art" :src="frost" alt="" />
     <div class="december-copy">
       <p>ГЕРОФАРМ объединяет коллег из разных регионов и стран. У каждой территории — свои традиции, в том числе новогодние. И даже того, кто приносит подарки, везде зовут по-разному!</p>

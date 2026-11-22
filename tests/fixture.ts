@@ -1,5 +1,8 @@
 import type { Page } from '@playwright/test';
 export const userId = '00000000-0000-4000-8000-000000000001';
+export function taskIdAtPosition(position: number): number {
+  return position === 10 ? 15 : position === 15 ? 10 : position;
+}
 export async function mockBackend(page: Page, options: { lockedAfter?: number; genericTasks?: boolean; failCalendar?: boolean; failSave?: boolean; delay?: number; completed?: boolean; authenticated?: boolean } = {}) {
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
@@ -26,7 +29,16 @@ export async function mockBackend(page: Page, options: { lockedAfter?: number; g
     let data: unknown = null;
     if (path.endsWith('/user')) data = user;
     else if (path.endsWith('/is_admin')) data = false;
-    else if (path.endsWith('/user_tasks')) data = Array.from({ length: 25 }, (_, i) => ({ id: `assignment-${i + 1}`, user_id: userId, task_id: i + 1, position: i + 1, available_date: options.lockedAfter !== undefined && i + 1 > options.lockedAfter ? '2026-12-25' : '2026-11-01', status: completed.has(i + 1) ? 'completed' : responses[i + 1] ? 'in_progress' : 'not_started', completed_at: completed.has(i + 1) ? '2026-11-01T00:00:00Z' : null }));
+    else if (path.endsWith('/user_tasks')) data = Array.from({ length: 25 }, (_, i) => {
+      const position = i + 1;
+      const taskId = taskIdAtPosition(position);
+      return {
+        id: `assignment-${taskId}`, user_id: userId, task_id: taskId, position,
+        available_date: options.lockedAfter !== undefined && position > options.lockedAfter ? '2026-12-25' : '2026-11-01',
+        status: completed.has(taskId) ? 'completed' : responses[taskId] ? 'in_progress' : 'not_started',
+        completed_at: completed.has(taskId) ? '2026-11-01T00:00:00Z' : null,
+      };
+    });
     else if (path.endsWith('/tasks')) data = Array.from({ length: 25 }, (_, i) => ({ id: i + 1, slug: options.genericTasks && [7, 9, 10, 15, 16, 17, 18, 19, 20, 22, 23, 24].includes(i + 1) ? `custom-task-${i + 1}` : `task-${String(i + 1).padStart(2, '0')}`, title: `Задание ${i + 1}`, description: `Описание задания ${i + 1}`, is_active: true, config: {} }));
     else if (path.endsWith('/task_responses')) data = Object.entries(responses).map(([id, response]) => ({ id: `response-${id}`, user_id: userId, task_id: Number(id), response }));
     else if (path.endsWith('/save_task_progress')) {

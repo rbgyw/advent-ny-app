@@ -79,9 +79,8 @@ function submit() {
       <img class="photo-reference" :src="reference.url" :alt="reference.alt" />
       <button class="december-button secondary" type="button" :disabled="busy" @click="chooseFrame">Другой кадр</button>
       <div>
-        <TaskAttachments :task-id="assignment.task_id" :readonly="false" :disabled="saving" variant="sport" upload-label="Загрузить фото"
+        <TaskAttachments :task-id="assignment.task_id" :readonly="false" :disabled="saving" :limit="1"
           @busy="attachmentBusy = $event" @change="updatePhotos" />
-        <p v-if="!files.length && !attachmentBusy" class="photo-file">Файл не выбран</p>
       </div>
       <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Прикрепите готовую фотографию.' : saveError }}</p>
       <button class="december-button" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить' }}</button>
@@ -98,8 +97,7 @@ function submit() {
 </template>
 
 <style scoped>
-.photo-form { margin-top: 28px; --attachment-border: var(--dec-red); --attachment-background: var(--dec-paper); }
+.photo-form { margin-top: 28px; }
 :deep(h1) { max-width: 230px; }
 .photo-reference { display: block; width: auto; height: auto; max-width: 100%; max-height: min(480px, 65svh); margin-inline: auto; object-fit: contain; border-radius: 13px; background: transparent; }
-.photo-file { margin-top: 12px; font-size: 12px; }
 </style>

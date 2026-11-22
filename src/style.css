@@ -52,6 +52,8 @@
 
 body {
   margin: 0;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 h1,
@@ -293,4 +295,14 @@ code {
     right: 0;
     border-right-color: var(--border);
   }
+}
+
+
+input, textarea, [contenteditable]:not([contenteditable="false"]) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+img, svg {
+  -webkit-user-drag: none;
 }
