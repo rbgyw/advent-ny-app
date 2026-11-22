@@ -50,18 +50,44 @@ const fanCards = [
   { x: 118.318, y: 24.545, angle: 0, border: fanBorder },
 ];
 let observer: ResizeObserver | undefined, resizeFrame = 0;
+let drawAnimation: Animation | undefined;
+const revealOnDraw = ref(false);
 const pendingSizes = new Map<Element, { width: number; height: number }>();
 watch(() => `${props.userId || ''}:${props.assignment?.task_id || ''}`, () => {
+  drawAnimation?.cancel(); revealOnDraw.value = false;
   pending.value = null; deck.value = shuffleTarotDeck(); imageError.value = false;
   stage.value = selectedCard.value ? 'result' : 'intro';
 }, { immediate: true });
-watch(selectedId, id => { if (id !== null) { pending.value = null; stage.value = 'result'; imageError.value = false; nextTick(() => { window.scrollTo({ top: 0, behavior: 'instant' }); focusTitle.value?.focus({ preventScroll: true }); }); } });
+watch(selectedId, async (id, _, onCleanup) => {
+  if (id === null) return;
+  let stale = false;
+  onCleanup(() => { stale = true; });
+  await drawAnimation?.finished.catch(() => undefined);
+  if (stale) return;
+  revealOnDraw.value = pending.value !== null;
+  pending.value = null; stage.value = 'result'; imageError.value = false;
+  await nextTick();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  focusTitle.value?.focus({ preventScroll: true });
+});
 watch(fan, element => { if (element) observer?.observe(element); });
 async function changeStage(value: 'intro' | 'choose') {
   if (props.saving) return;
+  drawAnimation?.cancel();
   stage.value = value; if (pending.value === null) emit('edit'); await nextTick(); window.scrollTo({ top: 0, behavior: 'instant' }); focusTitle.value?.focus({ preventScroll: true });
 }
-function choose(id: number) { if (!canChoose.value) return; pending.value = id; emit('draw', id); }
+function choose(id: number, event: MouseEvent) {
+  if (!canChoose.value) return;
+  pending.value = id;
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && event.currentTarget instanceof HTMLElement) {
+    drawAnimation = event.currentTarget.animate([
+      { transform: 'translateY(0) scale(1) rotate(0)' },
+      { transform: 'translateY(-36%) scale(1.16) rotate(-5deg)' },
+      { transform: 'translateY(-45%) scale(1.2) rotate(0)' },
+    ], { duration: 420, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'forwards' });
+  }
+  emit('draw', id);
+}
 function retryDraw() { const id = selectedId.value ?? pending.value; if (id !== null && !props.saving) emit('draw', id); }
 onMounted(() => {
   observer = new ResizeObserver(entries => {
@@ -79,7 +105,7 @@ onMounted(() => {
   if (page.value) observer.observe(page.value);
   if (fan.value) observer.observe(fan.value);
 });
-onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame); });
+onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame); drawAnimation?.cancel(); });
 </script>
 
 <template>
@@ -118,10 +144,10 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p v-if="saving" class="tarot-status" role="status">Сохраняем вашу карту…</p>
         <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
-          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
+          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id, $event)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
         </div>
       </AppCard>
-      <AppCard v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
+      <AppCard v-else-if="selectedCard" class="tarot-result" :class="{ 'tarot-reveal': revealOnDraw }" aria-labelledby="tarot-card-title" :aria-busy="saving">
         <div class="tarot-chosen-frame"><img decoding="async" :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
         <p v-if="imageError" role="alert">Не удалось загрузить изображение. <AppButton type="button" @click="imageKey++">Загрузить ещё раз</AppButton></p>
         <section class="tarot-reading tarot-surface" :style="{ '--surface-art': cssUrl(resultPanel) }">
@@ -180,7 +206,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-deck-card img { display: block; width: 100%; height: 100%; border-radius: 3px; }
 .tarot-deck-card:not(:disabled):hover { transform: translateY(-3px); }
 .tarot-deck-card:disabled { opacity: .7; cursor: default; }
-.tarot-deck-card.is-pending { outline: 2px solid #ffe0a0; opacity: 1; }
+.tarot-deck-card.is-pending { position: relative; z-index: 1; outline: 2px solid #ffe0a0; opacity: 1; }
 .tarot-result { margin-top: 2px; }
 .tarot-chosen-frame { width: min(100%, 303px); aspect-ratio: 303 / 474; margin: 0 auto 16px; }
 .tarot-chosen-image { display: block; width: 100%; height: 100%; object-fit: fill; }
@@ -205,5 +231,10 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 h1:focus { outline: 0; }
 @media (min-width: 768px) { .tarot-layout { padding-inline: 32px; } .tarot-intro-panel, .tarot-reading { padding-inline: 32px; } .tarot-choose-panel { padding-inline: 24px; } }
 @media (max-width: 767px) { .tarot-deck { max-width: 330px; } }
+@keyframes tarot-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .tarot-reveal .tarot-chosen-frame { animation: tarot-reveal 300ms ease-out both; }
+  .tarot-reveal .tarot-reading { animation: tarot-reveal 350ms 160ms ease-out both; }
+}
 @media (prefers-reduced-motion: reduce) { .tarot-deck-card { transition: none; } .tarot-deck-card:not(:disabled):hover { transform: none; } }
 </style>
