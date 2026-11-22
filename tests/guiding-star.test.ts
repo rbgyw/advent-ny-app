@@ -24,7 +24,7 @@ describe('individual guiding-star search', () => {
     expect(guidingStarPhase(selected)).toBe('searching');
   });
 
-  it.each([1, 3, 10])('finds the target star when selected on attempt %s', attempt => {
+  it.each([1, 3, 15])('finds the target star when selected on attempt %s', attempt => {
     let progress = { targetStarId: target, checkedStars: [] as string[] };
     for (const id of misses.slice(0, attempt - 1)) {
       progress = chooseGuidingStar(progress, id, ids);
@@ -39,7 +39,7 @@ describe('individual guiding-star search', () => {
     const initial = createGuidingStarProgress('same-user:20', ids);
     expect(guidingStarPhase(chooseGuidingStar(initial, initial.targetStarId, ids))).toBe('found');
     let progress = initial;
-    for (const id of ids.filter(id => id !== initial.targetStarId).slice(0, 10)) progress = chooseGuidingStar(progress, id, ids);
+    for (const id of ids.filter(id => id !== initial.targetStarId).slice(0, 15)) progress = chooseGuidingStar(progress, id, ids);
     expect(guidingStarPhase(progress)).toBe('exhausted');
     expect(chooseGuidingStar(progress, initial.targetStarId, ids)).toBe(progress);
   });
@@ -62,7 +62,7 @@ describe('individual guiding-star search', () => {
     '{"attempts":1,"checkedStars":["unknown"]}',
     '{"attempts":2,"checkedStars":["star-01","star-01"]}',
     '{"attempts":1,"checkedStars":[]}',
-    JSON.stringify({ attempts: 11, checkedStars: ids.slice(0, 11) }),
+    JSON.stringify({ attempts: 16, checkedStars: ids.slice(0, 16) }),
   ])('recovers from invalid local data: %s', raw => {
     expect(restoreGuidingStarProgress(raw, 'user', ids)).toEqual(createGuidingStarProgress('user', ids));
   });

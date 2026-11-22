@@ -1,4 +1,4 @@
-export const guidingStarAttempts = 10;
+export const guidingStarAttempts = 15;
 export type GuidingStarResult = 'wished' | 'exhausted';
 
 export interface GuidingStarProgress {
