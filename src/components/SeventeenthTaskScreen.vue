@@ -63,7 +63,7 @@ function submit() {
     <div class="december-copy">
       <p>Праздник все ближе — самое время сделать фото, которые захочется пересматривать!</p>
       <p>Сегодня предлагаем повторить кадр из нашей подборки: зимнюю фотографию, новогоднюю сцену или узнаваемый мем. Можно позвать коллег или устроить маленькую фотосессию самостоятельно.</p>
-      <p>Нажмите «Выбрать фото», посмотрите на референс и повторите его настроение, позу или композицию. Добавьте свою деталь — пусть получится ваша версия кадра!</p>
+      <p>Нажмите «Сделать фото», посмотрите на референс и повторите его настроение, позу или композицию. Добавьте свою деталь — пусть получится ваша версия кадра!</p>
       <p>Если вариант не подходит, нажмите «Другой кадр»: появится новый референс.</p>
       <p>*Загрузите готовую фотографию в форму. Это обязательное задание.</p>
     </div>
@@ -73,7 +73,7 @@ function submit() {
       <button class="december-button" type="button" @click="emit('back')">К календарю</button>
     </div>
     <div v-else-if="!reference" class="photo-form">
-      <button class="december-button" type="button" @click="chooseFrame">Выбрать фото</button>
+      <button class="december-button" type="button" @click="chooseFrame">Сделать фото</button>
     </div>
     <form v-else-if="assignment" class="december-stack photo-form" :aria-busy="busy" @submit.prevent="submit">
       <img class="photo-reference" :src="reference.url" :alt="reference.alt" />
@@ -100,6 +100,6 @@ function submit() {
 <style scoped>
 .photo-form { margin-top: 28px; --attachment-border: var(--dec-red); --attachment-background: var(--dec-paper); }
 :deep(h1) { max-width: 230px; }
-.photo-reference { display: block; width: 100%; max-height: 480px; object-fit: contain; border-radius: 13px; background: #fffaf0; }
+.photo-reference { display: block; width: auto; height: auto; max-width: 100%; max-height: min(480px, 65svh); margin-inline: auto; object-fit: contain; border-radius: 13px; background: transparent; }
 .photo-file { margin-top: 12px; font-size: 12px; }
 </style>
