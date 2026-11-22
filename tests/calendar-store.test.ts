@@ -11,7 +11,14 @@ import type { CalendarTask } from '../src/types/models';
 import TwentyFifthTaskScreen from '../src/components/TwentyFifthTaskScreen.vue';
 
 vi.mock('../src/services/calendar.service', () => ({
-  calendarService: { getUserCalendar: vi.fn(), saveTaskProgress: vi.fn() },
+  calendarService: { getUserCalendar: vi.fn(),
+    getTaskProgress: vi.fn(async (userId: string, taskId: number) => {
+      const tasks = await calendarService.getUserCalendar(userId);
+      const current = tasks.find(item => item.task_id === taskId);
+      if (!current) return { assignment: {}, response: null };
+      const { task: _detail, response, ...assignment } = current;
+      return { assignment, response };
+    }), saveTaskProgress: vi.fn() },
 }));
 vi.mock('../src/services/tarot.service', () => ({ tarotService: { claimCard: vi.fn() } }));
 

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { useCampaignClock } from '../composables/useCampaignClock';
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -6,7 +12,7 @@ import { shortCalendarDate } from '../utils/calendar';
 import { filmError, filmSubmissionOpen, normalizeFilm, type FilmRecommendation } from '../utils/film';
 import wordmark from '../assets/film/wordmark.svg';
 import panelArt from '../assets/film/panel.svg';
-import movieTv from '../assets/film/movie-tv.png';
+import movieTv from '../assets/film/movie-tv.webp';
 import inputArt from '../assets/film/input.svg';
 import textareaArt from '../assets/film/textarea.svg';
 import buttonArt from '../assets/film/button.svg';
@@ -16,14 +22,14 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; submit: [recommendation: FilmRecommendation]; edit: [] }>();
 const form = reactive<FilmRecommendation>({ title: '', reason: '' });
 const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof AdventPopup>>(), background = ref<HTMLElement>();
-const validation = ref(''), invalidField = ref(''), now = ref(Date.now()), ratio = ref(1529 / 393);
+const { now, refreshClock } = useCampaignClock();
+const validation = ref(''), invalidField = ref(''), ratio = ref(1529 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const closed = computed(() => !filmSubmissionOpen(props.assignment?.available_date, new Date(now.value)));
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
-let observer: ResizeObserver | undefined, timer: ReturnType<typeof setInterval> | undefined;
-function refreshClock() { now.value = Date.now(); }
+let observer: ResizeObserver | undefined;
 function edit() { validation.value = ''; invalidField.value = ''; emit('edit'); }
 function closePopup() { dialog.value?.close(); }
 async function showPopup() {
@@ -52,21 +58,20 @@ watch(completed, (value, previous) => { if (value && previous === false) void sh
 onMounted(() => {
   observer = new ResizeObserver(entries => { const size = entries[0]?.contentRect; if (size?.width) ratio.value = size.height / size.width; });
   if (background.value) observer.observe(background.value);
-  timer = setInterval(refreshClock, 30_000); document.addEventListener('visibilitychange', refreshClock);
 });
-onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.removeEventListener('visibilitychange', refreshClock); closePopup(); });
+onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
 </script>
 
 <template>
-  <main class="film-page">
+  <TaskLayout class="film-page">
     <div ref="background" class="film-background" aria-hidden="true"><div class="film-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="film-layout">
-      <header class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button type="button" @click="emit('back')">← К календарю</button></header>
-      <article class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
+      <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+      <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <p class="film-date">{{ date }}</p>
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
-        <p v-if="loading" class="film-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><button class="film-button" @click="emit('retry')">Попробовать снова</button></div>
+        <LoadingState v-if="loading" class="film-notice" role="status" />
+        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -89,10 +94,10 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
             </div>
             <p v-if="validation || saveError" id="film-feedback" class="film-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" id="film-feedback" class="film-error" role="status">Приём рекомендаций завершён 17 декабря.</p>
-            <button class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></button>
+            <AppButton class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <AdventPopup
@@ -102,12 +107,12 @@ onBeforeUnmount(() => { observer?.disconnect(); clearInterval(timer); document.r
       button-text="К календарю"
       @action="emit('back')"
     />
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
 :global(#app:has(.film-page)) { width: 100%; border: 0; }
 .film-page { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; min-height: 100svh; overflow: clip; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .film-background { position: absolute; top: 0; left: 0; z-index: -1; width: 100%; height: 103.8722826%; overflow: hidden; pointer-events: none; }

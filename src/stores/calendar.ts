@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { campaignDate } from "../utils/calendar";
 import { calendarService } from "../services/calendar.service";
 import type { CalendarTask } from "../types/models";
 import { isCipherSolution } from "../utils/cipher";
@@ -17,6 +18,8 @@ import { isRaskobkiSolution, type RaskobkiAnswer } from "../content/raskobki";
 import { isNonogramSolution, type CellMark } from "../content/nonogram";
 import { isFortuneIndex } from "../utils/fortune";
 
+const pendingLoads = new WeakMap<object, { userId: string; controller: AbortController; promise: Promise<void> }>();
+
 interface CalendarState {
   tasks: CalendarTask[];
 
@@ -25,9 +28,13 @@ interface CalendarState {
 
   error: string | null;
   saveError: string | null;
+  saveErrorTaskId: number | null;
 
   currentUserId: string | null;
   loadVersion: number;
+  loadedAt: number;
+  loadedDate: string;
+  initializedUserId: string | null;
 }
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -46,9 +53,13 @@ export const useCalendarStore = defineStore("calendar", {
 
     error: null,
     saveError: null,
+    saveErrorTaskId: null,
 
     currentUserId: null,
     loadVersion: 0,
+    loadedAt: 0,
+    loadedDate: "",
+    initializedUserId: null,
   }),
 
   getters: {
@@ -66,32 +77,46 @@ export const useCalendarStore = defineStore("calendar", {
 
   actions: {
     // 1. Загрузка персонального календаря
-    async loadCalendar(userId: string) {
+    async loadCalendar(userId: string, force = false) {
+      const pending = pendingLoads.get(this);
+      if (pending?.userId === userId) return pending.promise;
+      if (this.saving && this.currentUserId === userId) return;
+      const date = campaignDate();
+      if (!force && this.currentUserId === userId && this.loadedDate === date &&
+        this.loadedAt > 0 && Date.now() - this.loadedAt < 30_000 && !this.error) return;
+      pending?.controller.abort();
+      const controller = new AbortController();
       const version = ++this.loadVersion;
-
+      if (this.currentUserId !== userId) {
+        this.tasks = [];
+        this.saving = false;
+        this.initializedUserId = null;
+        this.loadedAt = 0;
+      }
       this.currentUserId = userId;
       this.loading = true;
       this.saving = false;
       this.error = null;
-      this.saveError = null;
-      this.tasks = [];
-
-      try {
-        const tasks = await calendarService.getUserCalendar(userId);
-
-        // Не применяем устаревший ответ
-        if (version !== this.loadVersion) return;
-
-        this.tasks = tasks;
-      } catch (error) {
-        if (version !== this.loadVersion) return;
-
-        this.error = errorMessage(error, "Не удалось загрузить календарь");
-      } finally {
-        if (version === this.loadVersion) {
-          this.loading = false;
+      const promise = (async () => {
+        try {
+          const tasks = await calendarService.getUserCalendar(userId, {
+            initialize: this.initializedUserId !== userId, signal: controller.signal,
+          });
+          if (version !== this.loadVersion) return;
+          this.tasks = tasks;
+          this.initializedUserId = userId;
+          this.loadedAt = Date.now();
+          this.loadedDate = date;
+        } catch (error) {
+          if (version !== this.loadVersion || controller.signal.aborted) return;
+          this.error = errorMessage(error, "Не удалось загрузить календарь");
+        } finally {
+          if (version === this.loadVersion) this.loading = false;
+          if (pendingLoads.get(this)?.controller === controller) pendingLoads.delete(this);
         }
-      }
+      })();
+      pendingLoads.set(this, { userId, controller, promise });
+      return promise;
     },
 
     // 2. Общая функция сохранения
@@ -100,6 +125,7 @@ export const useCalendarStore = defineStore("calendar", {
       response: Record<string, unknown>,
       complete: boolean,
     ): Promise<boolean> {
+      this.saveErrorTaskId = taskId;
       const userId = this.currentUserId;
       const version = this.loadVersion;
 
@@ -205,18 +231,20 @@ export const useCalendarStore = defineStore("calendar", {
         }
 
         // Загружаем актуальный статус и ответ
-        const updatedTasks = await calendarService.getUserCalendar(userId);
+        const updated = await calendarService.getTaskProgress(userId, taskId);
 
         if (version !== this.loadVersion || userId !== this.currentUserId) {
           return false;
         }
 
-        this.tasks = updatedTasks;
+        Object.assign(assignment, updated.assignment, { response: updated.response });
 
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError = errorMessage(error, "Не удалось сохранить задание");
+          this.saveErrorTaskId = taskId;
+          this.saveError =
+            errorMessage(error, "Не удалось сохранить задание");
         }
 
         return false;
@@ -284,19 +312,12 @@ export const useCalendarStore = defineStore("calendar", {
       return this.saveProgress(taskId, { solved: true }, true);
     },
 
-    async completeFilmTask(
-      taskId: number,
-      recommendation: FilmRecommendation,
-    ): Promise<boolean> {
-      const assignment = this.tasks.find((item) => item.task_id === taskId);
-      if (assignment?.task?.slug !== "task-12") return false;
-      const payload = normalizeFilm(recommendation),
-        validation = filmError(payload);
-      if (validation) {
-        this.saveError = validation.message;
-        return false;
-      }
-      if (assignment.status === "completed") return true;
+    async completeFilmTask(taskId: number, recommendation: FilmRecommendation): Promise<boolean> {
+      const assignment = this.tasks.find(item => item.task_id === taskId);
+      if (assignment?.task?.slug !== 'task-12') return false;
+      const payload = normalizeFilm(recommendation), validation = filmError(payload);
+      if (validation) { this.saveErrorTaskId = taskId; this.saveError = validation.message; return false; }
+      if (assignment.status === 'completed') return true;
       return this.saveProgress(taskId, { ...payload }, true);
     },
 
@@ -363,6 +384,7 @@ export const useCalendarStore = defineStore("calendar", {
     },
 
     async drawTarotTask(taskId: number, candidate: number): Promise<boolean> {
+      this.saveErrorTaskId = taskId;
       const userId = this.currentUserId;
       const version = this.loadVersion;
 
@@ -392,18 +414,20 @@ export const useCalendarStore = defineStore("calendar", {
           return false;
         }
 
-        const updated = await calendarService.getUserCalendar(userId);
+        const updated = await calendarService.getTaskProgress(userId, taskId);
 
         if (version !== this.loadVersion || userId !== this.currentUserId) {
           return false;
         }
 
-        this.tasks = updated;
+        Object.assign(assignment, updated.assignment, { response: updated.response });
 
         return true;
       } catch (error) {
         if (version === this.loadVersion && userId === this.currentUserId) {
-          this.saveError = errorMessage(error, "Не удалось сохранить карту.");
+          this.saveErrorTaskId = taskId;
+          this.saveError =
+            errorMessage(error, "Не удалось сохранить карту.");
         }
 
         return false;
@@ -423,6 +447,8 @@ export const useCalendarStore = defineStore("calendar", {
 
     // 5. Очистка состояния
     reset() {
+      pendingLoads.get(this)?.controller.abort();
+      pendingLoads.delete(this);
       ++this.loadVersion;
 
       this.tasks = [];
@@ -432,7 +458,11 @@ export const useCalendarStore = defineStore("calendar", {
       this.error = null;
       this.saveError = null;
 
+      this.saveErrorTaskId = null;
       this.currentUserId = null;
+      this.initializedUserId = null;
+      this.loadedAt = 0;
+      this.loadedDate = "";
     },
   },
 });

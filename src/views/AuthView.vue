@@ -18,36 +18,38 @@
     @submit="handleRegistration"
     @login="switchMode('login')"
   />
-  <main v-else class="auth-page">
+  <PageLayout background-variant="warm" v-else class="auth-page">
     <div class="auth-layout">
-      <header class="auth-header">
+      <AppHeader class="auth-header">
         <RouterLink to="/rules" class="auth-back" aria-label="Вернуться к правилам"><span aria-hidden="true"></span></RouterLink>
         <p>ГЕРОФАРМ</p>
-      </header>
+      </AppHeader>
       <section class="auth-card" aria-labelledby="login-title">
           <h1 id="login-title">Вход</h1>
           <p class="auth-intro">Войдите в новогодний адвент-календарь с корпоративной почтой и паролем.</p>
           <form @submit.prevent="handleLogin" :aria-busy="authStore.loading">
             <fieldset :disabled="authStore.loading">
-              <div class="auth-field email-field">
-                <label for="login-email">Email</label>
+              <FormField class="email-field" for-id="login-email" label="Email">
                 <input id="login-email" v-model="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" required />
-              </div>
-              <div class="auth-field password-field">
-                <label for="login-password">Пароль</label>
+              </FormField>
+              <FormField class="password-field" for-id="login-password" label="Пароль">
                 <input id="login-password" v-model="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
-              </div>
+              </FormField>
               <p v-if="authStore.error" class="auth-error" role="alert">{{ authStore.error }}</p>
-              <button class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</button>
+              <AppButton :loading="authStore.loading" class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</AppButton>
             </fieldset>
           </form>
       </section>
-      <button class="auth-login" type="button" :disabled="authStore.loading" @click="switchMode('register')">Нет аккаунта? Зарегистрироваться</button>
+      <AppButton class="auth-login" type="button" :disabled="authStore.loading" @click="switchMode('register')">Нет аккаунта? Зарегистрироваться</AppButton>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
+import FormField from '../components/ui/FormField.vue';
+import AppButton from '../components/ui/AppButton.vue';
+import PageLayout from '../components/ui/PageLayout.vue';
+import AppHeader from '../components/ui/AppHeader.vue';
 import { ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';

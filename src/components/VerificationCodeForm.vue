@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import PageLayout from './ui/PageLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import brand from '../assets/verification/0-imgBrandWordmark.svg'
 import back from '../assets/verification/0-imgIconBack.svg'
@@ -107,14 +110,14 @@ onUnmounted(() => clearInterval(timer))
 </script>
 
 <template>
-  <main class="auth-page verification-page">
+  <PageLayout background-variant="warm" class="auth-page verification-page">
     <div class="auth-layout">
-      <header class="auth-header verification-header">
-        <button class="auth-back verification-back" type="button" aria-label="Вернуться ко входу" :disabled="busy" @click="emit('back')">
+      <AppHeader class="auth-header verification-header">
+        <AppButton class="auth-back verification-back" type="button" aria-label="Вернуться ко входу" :disabled="busy" @click="emit('back')">
           <img :src="back" alt="" data-figma-node="39:39" />
-        </button>
+        </AppButton>
         <img class="verification-brand" :src="brand" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-      </header>
+      </AppHeader>
       <section class="auth-card verification-card" :class="{ 'has-message': message }" :style="{ backgroundImage: cssUrl(message ? errorCard : card) }" aria-labelledby="verification-title">
         <h1 id="verification-title">Подтвердите вход</h1>
         <p id="verification-description" class="auth-intro verification-intro">Код подтверждения отправлен<br class="verification-line-break" /> на вашу корпоративную почту.</p>
@@ -139,16 +142,16 @@ onUnmounted(() => clearInterval(timer))
               </div>
             </div>
             <p v-if="message" id="verification-error" class="verification-error" role="alert">{{ message }}</p>
-            <button class="auth-submit verification-submit" type="submit">{{ loading ? 'Проверяем…' : 'Подтвердить' }}</button>
+            <AppButton class="auth-submit verification-submit" type="submit">{{ loading ? 'Проверяем…' : 'Подтвердить' }}</AppButton>
           </fieldset>
         </form>
-        <button class="verification-resend" :style="{ '--underline': cssUrl(underline) }" type="button" :disabled="busy || remaining > 0" @click="emit('resend')">
+        <AppButton class="verification-resend" :style="{ '--underline': cssUrl(underline) }" type="button" :disabled="busy || remaining > 0" @click="emit('resend')">
           {{ resending ? 'Отправляем…' : remaining ? `Отправить повторно через ${remaining} с` : 'Отправить код повторно' }}
-        </button>
+        </AppButton>
         <p class="verification-status" role="status">{{ remaining ? 'Новый код отправлен на вашу почту.' : '' }}</p>
       </section>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped src="../assets/auth-form.css"></style>
@@ -158,7 +161,7 @@ onUnmounted(() => clearInterval(timer))
 .verification-brand { display: block; margin: 0 auto; }
 .verification-back { border: 0; padding: 0; background: transparent; top: 16px; left: -9px; cursor: pointer; }
 .verification-back img { display: block; }
-.verification-card { position: relative; padding: 17px 24px 32px; border-radius: 24px; background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; color: #623c28; }
+.verification-card { position: relative; padding: 17px 24px 32px; border-radius: 24px; background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; color: var(--color-ink); }
 .verification-card h1 { font-weight: 500; margin: 0; line-height: 35px; }
 .verification-intro { margin: 12px 0 29px; color: #836045; }
 .verification-label { display: block; width: 100%; padding: 0; margin: 0 0 11px; font-weight: 700; line-height: 17px; }
@@ -166,11 +169,11 @@ onUnmounted(() => clearInterval(timer))
 .verification-cell { position: relative; height: 56px; }
 .verification-cell::before { content: ''; pointer-events: none; position: absolute; inset: -.5px; background: var(--cell-art) center / 100% 100% no-repeat; }
 .verification-cell:focus-within::after { content: ''; pointer-events: none; position: absolute; inset: -1.6px; background: var(--focus-ring) center / 100% 100% no-repeat; }
-.verification-cell input { position: relative; z-index: 1; display: block; box-sizing: border-box; width: 100%; height: 56px; border: 0; border-radius: 10px; padding: 0; outline: none; background: transparent; color: #623c28; caret-color: #623c28; font: 400 24px/29px 'Advent Inter', sans-serif; text-align: center; box-shadow: none; }
+.verification-cell input { position: relative; z-index: 1; display: block; box-sizing: border-box; width: 100%; height: 56px; border: 0; border-radius: 10px; padding: 0; outline: none; background: transparent; color: var(--color-ink); caret-color: var(--color-ink); font: 400 24px/29px var(--font-ui); text-align: center; box-shadow: none; }
 .verification-cell input:focus-visible { outline: none; }
-.verification-submit { margin-top: 33px; min-height: 54px; border-radius: 14px; background: #a7280b; color: #fff7df; font-size: 15px; }
-.verification-submit:hover { background: #962107; }
-.verification-error { margin: 12px 0 0; color: #a7280b; font-size: 12px; line-height: 18px; max-width: 232px; overflow-wrap: anywhere; }
+.verification-submit { margin-top: 33px; min-height: 54px; border-radius: 14px; background: var(--color-action); color: #fff7df; font-size: 15px; }
+.verification-submit:hover { background: var(--color-action-hover); }
+.verification-error { margin: 12px 0 0; color: var(--color-action); font-size: 12px; line-height: 18px; max-width: 232px; overflow-wrap: anywhere; }
 .verification-error + .verification-submit { margin-top: 17px; }
 .verification-resend { display: block; position: relative; max-width: 100%; margin: 5px auto 0; min-height: 44px; padding: 10px 2px; border: 0; background: transparent; color: #a7401d; font: inherit; line-height: 17px; cursor: pointer; }
 .verification-resend::after { content: ''; position: absolute; left: 0; right: 0; bottom: 13px; height: .6px; background: var(--underline) center / 100% 100% no-repeat; }

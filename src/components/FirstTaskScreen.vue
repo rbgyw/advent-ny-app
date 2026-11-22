@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import type { CalendarTask } from "../types/models";
 import { formatDate } from "../utils/date";
 import { firstTaskPacks } from "../content/first-task";
@@ -20,21 +25,21 @@ function cssUrl(url: string) {
 </script>
 
 <template>
-  <main class="first-task-page">
+  <TaskLayout class="first-task-page">
     <div class="first-task-layout">
-      <header class="first-task-header">
+      <AppHeader class="first-task-header">
         <img
           class="first-task-wordmark"
           :src="wordmark"
           alt="ГЕРОФАРМ"
           data-figma-node="39:14"
         />
-        <button type="button" class="first-task-back" @click="emit('back')">
+        <AppButton type="button" class="first-task-back" @click="emit('back')">
           ← К календарю
-        </button>
-      </header>
+        </AppButton>
+      </AppHeader>
 
-      <article
+      <AppCard
         class="first-task-card"
         :style="{ '--card-art': cssUrl(card) }"
         aria-labelledby="first-task-title"
@@ -43,18 +48,16 @@ function cssUrl(url: string) {
         <p class="first-task-date">1 ДЕКАБРЯ</p>
         <h1 id="first-task-title">Праздник к нам приходит</h1>
 
-        <p v-if="loading" class="first-task-notice" role="status">
-          Загружаем задание…
-        </p>
+        <LoadingState v-if="loading" class="first-task-notice" role="status" />
         <div v-else-if="error" class="first-task-notice">
           <p role="alert">{{ error }}</p>
-          <button
+          <AppButton
             class="first-task-button first-task-primary"
             type="button"
             @click="emit('retry')"
           >
             Попробовать ещё раз
-          </button>
+          </AppButton>
         </div>
         <p v-else-if="!assignment" class="first-task-notice" role="status">
           Задание не найдено.
@@ -106,7 +109,7 @@ function cssUrl(url: string) {
                 "
                 >{{ pack.label }}</a
               >
-              <button
+              <AppButton
                 v-else
                 type="button"
                 class="first-task-button"
@@ -116,28 +119,28 @@ function cssUrl(url: string) {
                 disabled
               >
                 {{ pack.label }}
-              </button>
+              </AppButton>
             </template>
           </div>
         </template>
-      </article>
+      </AppCard>
       <footer class="first-task-footer">
         1 / {{ total || 25 }} · Новогодний адвент
       </footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
 @font-face {
   font-family: "Advent Inter";
-  src: url("../assets/splash/Inter.ttf") format("truetype");
+  src: url("../assets/splash/Inter.woff2") format("woff2");
   font-weight: 100 900;
   font-display: swap;
 }
 @font-face {
   font-family: "Advent STIX";
-  src: url("../assets/splash/STIXTwoText.ttf") format("truetype");
+  src: url("../assets/splash/STIXTwoText.woff2") format("woff2");
   font-weight: 400 700;
   font-display: swap;
 }
@@ -160,7 +163,7 @@ function cssUrl(url: string) {
   letter-spacing: 0;
   text-align: left;
   background: #c63d0f url("../assets/first-task/background.svg") center top /
-    393px 962px repeat-x;
+    cover no-repeat;
 }
 .first-task-layout {
   box-sizing: border-box;

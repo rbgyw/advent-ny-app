@@ -152,14 +152,14 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
 }
 
 .is-enlarged .nonogram-scroll { overflow: auto; overflow-anchor: none; overscroll-behavior: contain; }
-.nonogram-scroll:focus-visible { outline: 2px solid #a7280b; outline-offset: 2px; }
+.nonogram-scroll:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2px; }
 
 .nonogram-board {
   width: 100cqw;
   table-layout: fixed;
   border-spacing: 0;
-  color: #623c28;
-  font: 400 11px/14px 'Advent Inter', sans-serif;
+  color: var(--color-ink);
+  font: 400 11px/14px var(--font-ui);
   text-align: center;
   user-select: none;
 }
@@ -192,16 +192,16 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
   border: 0;
   background: transparent;
   color: inherit;
-  font: 600 clamp(13px, 4vw, 19px)/1 'Advent Inter', sans-serif;
+  font: 600 clamp(13px, 4vw, 19px)/1 var(--font-ui);
   cursor: pointer;
   touch-action: manipulation;
 }
 
 .nonogram-cell button:disabled { cursor: default; }
-.nonogram-cell button:focus-visible { outline: 2px solid #a7280b; outline-offset: -3px; }
+.nonogram-cell button:focus-visible { outline: 2px solid var(--color-action); outline-offset: -3px; }
 
 @media (hover: hover) {
-  .nonogram-cell button:hover:not(:disabled) { box-shadow: inset 0 0 0 2px #a7280b; }
+  .nonogram-cell button:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--color-action); }
 }
 
 .is-completed { --grid-line: #999; }

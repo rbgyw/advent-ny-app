@@ -201,8 +201,8 @@ function submit() {
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
 
 :global(#app:has(.sport-page)) { width: 100%; border: 0; }
 .sport-page {

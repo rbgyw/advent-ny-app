@@ -1,0 +1,165 @@
+{
+  "conditions": {
+    "baseURL": "http://127.0.0.1:4173",
+    "viewport": "393x852",
+    "cpuSlowdown": 4,
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "backend": "local fixtures, 150ms per call",
+    "cache": "cold contexts; routing disables HTTP cache",
+    "samplesPerRoute": 3,
+    "timing_note": "ResourceTiming reports exposed entries and sizes, not a complete wire capture. Dynamic module preload entries may expose zero sizes. Bundle bytes come from the separate build metrics."
+  },
+  "samples": [
+    {
+      "path": "/",
+      "run": 1,
+      "lcp_ms": 1572,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        208
+      ],
+      "event_durations": [],
+      "resource_requests": 21,
+      "transferred_bytes": 980814,
+      "observed_at_ms": 7707.200000000186,
+      "backend_requests": 0,
+      "sampled_interaction_ms": 40,
+      "timing_visible_js_bytes": 46455
+    },
+    {
+      "path": "/",
+      "run": 2,
+      "lcp_ms": 1440,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        119
+      ],
+      "event_durations": [],
+      "resource_requests": 21,
+      "transferred_bytes": 980814,
+      "observed_at_ms": 7548.899999999907,
+      "backend_requests": 0,
+      "sampled_interaction_ms": 40,
+      "timing_visible_js_bytes": 46455
+    },
+    {
+      "path": "/",
+      "run": 3,
+      "lcp_ms": 1444,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        115
+      ],
+      "event_durations": [],
+      "resource_requests": 21,
+      "transferred_bytes": 980814,
+      "observed_at_ms": 7555.199999999721,
+      "backend_requests": 0,
+      "sampled_interaction_ms": 16,
+      "timing_visible_js_bytes": 46455
+    },
+    {
+      "path": "/calendar",
+      "run": 1,
+      "lcp_ms": 4216,
+      "cls": 0.0005049907771049797,
+      "long_tasks": [
+        211,
+        552
+      ],
+      "event_durations": [],
+      "resource_requests": 47,
+      "transferred_bytes": 995872,
+      "observed_at_ms": 8251.100000000093,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 32,
+      "timing_visible_js_bytes": 143747
+    },
+    {
+      "path": "/calendar",
+      "run": 2,
+      "lcp_ms": 3716,
+      "cls": 0.0005049907771049797,
+      "long_tasks": [
+        229,
+        498
+      ],
+      "event_durations": [],
+      "resource_requests": 47,
+      "transferred_bytes": 995872,
+      "observed_at_ms": 8168.699999999721,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 48,
+      "timing_visible_js_bytes": 143747
+    },
+    {
+      "path": "/calendar",
+      "run": 3,
+      "lcp_ms": 3908,
+      "cls": 0.0005049907771049797,
+      "long_tasks": [
+        279,
+        431
+      ],
+      "event_durations": [],
+      "resource_requests": 47,
+      "transferred_bytes": 995872,
+      "observed_at_ms": 8248.899999999907,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 32,
+      "timing_visible_js_bytes": 143747
+    },
+    {
+      "path": "/task/25",
+      "run": 1,
+      "lcp_ms": 3032,
+      "cls": 0.01487990203542711,
+      "long_tasks": [
+        136,
+        131
+      ],
+      "event_durations": [],
+      "resource_requests": 26,
+      "transferred_bytes": 656969,
+      "observed_at_ms": 6395.5,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 104,
+      "timing_visible_js_bytes": 131248
+    },
+    {
+      "path": "/task/25",
+      "run": 2,
+      "lcp_ms": 3056,
+      "cls": 0.015974325767608634,
+      "long_tasks": [
+        122,
+        166
+      ],
+      "event_durations": [],
+      "resource_requests": 26,
+      "transferred_bytes": 656969,
+      "observed_at_ms": 6401.5,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 88,
+      "timing_visible_js_bytes": 131248
+    },
+    {
+      "path": "/task/25",
+      "run": 3,
+      "lcp_ms": 2960,
+      "cls": 0.015974325767608634,
+      "long_tasks": [
+        119,
+        144
+      ],
+      "event_durations": [],
+      "resource_requests": 26,
+      "transferred_bytes": 656969,
+      "observed_at_ms": 6311,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 96,
+      "timing_visible_js_bytes": 131248
+    }
+  ]
+}

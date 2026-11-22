@@ -1,0 +1,53 @@
+import { test, expect } from '@playwright/test';
+import { mockBackend } from './fixture';
+test('draft and completion preserve progress and reuse the calendar on return', async ({ page }) => {
+  const backend = await mockBackend(page, { genericTasks: true });
+  await page.goto('/calendar'); await expect(page.locator('.calendar-window').nth(8)).toBeEnabled();
+  await page.locator('.calendar-window').nth(8).click();
+  await page.locator('textarea').fill('Мой ответ');
+  await page.getByRole('button', { name: 'Сохранить черновик', exact: true }).click();
+  await expect.poll(() => backend.responses[9]?.text).toBe('Мой ответ');
+  await expect(page.getByRole('button', { name: 'Завершить задание', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Завершить задание', exact: true }).click();
+  await expect(page.getByText('Задание выполнено!', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '← Назад к календарю', exact: true }).click();
+  await expect(page).toHaveURL(/\/calendar$/);
+  expect(backend.calls.filter(path => path.endsWith('/initialize_user_calendar'))).toHaveLength(1);
+  expect(backend.calls.filter(path => path.endsWith('/tasks'))).toHaveLength(1);
+  await page.locator('.calendar-window').nth(8).click();
+  await expect(page.locator('textarea')).toHaveValue('Мой ответ');
+});
+test('fortune opens animates saves and reopens the same prediction without another write', async ({ page }) => {
+  const backend = await mockBackend(page);
+  await page.goto('/task/25');
+  await page.getByRole('button', { name: 'Открыть печеньку' }).click();
+  await expect(page.locator('.fortune-text')).toBeVisible();
+  const prediction = await page.locator('.fortune-text').innerText();
+  await expect.poll(() => backend.completed.has(25)).toBe(true);
+  await page.locator('.fortune-header button').click();
+  await page.locator('.calendar-window').nth(24).click();
+  await expect(page.locator('.fortune-text')).toHaveText(prediction);
+  expect(backend.calls.filter(path => path.endsWith('/save_task_progress'))).toHaveLength(1);
+});
+test('failed fortune save keeps the result hidden until a successful retry', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const backend = await mockBackend(page, { failSave: true });
+  await page.goto('/task/25'); await page.getByRole('button', { name: 'Открыть печеньку' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('.fortune-text')).toHaveCount(0);
+  backend.options.failSave = false;
+  await page.getByRole('button', { name: 'Попробовать снова', exact: true }).click();
+  await expect.poll(() => backend.completed.has(25)).toBe(true);
+  await expect(page.locator('.fortune-text')).toBeVisible();
+  expect(typeof backend.responses[25]?.fortune_index).toBe('number');
+});
+test('an old task save error does not appear on another task', async ({ page }) => {
+  await mockBackend(page, { genericTasks: true, failSave: true, delay: 100 });
+  await page.goto('/task/9'); await page.locator('textarea').fill('Ответ');
+  await page.getByRole('button', { name: 'Сохранить черновик', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Завершить задание', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: '← Назад к календарю', exact: true }).click();
+  await page.locator('.calendar-window').nth(24).click();
+  await page.getByRole('button', { name: 'Открыть печеньку' }).waitFor();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});

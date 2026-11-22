@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import FormField from './ui/FormField.vue';
+import AppButton from './ui/AppButton.vue';
+import PageLayout from './ui/PageLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { RegistrationFormData } from '../types/registration'
@@ -44,43 +48,38 @@ function submit() {
 </script>
 
 <template>
-  <main class="auth-page">
+  <PageLayout background-variant="warm" class="auth-page">
     <div class="auth-layout">
-      <header class="auth-header">
+      <AppHeader class="auth-header">
         <RouterLink to="/rules" class="auth-back" aria-label="Вернуться к правилам"><span aria-hidden="true"></span></RouterLink>
         <p>ГЕРОФАРМ</p>
-      </header>
+      </AppHeader>
       <section class="auth-card" aria-labelledby="auth-title">
         <h1 id="auth-title">Регистрация</h1>
         <p class="auth-intro">Присоединяйтесь к новогоднему адвенту.<br />Все поля обязательны для заполнения.</p>
         <form @submit.prevent="submit" @input="validationError = ''" :aria-busy="loading">
           <fieldset :disabled="loading">
-            <div class="auth-field name-field">
-              <label for="register-name">ФИО</label>
+            <FormField class="name-field" for-id="register-name" label="ФИО">
               <input id="register-name" v-model="fullName" autocomplete="name" placeholder="Иванов Иван Иванович" required />
-            </div>
-            <div class="auth-field email-field">
-              <label for="register-email">Email</label>
+            </FormField>
+            <FormField class="email-field" for-id="register-email" label="Email">
               <input id="register-email" v-model="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" aria-describedby="register-email-hint" required />
               <p id="register-email-hint" class="auth-hint">Укажите корпоративную почту ГЕРОФАРМ (@geropharm.com).</p>
-            </div>
-            <div class="auth-field workplace-field">
-              <label for="register-workplace">Площадка</label>
+            </FormField>
+            <FormField class="workplace-field" for-id="register-workplace" label="Площадка">
               <div class="auth-select">
                 <select id="register-workplace" v-model="workplace" :class="{ placeholder: !workplace }" required>
                   <option value="" disabled>Выберите свою площадку</option>
                   <option v-for="item in workplaces" :key="item" :value="item">{{ item }}</option>
                 </select>
               </div>
-            </div>
-            <div class="auth-field password-field">
-              <label for="register-password">Пароль</label>
+            </FormField>
+            <FormField class="password-field" for-id="register-password" label="Пароль">
               <input id="register-password" v-model="password" type="password" autocomplete="new-password" minlength="6" placeholder="Минимум 6 символов" required />
-            </div>
-            <div class="auth-field password-repeat-field">
-              <label for="register-password-repeat">Повторите пароль</label>
+            </FormField>
+            <FormField class="password-repeat-field" for-id="register-password-repeat" label="Повторите пароль">
               <input id="register-password-repeat" v-model="passwordRepeat" type="password" autocomplete="new-password" minlength="6" placeholder="Введите пароль ещё раз" required />
-            </div>
+            </FormField>
             <div class="auth-consent">
               <label class="auth-consent-label" for="register-consent">
                 <input id="register-consent" v-model="consent" type="checkbox" :aria-describedby="!consent ? 'register-consent-hint' : undefined" required />
@@ -89,13 +88,13 @@ function submit() {
               <p v-if="!consent" id="register-consent-hint" class="auth-consent-hint">Для регистрации необходимо ваше согласие.</p>
             </div>
             <p v-if="validationError || error" class="auth-error" role="alert">{{ validationError || error }}</p>
-            <button class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</button>
+            <AppButton :loading="loading" class="auth-submit" type="submit">{{ loading ? 'Подождите...' : 'Зарегистрироваться' }}</AppButton>
           </fieldset>
         </form>
       </section>
-      <button class="auth-login" type="button" :disabled="loading" @click="emit('login')">Уже есть аккаунт? Войти</button>
+      <AppButton class="auth-login" type="button" :disabled="loading" @click="emit('login')">Уже есть аккаунт? Войти</AppButton>
     </div>
-  </main>
+  </PageLayout>
 </template>
 
 <style scoped src="../assets/auth-form.css"></style>

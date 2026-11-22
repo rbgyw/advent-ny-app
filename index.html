@@ -5,9 +5,28 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>gph-advent</title>
+    <link rel="preload" href="/src/assets/splash/Inter.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/src/assets/fonts.css" />
+    <link rel="stylesheet" href="/src/tokens.css" />
+    <link rel="stylesheet" href="/src/assets/loading/loading.css" />
+    <style>body { margin: 0; }</style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="screen-loader" id="startup-loader">
+        <div class="screen-loader-content">
+          <img class="screen-loader-snowflake" src="/src/assets/loading/snowflake.svg" width="75" height="76" alt="" />
+          <p class="screen-loader-label" id="startup-status" role="status">Открываем календарь...</p>
+          <div class="screen-loader-error"><button id="startup-retry" type="button" hidden>Попробовать снова</button></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const startupTask = Number(location.pathname.match(/^\/task\/(\d+)/)?.[1]);
+      document.getElementById('startup-loader').dataset.theme = location.pathname.startsWith('/calendar') ? 'calendar' : [4,6,7,9,11,14,17,19,21,25].includes(startupTask) || ['/', '/rules'].includes(location.pathname.replace(/\/$/, '') || '/') ? 'night' : 'warm';
+      document.getElementById('startup-loader').toggleAttribute('data-splash', location.pathname === '/');
+      if (startupTask) document.getElementById('startup-status').textContent = 'Загружаем задание...';
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

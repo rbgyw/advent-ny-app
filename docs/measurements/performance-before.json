@@ -1,0 +1,183 @@
+{
+  "conditions": {
+    "baseURL": "http://127.0.0.1:4174",
+    "viewport": "393x852",
+    "cpuSlowdown": 4,
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "backend": "local fixtures, 150ms per call",
+    "cache": "cold contexts; routing disables HTTP cache",
+    "samplesPerRoute": 3,
+    "timing_note": "ResourceTiming reports exposed entries and sizes, not a complete wire capture. Dynamic module preload entries may expose zero sizes. Bundle bytes come from the separate build metrics."
+  },
+  "samples": [
+    {
+      "path": "/",
+      "run": 1,
+      "lcp_ms": 4292,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        128,
+        345,
+        69,
+        106
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2676995,
+      "observed_at_ms": 16408.399999999907,
+      "backend_requests": 1,
+      "sampled_interaction_ms": 88,
+      "timing_visible_js_bytes": 422432
+    },
+    {
+      "path": "/",
+      "run": 2,
+      "lcp_ms": 3756,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        57,
+        130,
+        86
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2676995,
+      "observed_at_ms": 15926,
+      "backend_requests": 1,
+      "sampled_interaction_ms": 104,
+      "timing_visible_js_bytes": 422432
+    },
+    {
+      "path": "/",
+      "run": 3,
+      "lcp_ms": 3896,
+      "cls": 0.002142760330794973,
+      "long_tasks": [
+        74,
+        163
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2676995,
+      "observed_at_ms": 16067.200000000186,
+      "backend_requests": 1,
+      "sampled_interaction_ms": 72,
+      "timing_visible_js_bytes": 422432
+    },
+    {
+      "path": "/calendar",
+      "run": 1,
+      "lcp_ms": 9364,
+      "cls": 0.00027785630362480866,
+      "long_tasks": [
+        63,
+        221,
+        719
+      ],
+      "event_durations": [],
+      "resource_requests": 36,
+      "transferred_bytes": 2778112,
+      "observed_at_ms": 16562,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 72,
+      "timing_visible_js_bytes": 769478
+    },
+    {
+      "path": "/calendar",
+      "run": 2,
+      "lcp_ms": 9244,
+      "cls": 0.00027785630362480866,
+      "long_tasks": [
+        62,
+        210,
+        525,
+        57
+      ],
+      "event_durations": [],
+      "resource_requests": 36,
+      "transferred_bytes": 2778112,
+      "observed_at_ms": 16564.100000000093,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 56,
+      "timing_visible_js_bytes": 769478
+    },
+    {
+      "path": "/calendar",
+      "run": 3,
+      "lcp_ms": 9160,
+      "cls": 0.0003126349856747192,
+      "long_tasks": [
+        68,
+        203,
+        488
+      ],
+      "event_durations": [],
+      "resource_requests": 36,
+      "transferred_bytes": 2778112,
+      "observed_at_ms": 16577.80000000028,
+      "backend_requests": 5,
+      "sampled_interaction_ms": 64,
+      "timing_visible_js_bytes": 769478
+    },
+    {
+      "path": "/task/25",
+      "run": 1,
+      "lcp_ms": 4072,
+      "cls": 0.014657725789044394,
+      "long_tasks": [
+        50,
+        68,
+        51,
+        126,
+        107
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2740947,
+      "observed_at_ms": 16777.700000000186,
+      "backend_requests": 6,
+      "sampled_interaction_ms": 120,
+      "timing_visible_js_bytes": 476689
+    },
+    {
+      "path": "/task/25",
+      "run": 2,
+      "lcp_ms": 4060,
+      "cls": 0.014657725789044394,
+      "long_tasks": [
+        69,
+        67,
+        213,
+        70
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2740947,
+      "observed_at_ms": 16903.5,
+      "backend_requests": 6,
+      "sampled_interaction_ms": 128,
+      "timing_visible_js_bytes": 476689
+    },
+    {
+      "path": "/task/25",
+      "run": 3,
+      "lcp_ms": 4132,
+      "cls": 0.014657725789044394,
+      "long_tasks": [
+        75,
+        79,
+        191,
+        82,
+        57
+      ],
+      "event_durations": [],
+      "resource_requests": 16,
+      "transferred_bytes": 2740947,
+      "observed_at_ms": 16922.799999999814,
+      "backend_requests": 6,
+      "sampled_interaction_ms": 112,
+      "timing_visible_js_bytes": 476689
+    }
+  ]
+}

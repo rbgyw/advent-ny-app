@@ -5,14 +5,14 @@
     <p v-if="variant !== 'sport'" :class="{ 'visually-hidden': styled }" :id="hintId">До 3 фотографий. JPG, PNG или WebP, до 5 МБ каждая.</p>
     <p v-else :id="hintId" class="visually-hidden">Одна фотография JPG, PNG или WebP до 5 МБ.</p>
 
-    <button
+    <AppButton
       v-if="styled && !readonly && (variant !== 'sport' || !photos.length)"
       class="attach-button"
       type="button"
       :disabled="busy || disabled || !listLoaded"
       :aria-describedby="hintId"
       @click="fileInput?.click()"
-    >{{ uploadLabel ?? (variant === 'sport' ? 'Загрузить фотографию' : '＋ Прикрепить фотографии') }}</button>
+    >{{ uploadLabel ?? (variant === 'sport' ? 'Загрузить фотографию' : '＋ Прикрепить фотографии') }}</AppButton>
 
     <input
       v-if="!readonly"
@@ -28,19 +28,19 @@
       @change="uploadSelected"
     />
 
-    <p v-if="busy">Обрабатываем фотографии...</p>
+    <LoadingState v-if="busy" compact label="Обрабатываем фотографии…" />
     <p v-if="message" role="status">{{ message }}</p>
     <p v-if="errorMessage" class="error" role="alert">
       {{ errorMessage }}
     </p>
 
-    <button v-if="!busy && errorMessage" type="button" @click="reload">
+    <AppButton v-if="!busy && errorMessage" type="button" @click="reload">
       Обновить фотографии
-    </button>
+    </AppButton>
 
     <div v-if="!styled || photos.length" class="photos">
       <figure v-for="photo in photos" :key="photo.id">
-        <img v-if="photo.url" :src="photo.url" :alt="photo.file_name" />
+        <img loading="lazy" decoding="async" v-if="photo.url" :src="photo.url" :alt="photo.file_name" />
         <p v-else>Не удалось загрузить предпросмотр.</p>
 
         <figcaption>{{ photo.file_name }}</figcaption>
@@ -56,14 +56,14 @@
           />
         </label>
 
-        <button
+        <AppButton
           v-if="!readonly"
           type="button"
           :disabled="busy || disabled"
           @click="deletePhoto(photo.id)"
         >
           Удалить фотографию
-        </button>
+        </AppButton>
       </figure>
     </div>
 
@@ -74,6 +74,9 @@
 </template>
 
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import LoadingState from './ui/LoadingState.vue';
+import { useScreenReadiness } from '../composables/useScreenReadiness';
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import {
   attachmentsService,
@@ -81,6 +84,8 @@ import {
   validatePhoto,
   type TaskAttachment,
 } from "../services/attachments.service";
+
+const { track } = useScreenReadiness();
 
 const props = withDefaults(defineProps<{
   taskId: number;
@@ -170,24 +175,22 @@ async function loadPhotos() {
   const attachments = await attachmentsService.list(props.taskId);
   if (disposed) return;
 
-  releasePhotos();
-  photos.value = attachments.map((item) => ({
-    ...item,
-    url: null,
-  }));
-
+  const previous = new Map(photos.value.map(photo => [photo.id, photo]));
+  photos.value = attachments.map(item => {
+    const existing = previous.get(item.id);
+    previous.delete(item.id);
+    if (existing?.storage_path === item.storage_path) return existing;
+    if (existing?.url) URL.revokeObjectURL(existing.url);
+    return { ...item, url: null };
+  });
+  for (const photo of previous.values()) if (photo.url) URL.revokeObjectURL(photo.url);
   let previewFailed = false;
-
-  for (const photo of photos.value) {
+  await Promise.all(photos.value.filter(photo => !photo.url).map(async photo => {
     try {
       const blob = await attachmentsService.download(photo.storage_path);
-
-      if (disposed) return;
-      photo.url = URL.createObjectURL(blob);
-    } catch {
-      previewFailed = true;
-    }
-  }
+      if (!disposed) photo.url = URL.createObjectURL(blob);
+    } catch { previewFailed = true; }
+  }));
 
   if (disposed) return;
 
@@ -366,7 +369,7 @@ async function uploadSelected(event: Event) {
   }
 }
 
-onMounted(reload);
+onMounted(() => { void track(reload()); });
 
 onBeforeUnmount(() => {
   disposed = true;

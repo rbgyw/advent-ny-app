@@ -1,0 +1,50 @@
+@font-face { font-family: 'Advent Loading'; src: url('../splash/Inter.woff2') format('woff2'); font-weight: 400; font-display: block; }
+
+/* Shared by the static boot screen and Vue: no second loader during startup. */
+.screen-loader {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  overflow: auto;
+  color: #fffdf5;
+  background: var(--background-night);
+  font: 400 14px/17px 'Advent Loading', 'Advent Inter', sans-serif;
+  letter-spacing: 0;
+  color-scheme: light;
+  text-align: center;
+}
+.screen-loader[data-theme='warm'] { background: radial-gradient(ellipse 165% 108% at 30% 100%, #ffb451, #f78028 54%, #c63d0f); }
+.screen-loader[data-theme='calendar'] { background: var(--background-calendar); }
+@media (min-width: 640px) {
+  .screen-loader[data-splash] { background: var(--background-night-wide); }
+}
+.screen-loader-background { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.screen-loader-content {
+  position: absolute;
+  top: max(calc(env(safe-area-inset-top, 0px) + 24px), calc(50% - 50px));
+  left: 50%;
+  width: min(345px, calc(100% - 32px));
+  transform: translateX(-50%);
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+.screen-loader-snowflake { display: block; width: 75px; height: 76px; margin: 0 auto; animation: screen-snowflake 2.4s linear infinite; }
+.screen-loader-label {
+  margin: 18px 0 0;
+  color: #fffdf5;
+  background: linear-gradient(173.491deg, #fffdf5 0%, #f7e8cb 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font: inherit;
+  overflow-wrap: anywhere;
+}
+.screen-loader-error { margin-top: 18px; line-height: 21px; }
+.screen-loader-error p { margin: 0; }
+.screen-loader-error button { min-height: 44px; margin-top: 16px; padding: 10px 16px; border: 1px solid #f7e8cb; border-radius: 13px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.screen-loader-error button:focus-visible { outline: 2px solid #fffdf5; outline-offset: 4px; }
+.screen-loader-stopped { animation: none; }
+@keyframes screen-snowflake { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .screen-loader-snowflake { animation: none; } }

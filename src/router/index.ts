@@ -3,15 +3,15 @@ import {
   createRouter,
   createWebHistory,
 } from 'vue-router'
+import { navigationPending, navigationError, navigationDestination, screenPending, screenError, screenBackground, screenBackgroundLayer } from './status'
 
-import { useAuthStore } from '../stores/auth'
 
-import SplashView from '../views/SplashView.vue'
-import RulesView from '../views/RulesView.vue'
+const SplashView = () => import('../views/SplashView.vue')
+const RulesView = () => import('../views/RulesView.vue')
 
-import AuthView from '../views/AuthView.vue'
-import CalendarView from '../views/CalendarView.vue'
-import TaskView from '../views/TaskView.vue'
+const AuthView = () => import('../views/AuthView.vue')
+const CalendarView = () => import('../views/CalendarView.vue')
+const TaskView = () => import('../views/TaskView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,7 +57,29 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach(to => {
+  navigationDestination.value = to.fullPath
+  navigationError.value = ''
+  navigationPending.value = true
+  screenPending.value = true
+  screenError.value = ''
+  screenBackground.value = ''
+  screenBackgroundLayer.value = undefined
+})
+router.afterEach((to, _from, failure) => {
+  if (to.fullPath !== navigationDestination.value) return
+  navigationPending.value = false
+  if (failure) screenPending.value = false
+})
+router.onError((_error, to) => {
+  if (to.fullPath !== navigationDestination.value) return
+  navigationPending.value = false
+  navigationError.value = 'Не удалось открыть страницу. Проверьте подключение.'
+})
+
 router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth && !to.meta.requiresGuest) return
+  const { useAuthStore } = await import('../stores/auth')
   const authStore = useAuthStore()
 
   // Дожидаемся восстановления сессии

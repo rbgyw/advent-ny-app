@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
+import { useElementRef } from '../composables/useElementRef';
+import LoadingState from './ui/LoadingState.vue';
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { shortCalendarDate } from '../utils/calendar';
@@ -30,7 +37,7 @@ const guess = ref('');
 const solved = ref<RaskobkiAnswer[]>([]);
 const feedback = ref('');
 const invalid = ref(false);
-const panel = ref<HTMLElement>();
+const { element: panel, bind: bindPanel } = useElementRef();
 const resultHeading = ref<HTMLHeadingElement>();
 const dotCount = ref(0);
 const answerIds = [...new Set(raskobkiSlots.map(slot => slot.answer))];
@@ -49,13 +56,15 @@ const date = computed(() => props.assignment
 
 watch(panel, (element, _, onCleanup) => {
   if (!element) return;
-  const observer = new ResizeObserver(() => {
-    const { width, height } = element.getBoundingClientRect();
+  const observer = new ResizeObserver(entries => {
+    const box = entries[0]?.borderBoxSize[0];
+    if (!box) return;
+    const width = box.inlineSize, height = box.blockSize;
     // Rounded inset path has 10px removed from each axis and four 17px corners.
     const perimeter = 2 * (width + height - 20) - (8 - 2 * Math.PI) * 17;
     dotCount.value = Math.max(1, Math.round(perimeter / 11));
   });
-  observer.observe(element);
+  observer.observe(element, { box: 'border-box' });
   onCleanup(() => observer.disconnect());
 }, { flush: 'post' });
 
@@ -130,13 +139,13 @@ function submit() {
 </script>
 
 <template>
-  <main class="raskobki-page">
+  <TaskLayout class="raskobki-page">
     <div class="raskobki-layout">
-      <header class="raskobki-header">
-        <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <button type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article ref="panel" class="raskobki-panel" aria-labelledby="raskobki-title">
+      <AppHeader class="raskobki-header">
+        <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
+        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard :ref="bindPanel" class="raskobki-panel" aria-labelledby="raskobki-title">
         <div class="raskobki-dots" aria-hidden="true">
           <img
             v-for="n in dotCount"
@@ -147,17 +156,17 @@ function submit() {
           />
         </div>
         <div class="raskobki-heading">
-          <img class="raskobki-wreath" :src="wreath" alt="" />
+          <img decoding="async" class="raskobki-wreath" :src="wreath" alt="" />
           <p class="raskobki-date">{{ date }}</p>
           <h1 id="raskobki-title">Ра[скобки]</h1>
           <p class="raskobki-badge">Обязательное задание</p>
         </div>
-        <p v-if="loading" class="raskobki-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="raskobki-notice" role="alert">
+        <LoadingState v-if="loading" class="raskobki-notice" role="status" />
+        <FeedbackState v-else-if="error" kind="error" class="raskobki-notice">
           <p>{{ error }}</p>
-          <button class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</button>
-        </div>
-        <p v-else-if="!assignment" class="raskobki-notice">Задание не найдено.</p>
+          <AppButton class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</AppButton>
+        </FeedbackState>
+        <FeedbackState v-else-if="!assignment" class="raskobki-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="raskobki-notice">
           Задание откроется {{ formatDate(assignment.available_date) }}.
         </p>
@@ -168,10 +177,10 @@ function submit() {
             <p>Подсказки можно разгадывать в любом порядке.</p>
           </div>
           <section class="raskobki-chain" aria-labelledby="raskobki-chain-title">
-            <header class="raskobki-chain-header">
+            <AppHeader class="raskobki-chain-header">
               <h2 id="raskobki-chain-title">Словесная цепочка</h2>
               <span role="status">{{ solvedCount }} из {{ raskobkiSlots.length }}</span>
-            </header>
+            </AppHeader>
             <div class="raskobki-letter">
               <p v-for="(paragraph, index) in raskobkiLetter" :key="index">
                 <template v-for="(part, partIndex) in paragraph" :key="partIndex">
@@ -185,9 +194,9 @@ function submit() {
           <section v-if="completed" class="raskobki-result" aria-labelledby="raskobki-result-title">
             <h2 id="raskobki-result-title" ref="resultHeading" tabindex="-1">Цепочка раскрыта!</h2>
             <p>Вы разгадали все подсказки и восстановили поздравление.</p>
-            <button class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
+            <AppButton class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
               К календарю
-            </button>
+            </AppButton>
           </section>
           <form v-else class="raskobki-form" :aria-busy="saving" @submit.prevent="submit">
             <template v-if="!allSolved">
@@ -208,43 +217,29 @@ function submit() {
               </div>
             </template>
             <p id="raskobki-feedback" class="raskobki-feedback" role="status">{{ saveError || feedback }}</p>
-            <button class="raskobki-button" type="submit" :disabled="saving">
+            <AppButton :loading="saving" class="raskobki-button" type="submit" :disabled="saving">
               {{ saving ? 'Сохраняем…' : allSolved ? 'Сохранить результат' : 'Вставить слово' }}
-            </button>
+            </AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="raskobki-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'Advent Inter';
-  src: url('../assets/splash/Inter.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Advent STIX';
-  src: url('../assets/splash/STIXTwoText.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 :global(#app:has(.raskobki-page)) { width: 100%; border: 0; }
 
 .raskobki-page {
-  --raskobki-red: #a7280b;
+  --raskobki-red: var(--color-action);
   --raskobki-gold: #fff1cf;
   box-sizing: border-box;
   min-height: 100svh;
   background: linear-gradient(110deg, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f);
   color: #70492c;
   color-scheme: light;
-  font: 400 14px/20px 'Advent Inter', sans-serif;
+  font: 400 14px/20px var(--font-ui);
   letter-spacing: 0;
   text-align: left;
 }
@@ -313,8 +308,8 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
 
 .raskobki-heading h1 {
   margin: 13px 0 11px;
-  color: #623c28;
-  font: 500 28px/30px 'Advent STIX', serif;
+  color: var(--color-ink);
+  font: 500 28px/30px var(--font-display);
   letter-spacing: 0;
 }
 
@@ -360,7 +355,7 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
 
 .raskobki-letter {
   color: var(--raskobki-red);
-  font: 400 16px/22px 'Advent STIX', serif;
+  font: 400 16px/22px var(--font-display);
   overflow-wrap: anywhere;
 }
 
@@ -384,7 +379,7 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
   border: 0;
   border-radius: inherit;
   background: transparent;
-  color: #623c28;
+  color: var(--color-ink);
   font: inherit;
 }
 
@@ -416,8 +411,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid currentColor; out
 
 .raskobki-result h2 {
   margin: 0 0 12px;
-  color: #623c28;
-  font: 400 22px/28px 'Advent STIX', serif;
+  color: var(--color-ink);
+  font: 400 22px/28px var(--font-display);
   letter-spacing: 0;
 }
 

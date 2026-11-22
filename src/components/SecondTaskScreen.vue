@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
@@ -132,18 +137,18 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
 </script>
 
 <template>
-  <main class="cipher-page">
+  <TaskLayout class="cipher-page">
     <div ref="gradient" class="cipher-background" aria-hidden="true"><div class="cipher-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="cipher-layout">
-      <header class="cipher-header">
+      <AppHeader class="cipher-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" class="cipher-wordmark" data-figma-node="39:14" />
-        <button class="cipher-back" type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
+        <AppButton class="cipher-back" type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
         <p class="cipher-date">{{ date }}</p>
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
-        <p v-if="loading" class="cipher-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><button type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</button></div>
+        <LoadingState v-if="loading" class="cipher-notice" role="status" />
+        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="cipher-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="cipher-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -153,7 +158,7 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
           </div>
           <h2 class="cipher-instruction-title">Задание</h2>
           <p id="cipher-instructions" class="cipher-instructions">Перед вами алфавит: каждой позе человечка соответствует определенная буква. Посмотрите на зашифрованное сообщение, найдите каждую позу в алфавите и введите соответствующую букву в ячейку. В итоге вы узнаете, какой подарок вас ждет.</p>
-          <button class="cipher-button cipher-music" :style="{ backgroundImage: cssUrl(musicButton) }" type="button" :disabled="!cipherMusicUrl" :aria-pressed="playing" @click="toggleMusic">{{ playing ? '♫ Выключить музыку' : '♫ Включить музыку' }}</button>
+          <AppButton class="cipher-button cipher-music" :style="{ backgroundImage: cssUrl(musicButton) }" type="button" :disabled="!cipherMusicUrl" :aria-pressed="playing" @click="toggleMusic">{{ playing ? '♫ Выключить музыку' : '♫ Включить музыку' }}</AppButton>
           <audio v-if="cipherMusicUrl" ref="audio" :src="cipherMusicUrl" preload="none" loop @play="playing = true" @pause="playing = false" @error="musicError = 'Не удалось загрузить музыку.'"></audio>
           <p v-if="musicError" class="cipher-warning" role="status">{{ musicError }}</p>
           <div ref="board" class="cipher-alphabet" aria-label="Алфавит спортивных человечков" data-figma-node="28:39861">
@@ -182,26 +187,26 @@ onBeforeUnmount(() => { observer?.disconnect(); audio.value?.pause() })
             </fieldset>
             <p v-if="incorrect" class="cipher-warning cipher-incorrect" role="alert">В шифре еще осталась загадка.<br />Сверьтесь с алфавитом и попробуйте снова!</p>
             <p v-else-if="saveError" class="cipher-warning cipher-incorrect" role="alert">{{ saveError }}</p>
-            <button class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</button>
+            <AppButton class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="cipher-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <PopupDialog v-model:open="popupOpen" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy">
-      <button class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</button>
+      <AppButton class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</AppButton>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
       <p id="cipher-success-copy">Подарок — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнивших все обязательные задания адвента. Продолжайте открывать окошки, ведь впереди у нас еще много интересного!</p>
       <div class="cipher-gift" :style="{ backgroundImage: cssUrl(gift) }" data-figma-node="28:40836">Фото спортивной сумки</div>
-      <button class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</button>
+      <AppButton class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</AppButton>
     </PopupDialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
-@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.woff2') format('woff2'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.cipher-page)) { width: 100%; border: 0; }
 .cipher-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; box-sizing: border-box; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .cipher-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }

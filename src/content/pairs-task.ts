@@ -1,11 +1,11 @@
-import semavic from '../assets/pairs/semavic.png';
-import sedjaro from '../assets/pairs/sedjaro.png';
-import cortexin from '../assets/pairs/cortexin.png';
-import evodin from '../assets/pairs/evodin.png';
-import recognan from '../assets/pairs/recognan.png';
-import retinalamin from '../assets/pairs/retinalamin.png';
-import memantinol from '../assets/pairs/memantinol.png';
-import rinfast from '../assets/pairs/rinfast.png';
+import semavic from '../assets/pairs/semavic.webp';
+import sedjaro from '../assets/pairs/sedjaro.webp';
+import cortexin from '../assets/pairs/cortexin.webp';
+import evodin from '../assets/pairs/evodin.webp';
+import recognan from '../assets/pairs/recognan.webp';
+import retinalamin from '../assets/pairs/retinalamin.webp';
+import memantinol from '../assets/pairs/memantinol.webp';
+import rinfast from '../assets/pairs/rinfast.webp';
 
 // Coordinates within the original 73 × 101 card, including transparent image margins.
 export const pairProducts = [

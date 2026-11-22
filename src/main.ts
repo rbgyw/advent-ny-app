@@ -1,27 +1,37 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
-
 import App from './App.vue'
-import router from './router'
-import { useAuthStore } from './stores/auth'
-
+import './assets/fonts.css'
 import './style.css'
+import './tokens.css'
+
+document.querySelector('#startup-retry')?.addEventListener('click', () => window.location.reload())
 
 async function bootstrap() {
   const app = createApp(App)
   const pinia = createPinia()
-
+  // The plugin runs only when the calendar store is actually created.
+  // Clear user data synchronously on identity changes without loading it on public pages.
+  pinia.use(({ store }) => {
+    if (store.$id === 'calendar') {
+      watch(() => pinia.state.value.auth?.user?.id, (id, previous) => {
+        if (previous && id !== previous) store.reset()
+      }, { flush: 'sync' })
+    }
+  })
   app.use(pinia)
-
-  const authStore = useAuthStore(pinia)
-
-  await authStore.initialize()
-
+  // Supabase and auth are deferred until a route requires them.
+  const { default: router } = await import('./router')
   app.use(router)
-
-  await router.isReady()
-
   app.mount('#app')
+  await router.isReady()
 }
 
-bootstrap().catch(console.error)
+bootstrap().catch(() => {
+  const status = document.querySelector('#startup-status')
+  if (status) {
+    status.textContent = 'Не удалось запустить приложение. Проверьте подключение и обновите страницу.'
+    status.setAttribute('role', 'alert')
+  }
+  document.querySelector<HTMLButtonElement>('#startup-retry')?.removeAttribute('hidden')
+})

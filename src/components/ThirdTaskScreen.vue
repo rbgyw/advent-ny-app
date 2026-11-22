@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { useCampaignClock } from '../composables/useCampaignClock';
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
@@ -33,7 +39,7 @@ const textarea = ref<HTMLTextAreaElement | null>(null)
 const attachmentsBusy = ref(false)
 const validation = ref('')
 const popupOpen = ref(false)
-const now = ref(Date.now())
+const { now, refreshClock } = useCampaignClock()
 const ratio = ref(1477 / 393)
 const completed = computed(() => props.assignment?.status === 'completed')
 const closed = computed(() => !memorySubmissionOpen(props.assignment?.available_date, new Date(now.value)))
@@ -41,9 +47,7 @@ const busy = computed(() => props.saving || attachmentsBusy.value)
 const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '3 ДЕКАБРЯ')
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
-let timer: ReturnType<typeof setInterval> | undefined
 function cssUrl(url: string) { return `url("${url}")` }
-function refreshClock() { now.value = Date.now() }
 function input(event: Event) {
   validation.value = ''; emit('edit')
   emit('update:modelValue', (event.target as HTMLTextAreaElement).value)
@@ -72,29 +76,26 @@ onMounted(() => {
     if (size?.width) ratio.value = size.height / size.width
   })
   if (gradient.value) observer.observe(gradient.value)
-  timer = setInterval(refreshClock, 60_000)
-  document.addEventListener('visibilitychange', refreshClock)
 })
 onBeforeUnmount(() => {
-  observer?.disconnect(); clearInterval(timer)
-  document.removeEventListener('visibilitychange', refreshClock)
+  observer?.disconnect()
   emit('busy', false)
 })
 </script>
 
 <template>
-  <main class="memory-page">
+  <TaskLayout class="memory-page">
     <div ref="gradient" class="memory-background" aria-hidden="true"><div class="memory-gradient" :style="{ transform: gradientTransform }"></div></div>
     <div class="memory-layout">
-      <header class="memory-header">
+      <AppHeader class="memory-header">
         <img class="memory-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-        <button class="memory-back" type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
+        <AppButton class="memory-back" type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
         <p class="memory-date">{{ date }}</p>
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
-        <p v-if="loading" class="memory-notice" role="status">Загружаем задание…</p>
-        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><button class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</button></div>
+        <LoadingState v-if="loading" class="memory-notice" role="status" />
+        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="memory-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -114,25 +115,25 @@ onBeforeUnmount(() => {
             <TaskAttachments v-if="userId" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <button class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</button>
+            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
           </form>
         </template>
-      </article>
+      </AppCard>
       <footer class="memory-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
     <PopupDialog v-model:open="popupOpen" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy">
-      <button class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</button>
+      <AppButton class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</AppButton>
       <h2 id="memory-thanks-title">Спасибо,<br />что поделились!</h2>
       <p id="memory-thanks-copy">В конце адвента соберём воспоминания коллег в праздничную подборку.</p>
-      <button class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></button>
+      <AppButton class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></AppButton>
     </PopupDialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
-@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
+@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Advent Source Serif'; src: url('../assets/cipher/SourceSerif4.woff2') format('woff2'); font-weight: 200 900; font-display: swap; }
 :global(#app:has(.memory-page)) { width: 100%; border: 0; }
 .memory-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .memory-background { position: absolute; top: 0; left: 0; width: 100%; height: 127.0%; z-index: -1; overflow: hidden; pointer-events: none; }

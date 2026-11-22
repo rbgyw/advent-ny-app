@@ -34,5 +34,8 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
+# Browser verification artifacts
+test-results/
+playwright-report/
 # Generated from public/collections/videos.json for publication in Supabase
 /supabase/video-catalog.sql

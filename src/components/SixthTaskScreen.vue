@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import FeedbackState from './ui/FeedbackState.vue';
+import { useElementRef } from '../composables/useElementRef';
+import LoadingState from './ui/LoadingState.vue';
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
@@ -11,7 +18,7 @@ import introPanel from '../assets/tarot/intro-panel.svg';
 import choosePanel from '../assets/tarot/choose-panel.svg';
 import resultPanel from '../assets/tarot/result-panel.svg';
 import goldButton from '../assets/tarot/gold-button.svg';
-import cardBack from '../assets/tarot/card-back.png';
+import cardBack from '../assets/tarot/card-back.webp';
 import fanBorder from '../assets/tarot/fan-border.svg';
 import fanBorderLeft from '../assets/tarot/fan-border-left.svg';
 import fanBorderRight from '../assets/tarot/fan-border-right.svg';
@@ -22,7 +29,9 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; draw: [card: number]; edit: [] }>();
 const stage = ref<'intro' | 'choose' | 'result'>('intro');
 const deck = ref(shuffleTarotDeck()), pending = ref<number | null>(null);
-const page = ref<HTMLElement>(), fan = ref<HTMLElement>(), focusTitle = ref<HTMLElement>();
+const { element: page, bind: bindPage } = useElementRef();
+const { element: fan, bind: bindFan } = useElementRef();
+const focusTitle = ref<HTMLElement>();
 const pageHeight = ref(938), fanScale = ref(1), imageError = ref(false), imageKey = ref(0);
 const selectedId = computed(() => tarotCardId(props.assignment?.response?.response));
 const selectedCard = computed(() => selectedId.value !== null ? tarotCards[selectedId.value] : undefined);
@@ -74,81 +83,79 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 </script>
 
 <template>
-  <main ref="page" class="tarot-page" :class="`tarot-state-${stage}`">
-    <div class="tarot-decorations" aria-hidden="true"><img v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
+  <TaskLayout background-variant="night" :ref="bindPage" class="tarot-page" :class="`tarot-state-${stage}`">
+    <div class="tarot-decorations" aria-hidden="true"><img decoding="async" v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
     <div class="tarot-layout">
-      <header class="tarot-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><button class="tarot-back" type="button" @click="emit('back')">← К календарю</button><button v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img :src="closeRing" alt="" />×</button></header>
+      <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
         <h1>Что подскажет карта?</h1>
-        <p v-if="loading" role="status">Загружаем задание…</p>
-        <template v-else-if="error"><p role="alert">{{ error }}</p><button class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</button></template>
-        <p v-else-if="!assignment">Задание не найдено.</p>
+        <LoadingState v-if="loading" role="status" />
+        <template v-else-if="error"><p role="alert">{{ error }}</p><AppButton class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></template>
+        <FeedbackState v-else-if="!assignment" message="Задание не найдено." />
         <p v-else-if="!assignment.task">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <p v-else>Для задания уже сохранён результат. Повторный выбор карты недоступен. Обратитесь к организатору, чтобы уточнить сохранённый результат.</p>
       </section>
-      <article v-else-if="stage === 'intro'" class="tarot-intro-panel tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }" aria-labelledby="tarot-intro-title">
-        <button class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</button>
+      <AppCard v-else-if="stage === 'intro'" class="tarot-intro-panel tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }" aria-labelledby="tarot-intro-title">
+        <AppButton class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</AppButton>
         <p class="tarot-date">{{ date }}</p>
         <h1 id="tarot-intro-title" ref="focusTitle" tabindex="-1">Что подскажет карта?</h1>
-        <button ref="fan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
-          <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img class="tarot-fan-image" :src="cardBack" alt="" /><img class="tarot-fan-border" :src="item.border" alt="" /></span><img class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
-        </button>
+        <AppButton :ref="bindFan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
+          <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img decoding="async" class="tarot-fan-image" :src="cardBack" alt="" /><img decoding="async" class="tarot-fan-border" :src="item.border" alt="" /></span><img decoding="async" class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
+        </AppButton>
         <div class="tarot-intro-copy">
           <p>Сегодня добавим в декабрь немного загадочности: предлагаем заглянуть в будущее с помощью карт таро.</p>
           <p>Подумайте, что вам хотелось бы узнать у карт, и задайте свой сокровенный вопрос про себя. Не торопитесь: вытянуть карту можно только один раз за весь адвент.</p>
           <p>Когда будете готовы, нажмите на любую карту в колоде. Перед вами появится карта с небольшим пояснением. Какой смысл найти в ее образах и словах — решать вам.</p>
           <p>Помните: это игра, а не точный прогноз. Пусть карта станет поводом для размышлений, а решения остаются за вами.</p>
         </div>
-        <button class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</button>
-      </article>
-      <article v-else-if="stage === 'choose'" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
-        <button class="tarot-close" type="button" :disabled="saving" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</button>
+        <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</AppButton>
+      </AppCard>
+      <AppCard v-else-if="stage === 'choose'" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
+        <AppButton class="tarot-close" type="button" :disabled="saving" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
         <h1 id="tarot-choose-title" ref="focusTitle" tabindex="-1">Выберите карту</h1>
         <p class="tarot-instruction">Нажмите на любую карту в колоде.</p>
         <p class="tarot-once">Выбрать можно только один раз за весь адвент.</p>
         <p v-if="saving" class="tarot-status" role="status">Сохраняем вашу карту…</p>
-        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><button class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</button></div>
+        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
-          <button v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img :src="cardBack" alt="" /></button>
+          <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
         </div>
-      </article>
-      <article v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
-        <div class="tarot-chosen-frame"><img :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
-        <p v-if="imageError" role="alert">Не удалось загрузить изображение. <button type="button" @click="imageKey++">Загрузить ещё раз</button></p>
+      </AppCard>
+      <AppCard v-else-if="selectedCard" class="tarot-result" aria-labelledby="tarot-card-title" :aria-busy="saving">
+        <div class="tarot-chosen-frame"><img decoding="async" :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
+        <p v-if="imageError" role="alert">Не удалось загрузить изображение. <AppButton type="button" @click="imageKey++">Загрузить ещё раз</AppButton></p>
         <section class="tarot-reading tarot-surface" :style="{ '--surface-art': cssUrl(resultPanel) }">
-          <img class="tarot-handle" :src="handle" alt="" />
+          <img decoding="async" class="tarot-handle" :src="handle" alt="" />
           <h1 id="tarot-card-title" ref="focusTitle" tabindex="-1">{{ selectedCard.name }}</h1>
           <div class="tarot-reading-copy" :class="{ 'has-advice': selectedCard.paragraphs[selectedCard.paragraphs.length - 1]?.startsWith('Совет дня:') }"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>
           <p v-if="saving" class="tarot-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><button class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</button></div>
-          <button v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</button>
-          <button class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="emit('back')">✦ К календарю ✦</button>
+          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>
+          <AppButton v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</AppButton>
+          <AppButton class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="emit('back')">✦ К календарю ✦</AppButton>
         </section>
-      </article>
+      </AppCard>
       <footer class="tarot-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
 :global(#app:has(.tarot-page)) { width: 100%; border: 0; }
-.tarot-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; color-scheme: dark; color: #fff3df; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; background: linear-gradient(to bottom right, #090807 0%, #291209 22%, #743012 48%, #cf5515 73%, #ff941f 100%); }
+.tarot-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; color-scheme: dark; color: #fff3df; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left;  }
 .tarot-decorations { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
 .tarot-decorations img { position: absolute; }
 .tarot-layout { position: relative; box-sizing: border-box; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 27px; }
 .tarot-state-choose .tarot-layout, .tarot-state-result .tarot-layout { padding-bottom: 25px; }
 .tarot-header { position: relative; box-sizing: border-box; height: 95px; padding-top: 34px; }
 .tarot-header > img { display: block; margin-inline: auto; }
-.tarot-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; margin: 0; border: 0; background: transparent; color: #fff0c4; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
+.tarot-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; margin: 0; border: 0; background: transparent; color: #fff0c4; font: 400 12px/15px var(--font-ui); cursor: pointer; }
 .tarot-surface { position: relative; isolation: isolate; box-sizing: border-box; }
 .tarot-surface::before { content: ''; position: absolute; inset: 0 -.5px; z-index: -1; border: 24px solid transparent; border-image: var(--surface-art) 24 fill / 24px stretch; pointer-events: none; }
 .tarot-intro-panel { padding: 34px clamp(16px, calc((100vw - 345px) / 2), 24px) 32px; }
 .tarot-date { margin: 0 0 8px; color: #ffe0a0; font-size: 11px; line-height: 13px; font-weight: 700; text-align: center; }
-.tarot-intro-panel h1 { margin: 0; color: #ffe3a7; font: 400 28px/35px 'Advent STIX', serif; letter-spacing: 0; text-align: center; }
-.tarot-close { position: absolute; top: 9px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #fff0c4; font: 400 26px/31px 'Advent Inter', sans-serif; cursor: pointer; }
+.tarot-intro-panel h1 { margin: 0; color: #ffe3a7; font: 400 28px/35px var(--font-display); letter-spacing: 0; text-align: center; }
+.tarot-close { position: absolute; top: 9px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #fff0c4; font: 400 26px/31px var(--font-ui); cursor: pointer; }
 .tarot-intro-panel .tarot-close { top: 13px; }
 .tarot-close:disabled { opacity: .6; cursor: default; }
 .tarot-fan { position: relative; display: block; width: 100%; max-width: 420px; padding: 0; margin: 7px auto 10px; border: 0; background: transparent; cursor: pointer; }
@@ -160,12 +167,12 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-intro-copy { width: calc(100% + 7px); color: #fff7e8; }
 .tarot-intro-copy p { margin: 0 0 20px; }
 .tarot-intro-copy p:last-child { margin-bottom: 0; }
-.tarot-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 60px; min-height: 60px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 18px; background-color: #e0b965; background-size: 100% 100%; color: #663319; font: 700 15px/18px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
+.tarot-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 60px; min-height: 60px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 18px; background-color: #e0b965; background-size: 100% 100%; color: #663319; font: 700 15px/18px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
 .tarot-button:disabled { opacity: .7; cursor: default; }
 .tarot-button:not(:disabled):hover { filter: brightness(1.06); }
 .tarot-draw { margin-top: 38px; }
 .tarot-choose-panel { width: calc(100% - 1px); margin-left: 1px; padding: 23px 14px 32px; }
-.tarot-choose-panel h1 { margin: 0 40px 14px 0; color: #f4dca8; font: 400 26px/33px 'Advent STIX', serif; letter-spacing: 0; }
+.tarot-choose-panel h1 { margin: 0 40px 14px 0; color: #f4dca8; font: 400 26px/33px var(--font-display); letter-spacing: 0; }
 .tarot-instruction { margin: 0; color: #fff0c4; font-size: 13px; line-height: 16px; }
 .tarot-once { margin: 5px 0 0; color: #fff0c4; font-size: 12px; line-height: 15px; }
 .tarot-deck { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 6px; row-gap: 11px; width: min(100%, 660px); margin: 21px auto 0; }
@@ -179,18 +186,18 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-chosen-image { display: block; width: 100%; height: 100%; object-fit: fill; }
 .tarot-reading { width: calc(100% - 2px); margin-left: 1px; padding: 36px clamp(16px, calc((100vw - 345px) / 2), 24px) 35px clamp(16px, calc((100vw - 343px) / 2), 25px); }
 .tarot-handle { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); }
-.tarot-reading h1 { margin: 0 0 14px; color: #ffe3a7; font: 400 26px/33px 'Advent STIX', serif; letter-spacing: 0; }
+.tarot-reading h1 { margin: 0 0 14px; color: #ffe3a7; font: 400 26px/33px var(--font-display); letter-spacing: 0; }
 .tarot-reading-copy p { margin: 0 0 20px; }
 .tarot-reading-copy p:last-child { margin-bottom: 0; }
 .tarot-reading-copy.has-advice p:nth-last-child(2) { margin-bottom: 0; }
 .tarot-disclaimer { margin: 20px 0 0; color: #f5d99d; font-size: 14px; line-height: 20px; font-style: italic; }
 .tarot-finish { margin-top: 27px; }
-.tarot-result-close { position: absolute; display: flex; align-items: center; justify-content: center; top: 48px; right: -1px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #fff0c4; font: 400 26px/31px 'Advent Inter', sans-serif; cursor: pointer; }
+.tarot-result-close { position: absolute; display: flex; align-items: center; justify-content: center; top: 48px; right: -1px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #fff0c4; font: 400 26px/31px var(--font-ui); cursor: pointer; }
 .tarot-result-close img { position: absolute; z-index: -1; top: 5px; left: 5px; }
 .tarot-status, .tarot-error { margin-top: 16px; color: #ffe0a0; font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
 .tarot-error p { margin: 0 0 12px; }
 .tarot-notice { padding: 32px 24px; min-height: 250px; }
-.tarot-notice h1 { color: #ffe3a7; font: 400 28px/35px 'Advent STIX', serif; letter-spacing: 0; }
+.tarot-notice h1 { color: #ffe3a7; font: 400 28px/35px var(--font-display); letter-spacing: 0; }
 .tarot-footer { margin-top: 24px; color: #fff0c4; font-size: 12px; line-height: 15px; text-align: center; }
 .tarot-result + .tarot-footer { margin-top: 23px; }
 .tarot-choose-panel + .tarot-footer { margin-top: 25px; }

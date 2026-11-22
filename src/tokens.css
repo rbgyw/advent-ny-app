@@ -1,0 +1,30 @@
+:root {
+  --color-ink: #623c28;
+  --color-action: #a7280b;
+  --color-action-hover: #962107;
+  --color-cream: #fff0d2;
+  --color-paper: #fdf6e3;
+  --color-auth-ink: #624631;
+  --color-muted: #866e55;
+  --color-warm-base: #c63d0f;
+  --font-ui: 'Advent Inter', sans-serif;
+  --font-display: 'Advent STIX', serif;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-control: 13px;
+  --radius-card: 24px;
+  --control-height: 52px;
+  --background-warm: radial-gradient(ellipse at 75% 70%, #ffbc55, transparent 65%), linear-gradient(125deg, #bb3008, #fc801d 60%, #ff9a30);
+  --background-night: linear-gradient(to bottom right, #090807 0%, #291209 22%, #743012 48%, #cf5515 73%, #ff941f 100%);
+  --background-night-wide: linear-gradient(174deg, #090807, #291209 23%, #743012 50%, #cf5515 79%, #ff941f);
+  --background-calendar: var(--background-night);
+  --background-task-glow: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%);
+}
+
+.advent-page-hidden #app *, .advent-page-hidden #app *::before, .advent-page-hidden #app *::after { animation-play-state:paused !important; }
+
+@media (min-width: 640px) {
+  :root { --background-calendar: var(--background-night-wide); }
+}

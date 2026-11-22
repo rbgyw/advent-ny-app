@@ -17,14 +17,15 @@ describe('calendar service', () => {
       user_tasks: [userTask], tasks: [task], task_responses: [response],
     };
     const filters: unknown[][] = [];
-    vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null } as never);
+    vi.mocked(supabase.rpc).mockReturnValue({ abortSignal: vi.fn().mockResolvedValue({ data: null, error: null }) } as never);
     vi.mocked(supabase.from).mockImplementation((table: string) => {
       const result = { data: queries[table], error: null };
       const query = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn((...args) => { filters.push([table, ...args]); return query; }),
         in: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue(result),
+        order: vi.fn().mockReturnThis(),
+        abortSignal: vi.fn().mockReturnThis(),
         then: (resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve),
       };
       return query as never;

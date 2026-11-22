@@ -13,7 +13,14 @@ import type { CalendarTask } from '../src/types/models';
 const route = reactive({ params: { id: '3' } });
 vi.mock('vue-router', () => ({ useRoute: () => route, useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('../src/lib/supabase', () => ({ supabase: { rpc: vi.fn().mockResolvedValue({ data: false, error: null }) } }));
-vi.mock('../src/services/calendar.service', () => ({ calendarService: { getUserCalendar: vi.fn(), saveTaskProgress: vi.fn() } }));
+vi.mock('../src/services/calendar.service', () => ({ calendarService: { getUserCalendar: vi.fn(),
+    getTaskProgress: vi.fn(async (userId: string, taskId: number) => {
+      const tasks = await calendarService.getUserCalendar(userId);
+      const current = tasks.find(item => item.task_id === taskId);
+      if (!current) return { assignment: {}, response: null };
+      const { task: _detail, response, ...assignment } = current;
+      return { assignment, response };
+    }), saveTaskProgress: vi.fn() } }));
 let tasks: CalendarTask[];
 
 function earlyTask(day: number) {

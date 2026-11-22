@@ -27,8 +27,8 @@ defineExpose({ showModal, close });
 </template>
 
 <style scoped>
-@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.ttf') format('truetype'); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Advent Inter'; src: url('../assets/splash/Inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Advent STIX'; src: url('../assets/splash/STIXTwoText.woff2') format('woff2'); font-weight: 400 700; font-display: swap; }
 .advent-popup { position: fixed; isolation: isolate; top: 50%; left: 50%; transform: translate(-50%, -50%); box-sizing: border-box; width: 345px; max-width: calc(100vw - 24px); max-height: calc(100svh - 32px); margin: 0; padding: 28px 24px; border: 0; border-radius: 23px; background: transparent; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; overflow-y: auto; }
 .advent-popup::before { content: ''; position: absolute; z-index: -1; inset: 0; border: 23px solid transparent; border-image: var(--popup-art) 23 fill / 23px stretch; pointer-events: none; }
 .advent-popup::backdrop { background: rgb(66 35 19 / 55%); }

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { useElementRef } from '../composables/useElementRef';
+import AppButton from './ui/AppButton.vue';
+import TaskLayout from './ui/TaskLayout.vue';
+import AppHeader from './ui/AppHeader.vue';
+import AppCard from './ui/AppCard.vue';
+import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
@@ -34,7 +40,7 @@ const cells = ref<CellMark[]>(Array(cellCount).fill(unmarked));
 const tool = ref<MarkingTool>(filled);
 const enlarged = ref(false);
 const validation = ref('');
-const panel = ref<HTMLElement>();
+const { element: panel, bind: bindPanel } = useElementRef();
 const dialog = ref<InstanceType<typeof PopupDialog>>();
 const dotCount = ref(0);
 let awaitingCompletion = false;
@@ -150,13 +156,13 @@ function backFromResult() {
 </script>
 
 <template>
-  <main class="nonogram-page">
+  <TaskLayout class="nonogram-page">
     <div class="nonogram-layout">
-      <header class="nonogram-header">
+      <AppHeader class="nonogram-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <button type="button" @click="emit('back')">← К календарю</button>
-      </header>
-      <article ref="panel" class="nonogram-panel" aria-labelledby="nonogram-title">
+        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+      </AppHeader>
+      <AppCard :ref="bindPanel" class="nonogram-panel" aria-labelledby="nonogram-title">
         <div class="nonogram-dots" aria-hidden="true">
           <img
             v-for="n in dotCount"
@@ -173,10 +179,10 @@ function backFromResult() {
           <p class="nonogram-badge">Обязательное задание</p>
         </div>
 
-        <p v-if="loading" class="nonogram-notice" role="status">Загружаем задание…</p>
+        <LoadingState v-if="loading" class="nonogram-notice" role="status" />
         <div v-else-if="error" class="nonogram-notice" role="alert">
           <p>{{ error }}</p>
-          <button class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</button>
+          <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </div>
         <p v-else-if="!assignment" class="nonogram-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="nonogram-notice">
@@ -197,18 +203,18 @@ function backFromResult() {
 
           <section class="nonogram-game" aria-label="Поле японского кроссворда" :aria-busy="saving">
             <div class="nonogram-tools" role="group" aria-label="Отметка клетки">
-              <button type="button" :aria-pressed="tool === filled" :disabled="completed || saving" @click="tool = filled">
+              <AppButton type="button" :aria-pressed="tool === filled" :disabled="completed || saving" @click="tool = filled">
                 <span aria-hidden="true">■</span> Закрасить
-              </button>
-              <button type="button" :aria-pressed="tool === crossed" :disabled="completed || saving" @click="tool = crossed">
+              </AppButton>
+              <AppButton type="button" :aria-pressed="tool === crossed" :disabled="completed || saving" @click="tool = crossed">
                 <span aria-hidden="true">×</span> Пустая клетка
-              </button>
+              </AppButton>
             </div>
             <div class="nonogram-meta">
               <p>Поле {{ nonogramSize }} × {{ nonogramSize }}</p>
-              <button type="button" :aria-pressed="enlarged" @click="enlarged = !enlarged">
+              <AppButton type="button" :aria-pressed="enlarged" @click="enlarged = !enlarged">
                 {{ enlarged ? 'Уменьшить ↙' : 'Увеличить ↗' }}
-              </button>
+              </AppButton>
             </div>
             <NonogramBoard
               :cells="completed ? solvedNonogram : cells"
@@ -220,38 +226,38 @@ function backFromResult() {
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
           </section>
-          <button class="nonogram-primary" type="button" :disabled="saving" @click="check">
+          <AppButton class="nonogram-primary" type="button" :disabled="saving" @click="check">
             {{ completed ? 'К календарю' : saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
-          </button>
+          </AppButton>
           <p v-if="completed" class="nonogram-feedback nonogram-success" role="status">Нонограм разгадан!</p>
           <p v-else-if="validation || saveError" class="nonogram-feedback nonogram-error" role="alert">
             {{ validation || saveError }}
           </p>
         </template>
-      </article>
+      </AppCard>
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
 
     <PopupDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
-      <button class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</button>
+      <AppButton class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</AppButton>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
-      <button class="nonogram-primary" type="button" @click="backFromResult">К календарю</button>
+      <AppButton class="nonogram-primary" type="button" @click="backFromResult">К календарю</AppButton>
     </PopupDialog>
-  </main>
+  </TaskLayout>
 </template>
 
 <style scoped>
 @font-face {
   font-family: 'Advent Inter';
-  src: url('../assets/splash/Inter.ttf') format('truetype');
+  src: url('../assets/splash/Inter.woff2') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Advent STIX';
-  src: url('../assets/splash/STIXTwoText.ttf') format('truetype');
+  src: url('../assets/splash/STIXTwoText.woff2') format('woff2');
   font-weight: 400 700;
   font-display: swap;
 }
