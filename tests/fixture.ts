@@ -35,7 +35,8 @@ export async function mockBackend(page: Page, options: { lockedAfter?: number; g
       data = { task_id: body.p_task_id, status: body.p_complete ? 'completed' : 'in_progress', completed_at: body.p_complete ? new Date().toISOString() : null, response: body.p_response };
     } else if (path.endsWith('/claim_tarot_card')) {
       const body = request.postDataJSON(); completed.add(body.p_task_id); responses[body.p_task_id] = { card_id: body.p_card_id }; data = { card_id: body.p_card_id };
-    } else if (path.endsWith('/attachments') || path.endsWith('/guiding_star_results')) data = [];
+    } else if (path.endsWith('/get_advent_video_state')) data = { votes: [], ranking: [], total_videos: 0, complete: completed.has(22) };
+    else if (path.endsWith('/attachments') || path.endsWith('/guiding_star_results')) data = [];
     const taskFilter = new URL(request.url()).searchParams.get('task_id');
     if (taskFilter && Array.isArray(data)) data = data.filter(item => item.task_id === Number(taskFilter.slice(3)));
     if (request.headers()['accept']?.includes('application/vnd.pgrst.object+json') && Array.isArray(data)) data = data[0] ?? null;

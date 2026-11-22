@@ -38,6 +38,7 @@ beforeAll(async () => {
     insert into public.user_tasks(user_id,task_id,position,available_date) values
       ('${user1}',22,22,current_date),('${user2}',22,22,current_date),('${stranger}',22,22,current_date+1);`);
   await db.exec(await readFile(new URL('../supabase/migrations/006_advent_video_voting.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/007_read_video_completion.sql', import.meta.url), 'utf8'));
   await db.exec(generateVideoCatalogSql([
     { id: 'a', title: "Видео ' $$ ; drop table public.tasks; --", videoUrl: 'a.mp4' },
     { id: 'b', title: 'B', videoUrl: 'b.mp4' },
@@ -104,5 +105,16 @@ describe('PostgreSQL video voting permissions and counts', () => {
     await db.exec('reset role');
     expect((await db.query('select * from public.advent_video_votes')).rows).toHaveLength(4);
     expect((await db.query('select * from public.tasks')).rows).toHaveLength(2);
+  });
+  it('reads saved completion independently of later catalog changes', async () => {
+    await db.exec(generateVideoCatalogSql([
+      { id: 'b', title: 'B', videoUrl: 'b.mp4' },
+      { id: 'new', title: 'New', videoUrl: 'new.mp4' },
+    ]));
+    await login(user1);
+    const current = await state();
+    expect(current.votes).toHaveLength(1);
+    expect(current.ranking).toHaveLength(2);
+    expect(current.complete).toBe(true);
   });
 });

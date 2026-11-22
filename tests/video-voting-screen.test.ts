@@ -21,7 +21,7 @@ describe('December 22 screen', () => {
     expect(view.text()).toContain('Здесь будет видео');
     expect(view.findAll<HTMLButtonElement>('.video-choices button').every(button => button.element.disabled)).toBe(true);
     expect(view.emitted('completed')).toBeUndefined();
-    expect(videoVotingService.loadState).not.toHaveBeenCalled();
+    expect(videoVotingService.loadState).toHaveBeenCalledExactlyOnceWith(22);
   });
   it('connects voting buttons, outgoing animation, server progress and the next card', async () => {
     vi.mocked(videoVotingService.vote).mockResolvedValue({ votes: [{ videoId: 'a', liked: true }], ranking, totalVideos: 4, complete: false });

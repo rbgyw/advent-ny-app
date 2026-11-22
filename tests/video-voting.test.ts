@@ -26,7 +26,7 @@ describe('server video voting state', () => {
     expect(rankedVideos(parseVideoCatalog([raw], source), parsed.ranking)[0]!.likes).toBe(12);
   });
   it.each([
-    null, { ...state, complete: false }, { ...state, total_videos: 2 },
+    null, { ...state, complete: 'false' }, { ...state, total_videos: 2 },
     { ...state, votes: [...state.votes, ...state.votes] },
     { ...state, ranking: [{ video_id: 'video-01', likes: -1 }] },
     { ...state, ranking: [{ video_id: 'video-01', likes: 1.5 }] },
