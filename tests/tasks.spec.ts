@@ -56,9 +56,11 @@ test('gratitude uses a local function fixture and never sends real mail', async 
   await page.getByRole('button', { name: 'Отправить благодарность', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible(); expect(payload?.taskId).toBe(8); expect(payload?.requestId).toBeTruthy();
 });
-test('stereogram keeps its existing answer and persists only completion', async ({ page }) => {
+test('stereogram accepts СЕРДЦЕ in six cells and persists only completion', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/11');
   const inputs = page.locator('.stereo-cell input');
+  await expect(inputs).toHaveCount(6);
+  expect(STEREOGRAM_LETTERS.join('')).toBe('сердце');
   for (const [index, letter] of STEREOGRAM_LETTERS.entries()) await inputs.nth(index).fill(letter);
   await page.getByRole('button', { name: 'Проверить ответ', exact: true }).click();
   await expect.poll(() => backend.completed.has(11)).toBe(true); expect(backend.responses[11]).toEqual({ solved: true });
