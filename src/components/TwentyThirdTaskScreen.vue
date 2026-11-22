@@ -30,7 +30,7 @@ function markViewed() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="23" title="Этот год запомнится нам"
+  <DecemberTaskLayout v-bind="props" title="Этот год запомнится нам"
     @back="emit('back')" @retry="emit('retry')">
     <div class="december-copy">
       <p>В этом году в ГЕРОФАРМ было много событий, но для каждого он запомнился чем-то своим: новым проектом, личной победой, поддержкой коллег или первым участием в корпоративном мероприятии.</p>

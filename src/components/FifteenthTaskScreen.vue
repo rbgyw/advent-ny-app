@@ -34,7 +34,7 @@ function submit() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="day" :title="completed ? 'Ваше напутствие на 2027 год' : 'Найдите свое предсказание на Новый год'" @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" :title="completed ? 'Ваше напутствие на 2027 год' : 'Найдите свое предсказание на Новый год'" @back="emit('back')" @retry="emit('retry')">
     <section v-if="completed" ref="result" class="december-panel word-result december-stack" tabindex="-1" aria-label="Напутствие">
       <strong v-if="prediction">{{ savedWord }}</strong>
       <p>{{ prediction ?? 'Напутствие не удалось восстановить.' }}</p>

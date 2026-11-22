@@ -3,6 +3,7 @@
   <FirstTaskScreen
     v-else-if="day === 1"
     :assignment="assignment"
+    :day="day"
     :loading="calendarStore.loading && !assignment"
     :error="assignment ? null : calendarStore.error"
     :total="calendarStore.totalCount"
@@ -363,6 +364,7 @@
   <TaskLayout v-else class="task-page">
     <AppButton type="button" @click="goBack">← Назад к календарю</AppButton>
 
+    <TaskDateLabel v-if="assignment" :available-date="assignment.available_date" :day="day" />
     <h1>День {{ day }}</h1>
 
     <LoadingState v-if="calendarStore.loading && !assignment" />
@@ -372,8 +374,15 @@
     <FeedbackState v-else-if="!assignment" message="Задание не найдено." />
 
     <section v-else-if="!assignment.task">
-      <h2>Задание пока закрыто</h2>
-      <p>Откроется {{ formatDate(assignment.available_date) }}</p>
+      <template v-if="assignment.available_date > campaignDate()">
+        <h2>Задание пока закрыто</h2>
+        <p>Откроется {{ formatDate(assignment.available_date) }}</p>
+      </template>
+      <template v-else>
+        <h2>Не удалось получить задание</h2>
+        <p>Дата открытия уже наступила.</p>
+        <AppButton type="button" variant="outline" @click="reloadFirstTask">Обновить задание</AppButton>
+      </template>
     </section>
 
     <section v-else>
@@ -487,8 +496,10 @@ import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../stores/auth";
 import { useCalendarStore } from "../stores/calendar";
 import { formatDate } from "../utils/date";
+import { campaignDate } from "../utils/calendar";
 import { taskStatusLabels } from "../const/task_status";
 import TaskAttachments from "../components/TaskAttachments.vue";
+import TaskDateLabel from "../components/ui/TaskDateLabel.vue";
 import { sendGratitude } from '../services/gratitude.service';
 import type { GratitudeLetter } from '../utils/gratitude';
 import type { FilmRecommendation } from '../utils/film';
@@ -556,8 +567,7 @@ const taskSaveError = computed(() => calendarStore.saveErrorTaskId === assignmen
 // Match task identity: personalised calendars may place it in another window.
 const isCipherTask = computed(() => assignment.value?.task?.slug === 'task-02' ||
   (!assignment.value?.task && (assignment.value?.task_id === 2 || day.value === 2)));
-const isMemoryTask = computed(() => assignment.value?.task?.slug === 'task-03' ||
-  (!assignment.value?.task && (assignment.value?.task_id === 3 || day.value === 3)));
+const isMemoryTask = computed(() => matchesTask(3));
 const isCrosswordTask = computed(() => assignment.value?.task?.slug === 'task-04' ||
   (!assignment.value?.task && (assignment.value?.task_id === 4 || day.value === 4)));
 const isPairsTask = computed(() => assignment.value?.task?.slug === 'task-05' ||
@@ -756,7 +766,9 @@ watch(
       return;
     }
 
-    await track(calendarStore.loadCalendar(userId));
+    const current = assignment.value;
+    // The date on a cached assignment may predate a change to the campaign schedule.
+    await track(calendarStore.loadCalendar(userId, Boolean(current && !current.task)));
   },
   { immediate: true },
 );

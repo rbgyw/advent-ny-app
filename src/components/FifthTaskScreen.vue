@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
@@ -8,7 +9,6 @@ import AppCard from './ui/AppCard.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { createPairDeck, initialPairDeck, isPairDeck, isPairsSolution, pairIds } from '../utils/pairs';
 import { pairProducts } from '../content/pairs-task';
 import wordmark from '../assets/first-task/wordmark.svg';
@@ -30,7 +30,6 @@ const cardScale = ref(1), ratio = ref(1477 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const won = computed(() => isPairsSolution(matched.value));
 const playable = computed(() => started.value && ready.value && !resolving.value && !won.value && !props.saving && !!props.assignment?.task && !props.loading && !props.error);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const storageKey = computed(() => props.userId && props.assignment?.task_id ? `advent-pairs-v1:${props.userId}:${props.assignment.task_id}` : '');
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
@@ -123,7 +122,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
     <div class="pairs-layout">
       <AppHeader class="pairs-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" class="pairs-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
-        <p class="pairs-date">{{ date }}</p>
+        <TaskDateLabel class="pairs-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="pairs-title">Что скрывают карточки?</h1>
         <LoadingState v-if="loading" class="pairs-notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>

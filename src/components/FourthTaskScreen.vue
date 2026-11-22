@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -52,7 +53,6 @@ const word = computed(() => crosswordWords.find(w => w.number === selected.value
 const path = computed(() => wordKeys(word.value));
 const count = computed(() => crosswordWords.filter(w => wordKeys(w).every(key => values.value[key])).length);
 const size = computed(() => Math.round(34 * zoom.value / 100));
-const date = computed(() => `${Number(props.assignment?.available_date?.slice(8, 10)) || props.day} ДЕКАБРЯ`);
 const storageKey = computed(() => props.userId && props.assignment?.task_id ? `advent-crossword-v1:${props.userId}:${props.assignment.task_id}` : '');
 const wordsByDirection = { across: crosswordWords.filter(word => word.direction === 'across'), down: crosswordWords.filter(word => word.direction === 'down') };
 const cssUrl = (url: string) => `url("${url}")`;
@@ -173,7 +173,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
       <AppCard :ref="bindCard" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
         <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
-        <p class="crossword-date">{{ date }}</p>
+        <TaskDateLabel class="crossword-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="crossword-title">Качество начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
         <LoadingState v-if="loading" class="notice" role="status" />

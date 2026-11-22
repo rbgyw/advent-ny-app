@@ -41,12 +41,17 @@ for (const state of ['available', 'closed', 'completed'] as const) {
   });
 }
 
-test('every task has one full-width background without tiling or horizontal overflow', async ({ page }) => {
+test('every task uses its assigned date and keeps a full-width background without overflow', async ({ page }) => {
   test.setTimeout(120_000);
-  await mockBackend(page);
+  await page.clock.setFixedTime(new Date('2026-11-22T12:00:00Z'));
+  const dateAtPosition = (day: number) => `2026-10-${String(day).padStart(2, '0')}`;
+  await mockBackend(page, { dateAtPosition });
   for (let day = 1; day <= 25; day++) {
     await page.goto(`/task/${day}`);
     await expect(page.locator('.screen-loader')).toHaveCount(0);
+    const date = page.locator('[data-task-date] time');
+    await expect(date, `date label for window ${day}`).toHaveText(`${day} ОКТЯБРЯ`);
+    await expect(date).toHaveAttribute('datetime', dateAtPosition(day));
     for (const viewport of [{ width: 320, height: 568 }, { width: 551, height: 917 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
       await expect.poll(async () => page.locator('main').evaluate(element => {

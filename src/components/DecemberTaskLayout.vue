@@ -1,28 +1,23 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import wordmark from '../assets/first-task/wordmark.svg';
 import wreath from '../assets/sports/wreath.svg';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import type { CalendarTask } from '../types/models';
 
 defineOptions({ inheritAttrs: false });
 
-const props = defineProps<{
+defineProps<{
   assignment?: CalendarTask;
   day: number;
   total: number;
   loading: boolean;
   error: string | null;
   title: string;
-  taskNumber: number;
   mandatory?: boolean;
   brandSrc?: string;
 }>();
 const emit = defineEmits<{ back: []; retry: [] }>();
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : `${props.taskNumber} ДЕКАБРЯ`);
 </script>
 
 <template>
@@ -34,7 +29,7 @@ const date = computed(() => props.assignment
       </header>
       <article class="december-card" aria-labelledby="december-title">
         <slot name="decoration"><img v-if="mandatory" class="december-wreath" :src="wreath" alt="" /></slot>
-        <p class="december-date">{{ date }}</p>
+        <TaskDateLabel class="december-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="december-title">{{ title }}</h1>
         <p v-if="mandatory" class="december-badge">Обязательное задание</p>
         <div class="december-content">

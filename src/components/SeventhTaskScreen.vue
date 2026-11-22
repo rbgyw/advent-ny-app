@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import PopupDialog from './PopupDialog.vue';
 import TaskAttachments from './TaskAttachments.vue';
@@ -11,7 +12,6 @@ import pose04 from '../assets/sports/team-pose-04.png';
 import { isSportLevel, isTeamPose, sportLevels, teamPoses, type SportLevel, type SportSubmission } from '../content/sport-task';
 import type { TaskAttachment } from '../services/attachments.service';
 import type { CalendarTask } from '../types/models';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 
 const props = defineProps<{
@@ -47,9 +47,6 @@ const pending = computed(() => response.value?.submitted_for_review === true);
 const busy = computed(() => props.saving || uploadBusy.value);
 const poseIndex = ref(isTeamPose(response.value?.team_pose) ? teamPoses.indexOf(response.value.team_pose) : 0);
 const pose = computed(() => teamPoses[poseIndex.value]!);
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '7 ДЕКАБРЯ');
 const title = computed(() => {
   if (completed.value) return 'Задание выполнено';
   if (pending.value) return 'Фото получено';
@@ -105,7 +102,7 @@ function submit() {
       <article class="sport-card" aria-labelledby="sport-title">
         <header class="sport-card-header">
           <div>
-            <p class="sport-date">{{ date }}</p>
+            <TaskDateLabel class="sport-date" :available-date="assignment?.available_date" :day="day" />
             <h1 id="sport-title" ref="heading" tabindex="-1">{{ title }}</h1>
             <p v-if="!pending && !completed" class="sport-badge">Обязательное задание</p>
           </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -9,7 +10,7 @@ import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
+import { abortable } from '../utils/screen-resources';
 import { shuffleTarotDeck, tarotCardId } from '../utils/tarot';
 import { tarotCards } from '../content/tarot-task';
 import { tarotDecorations, tarotDecorationImage } from '../content/tarot-decorations';
@@ -31,13 +32,13 @@ const stage = ref<'intro' | 'choose' | 'result'>('intro');
 const deck = ref(shuffleTarotDeck()), pending = ref<number | null>(null);
 const { element: page, bind: bindPage } = useElementRef();
 const { element: fan, bind: bindFan } = useElementRef();
+const { element: choosePanelElement, bind: bindChoosePanel } = useElementRef();
 const focusTitle = ref<HTMLElement>();
 const pageHeight = ref(938), fanScale = ref(1), imageError = ref(false), imageKey = ref(0);
 const selectedId = computed(() => tarotCardId(props.assignment?.response?.response));
 const selectedCard = computed(() => selectedId.value !== null ? tarotCards[selectedId.value] : undefined);
 const completed = computed(() => props.assignment?.status === 'completed');
 const inaccessibleResult = computed(() => completed.value && !selectedCard.value);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const canChoose = computed(() => !!props.assignment?.task && !props.loading && !props.error && !props.saving && pending.value === null && !completed.value && selectedId.value === null);
 const decorations = computed(() => stage.value === 'intro' ? tarotDecorations.intro : tarotDecorations.choose);
 const decorHeight = computed(() => stage.value === 'intro' ? 938 : stage.value === 'choose' ? 1530 : 1275);
@@ -51,10 +52,27 @@ const fanCards = [
 ];
 let observer: ResizeObserver | undefined, resizeFrame = 0;
 let drawAnimation: Animation | undefined;
+let deckExit: Animation | undefined;
+let preloadedArtwork: { id: number; ready: Promise<void> } | undefined;
 const revealOnDraw = ref(false);
 const pendingSizes = new Map<Element, { width: number; height: number }>();
+
+function stopMotion() {
+  drawAnimation?.cancel();
+  deckExit?.cancel();
+  drawAnimation = deckExit = undefined;
+  preloadedArtwork = undefined;
+}
+
+function loadArtwork(id: number) {
+  const artwork = tarotCards[id];
+  if (!artwork) return Promise.resolve();
+  const image = new Image();
+  image.src = artwork.image;
+  return image.decode().catch(() => undefined);
+}
 watch(() => `${props.userId || ''}:${props.assignment?.task_id || ''}`, () => {
-  drawAnimation?.cancel(); revealOnDraw.value = false;
+  stopMotion(); revealOnDraw.value = false;
   pending.value = null; deck.value = shuffleTarotDeck(); imageError.value = false;
   stage.value = selectedCard.value ? 'result' : 'intro';
 }, { immediate: true });
@@ -62,9 +80,22 @@ watch(selectedId, async (id, _, onCleanup) => {
   if (id === null) return;
   let stale = false;
   onCleanup(() => { stale = true; });
-  await drawAnimation?.finished.catch(() => undefined);
-  if (stale) return;
-  revealOnDraw.value = pending.value !== null;
+  const animated = pending.value !== null && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (animated) {
+    const artwork = preloadedArtwork?.id === id ? preloadedArtwork.ready : loadArtwork(id);
+    await Promise.all([
+      drawAnimation?.finished.catch(() => undefined),
+      abortable(artwork, AbortSignal.timeout(1200)).catch(() => undefined),
+    ]);
+    if (stale) return;
+    deckExit = choosePanelElement.value?.animate([
+      { opacity: 1, transform: 'translateY(0)' },
+      { opacity: 0, transform: 'translateY(-8px)' },
+    ], { duration: 180, easing: 'ease-in', fill: 'forwards' });
+    await deckExit?.finished.catch(() => undefined);
+    if (stale) return;
+  }
+  revealOnDraw.value = animated;
   pending.value = null; stage.value = 'result'; imageError.value = false;
   await nextTick();
   window.scrollTo({ top: 0, behavior: 'instant' });
@@ -72,19 +103,19 @@ watch(selectedId, async (id, _, onCleanup) => {
 });
 watch(fan, element => { if (element) observer?.observe(element); });
 async function changeStage(value: 'intro' | 'choose') {
-  if (props.saving) return;
-  drawAnimation?.cancel();
+  if (props.saving || selectedId.value !== null) return;
+  stopMotion();
   stage.value = value; if (pending.value === null) emit('edit'); await nextTick(); window.scrollTo({ top: 0, behavior: 'instant' }); focusTitle.value?.focus({ preventScroll: true });
 }
 function choose(id: number, event: MouseEvent) {
   if (!canChoose.value) return;
   pending.value = id;
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches && event.currentTarget instanceof HTMLElement) {
+    preloadedArtwork = { id, ready: loadArtwork(id) };
     drawAnimation = event.currentTarget.animate([
-      { transform: 'translateY(0) scale(1) rotate(0)' },
-      { transform: 'translateY(-36%) scale(1.16) rotate(-5deg)' },
-      { transform: 'translateY(-45%) scale(1.2) rotate(0)' },
-    ], { duration: 420, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'forwards' });
+      { transform: getComputedStyle(event.currentTarget).transform },
+      { transform: 'translateY(-38%) scale(1.16) rotate(-3deg)' },
+    ], { duration: 540, easing: 'cubic-bezier(.2,.65,.3,1)', fill: 'forwards' });
   }
   emit('draw', id);
 }
@@ -105,7 +136,7 @@ onMounted(() => {
   if (page.value) observer.observe(page.value);
   if (fan.value) observer.observe(fan.value);
 });
-onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame); drawAnimation?.cancel(); });
+onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame); stopMotion(); });
 </script>
 
 <template>
@@ -114,6 +145,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
     <div class="tarot-layout">
       <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
+        <TaskDateLabel class="tarot-date" :available-date="assignment?.available_date" :day="day" />
         <h1>Что подскажет карта?</h1>
         <LoadingState v-if="loading" role="status" />
         <template v-else-if="error"><p role="alert">{{ error }}</p><AppButton class="tarot-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></template>
@@ -123,7 +155,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
       </section>
       <AppCard v-else-if="stage === 'intro'" class="tarot-intro-panel tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }" aria-labelledby="tarot-intro-title">
         <AppButton class="tarot-close" type="button" aria-label="Закрыть задание и вернуться к календарю" @click="emit('back')">×</AppButton>
-        <p class="tarot-date">{{ date }}</p>
+        <TaskDateLabel class="tarot-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="tarot-intro-title" ref="focusTitle" tabindex="-1">Что подскажет карта?</h1>
         <AppButton :ref="bindFan" class="tarot-fan" type="button" :style="{ height: `${200 * fanScale}px` }" aria-label="Перейти к выбору карты" @click="changeStage('choose')">
           <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img decoding="async" class="tarot-fan-image" :src="cardBack" alt="" /><img decoding="async" class="tarot-fan-border" :src="item.border" alt="" /></span><img decoding="async" class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
@@ -136,8 +168,9 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         </div>
         <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</AppButton>
       </AppCard>
-      <AppCard v-else-if="stage === 'choose'" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
-        <AppButton class="tarot-close" type="button" :disabled="saving" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
+      <AppCard v-else-if="stage === 'choose'" :ref="bindChoosePanel" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
+        <AppButton class="tarot-close" type="button" :disabled="saving || selectedId !== null" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
+        <TaskDateLabel class="tarot-date tarot-date-left" :available-date="assignment?.available_date" :day="day" />
         <h1 id="tarot-choose-title" ref="focusTitle" tabindex="-1">Выберите карту</h1>
         <p class="tarot-instruction">Нажмите на любую карту в колоде.</p>
         <p class="tarot-once">Выбрать можно только один раз за весь адвент.</p>
@@ -152,6 +185,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p v-if="imageError" role="alert">Не удалось загрузить изображение. <AppButton type="button" @click="imageKey++">Загрузить ещё раз</AppButton></p>
         <section class="tarot-reading tarot-surface" :style="{ '--surface-art': cssUrl(resultPanel) }">
           <img decoding="async" class="tarot-handle" :src="handle" alt="" />
+          <TaskDateLabel class="tarot-date tarot-date-left" :available-date="assignment?.available_date" :day="day" />
           <h1 id="tarot-card-title" ref="focusTitle" tabindex="-1">{{ selectedCard.name }}</h1>
           <div class="tarot-reading-copy" :class="{ 'has-advice': selectedCard.paragraphs[selectedCard.paragraphs.length - 1]?.startsWith('Совет дня:') }"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>
@@ -180,6 +214,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-surface::before { content: ''; position: absolute; inset: 0 -.5px; z-index: -1; border: 24px solid transparent; border-image: var(--surface-art) 24 fill / 24px stretch; pointer-events: none; }
 .tarot-intro-panel { padding: 34px clamp(16px, calc((100vw - 345px) / 2), 24px) 32px; }
 .tarot-date { margin: 0 0 8px; color: #ffe0a0; font-size: 11px; line-height: 13px; font-weight: 700; text-align: center; }
+.tarot-date-left { text-align: left; }
 .tarot-intro-panel h1 { margin: 0; color: #ffe3a7; font: 400 28px/35px var(--font-display); letter-spacing: 0; text-align: center; }
 .tarot-close { position: absolute; top: 9px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #fff0c4; font: 400 26px/31px var(--font-ui); cursor: pointer; }
 .tarot-intro-panel .tarot-close { top: 13px; }
@@ -233,8 +268,8 @@ h1:focus { outline: 0; }
 @media (max-width: 767px) { .tarot-deck { max-width: 330px; } }
 @keyframes tarot-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: no-preference) {
-  .tarot-reveal .tarot-chosen-frame { animation: tarot-reveal 300ms ease-out both; }
-  .tarot-reveal .tarot-reading { animation: tarot-reveal 350ms 160ms ease-out both; }
+  .tarot-reveal .tarot-chosen-frame { animation: tarot-reveal 440ms cubic-bezier(.22,.61,.36,1) both; }
+  .tarot-reveal .tarot-reading { animation: tarot-reveal 420ms 80ms cubic-bezier(.22,.61,.36,1) both; }
 }
 @media (prefers-reduced-motion: reduce) { .tarot-deck-card { transition: none; } .tarot-deck-card:not(:disabled):hover { transform: none; } }
 </style>

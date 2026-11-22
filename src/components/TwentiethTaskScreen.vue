@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import PopupDialog from './PopupDialog.vue';
 import type { DecemberTaskEvents, DecemberTaskProps } from '../types/december';
 import { guidingSky, guidingStars, guidingStarOverlay, guidingStarExhaustedText, guidingStarFoundText, guidingStarHints, guidingStarWishText } from '../content/guiding-star';
@@ -136,7 +137,7 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 
 <template>
   <DecemberTaskLayout v-if="!serverResult || !ready" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
-    :task-number="20" title="Найдите свою путеводную звезду" @back="emit('back')" @retry="emit('retry')">
+    title="Найдите свою путеводную звезду" @back="emit('back')" @retry="emit('retry')">
     <p class="guiding-poem"><em>Звезд на небе тьма.<br />Но попробуй отыскать<br />ту, что светит вам.</em></p>
     <div class="december-copy">
       <p>К картам таро вы уже обращались, желание со снежинкой ГЕРОФАРМ тоже загадывали. Сегодня подключаем звёзды — пусть у задуманного будет ещё больше поддержки.</p>
@@ -173,10 +174,11 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
       <p v-if="storageWarning" class="guiding-message" role="status">Браузер не разрешил сохранить поиск. Не закрывайте страницу до завершения.</p>
     </section>
   </DecemberTaskLayout>
-  <main v-else class="december-page guiding-completed" aria-label="Результат задания на 20 декабря" />
+  <main v-else class="december-page guiding-completed" aria-label="Результат задания" />
   <PopupDialog v-model:open="popupOpen" class="december-dialog guiding-dialog" aria-labelledby="guiding-result-title" @close="onDialogClose">
     <button class="december-dialog-close" type="button" aria-label="Закрыть окно" @click="popupOpen = false">×</button>
     <div class="guiding-dialog-star" aria-hidden="true">✦</div>
+    <TaskDateLabel v-if="serverResult" class="guiding-date" :available-date="assignment?.available_date" :day="day" />
     <h2 id="guiding-result-title">{{ phase === 'exhausted' ? 'Поиски завершены' : phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
     <p>{{ phase === 'exhausted' ? guidingStarExhaustedText : phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
     <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
@@ -207,6 +209,7 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 .guiding-star:hover:not(:disabled) .guiding-star-art { filter: drop-shadow(0 0 5px #ffe3a7); }
 .guiding-star:focus-visible { outline: 2px solid #ffe3a7; outline-offset: 1px; }
 .guiding-message { margin-top: 14px; font-size: 13px; line-height: 19px; }
+.guiding-date { color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
 .guiding-dialog { --dec-red: #a7280b; --dec-paper: #fcf6e8; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; color-scheme: light; text-align: left; letter-spacing: 0; width: min(345px, calc(100% - 32px)); padding: 24px; border: 0; background: #fff5e3; overflow-y: auto; }
 .guiding-dialog-star { margin: 3px 0 18px; color: #c69b3c; font-size: 44px; line-height: 53px; text-align: center; }
 .guiding-dialog h2 { margin: 0; padding: 0; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; }

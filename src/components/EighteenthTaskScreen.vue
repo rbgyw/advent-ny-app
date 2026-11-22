@@ -31,7 +31,7 @@ function toggleRecipe() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="18" title="Праздник со вкусом" @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" title="Праздник со вкусом" @back="emit('back')" @retry="emit('retry')">
     <div class="december-copy">
       <p>В ГЕРОФАРМ мы каждый день заботимся о здоровье людей — и в преддверии праздников предлагаем вспомнить об этом при составлении новогоднего меню.</p>
       <p>Вместе с врачом-эндокринологом мы собрали рецепты, которые помогут сделать праздничное меню сбалансированнее, сохранив удовольствие от вкусной еды.</p>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -8,7 +9,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
-import { shortCalendarDate } from '../utils/calendar'
 import { CIPHER_LETTERS, cipherLettersFromText, isCipherSolution } from '../utils/cipher'
 import { cipherAlphabet, cipherFigures } from '../content/cipher-art'
 import wordmark from '../assets/first-task/wordmark.svg'
@@ -41,7 +41,6 @@ const ratio = ref(1452 / 393)
 const boardScale = ref(1)
 const messageScale = ref(1)
 const completed = computed(() => props.assignment?.status === 'completed')
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '2 ДЕКАБРЯ')
 const words = [Array.from({ length: 10 }, (_, i) => i), Array.from({ length: 5 }, (_, i) => i + 10)]
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
@@ -135,7 +134,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
         <AppButton class="cipher-back" type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
-        <p class="cipher-date">{{ date }}</p>
+        <TaskDateLabel class="cipher-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
         <LoadingState v-if="loading" class="cipher-notice" role="status" />
         <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>

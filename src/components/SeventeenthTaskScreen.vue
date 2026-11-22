@@ -59,7 +59,7 @@ function submit() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="17" title="Повтори, если сможешь!" mandatory @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" mandatory @back="emit('back')" @retry="emit('retry')">
     <div class="december-copy">
       <p>Праздник все ближе — самое время сделать фото, которые захочется пересматривать!</p>
       <p>Сегодня предлагаем повторить кадр из нашей подборки: зимнюю фотографию, новогоднюю сцену или узнаваемый мем. Можно позвать коллег или устроить маленькую фотосессию самостоятельно.</p>

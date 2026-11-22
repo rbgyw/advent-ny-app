@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -14,6 +15,7 @@ import emojiPreview from "../assets/first-task/emoji-preview.png";
 
 defineProps<{
   assignment: CalendarTask | undefined;
+  day: number;
   loading: boolean;
   error: string | null;
   total: number;
@@ -45,7 +47,7 @@ function cssUrl(url: string) {
         aria-labelledby="first-task-title"
         data-figma-node="91:20"
       >
-        <p class="first-task-date">1 ДЕКАБРЯ</p>
+        <TaskDateLabel class="first-task-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="first-task-title">Праздник к нам приходит</h1>
 
         <LoadingState v-if="loading" class="first-task-notice" role="status" />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useCampaignClock } from '../composables/useCampaignClock';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -8,7 +9,6 @@ import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { filmError, filmSubmissionOpen, normalizeFilm, type FilmRecommendation } from '../utils/film';
 import wordmark from '../assets/film/wordmark.svg';
 import panelArt from '../assets/film/panel.svg';
@@ -26,7 +26,6 @@ const { now, refreshClock } = useCampaignClock();
 const validation = ref(''), invalidField = ref(''), ratio = ref(1529 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
 const closed = computed(() => !filmSubmissionOpen(props.assignment?.available_date, new Date(now.value)));
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
 let observer: ResizeObserver | undefined;
@@ -68,7 +67,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
     <div class="film-layout">
       <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
-        <p class="film-date">{{ date }}</p>
+        <TaskDateLabel class="film-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
         <LoadingState v-if="loading" class="film-notice" role="status" />
         <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>

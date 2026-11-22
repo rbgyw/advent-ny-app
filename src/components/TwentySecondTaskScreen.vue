@@ -26,7 +26,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :brand-src="brand" :task-number="22"
+  <DecemberTaskLayout v-bind="props" :brand-src="brand"
     :title="rankingOpen ? 'Топ-3 роликов' : 'Свет, камера, контент!'" @back="emit('back')" @retry="emit('retry')">
     <template v-if="rankingOpen">
       <p class="video-thanks" role="status">Спасибо! Ваши оценки учтены.</p>

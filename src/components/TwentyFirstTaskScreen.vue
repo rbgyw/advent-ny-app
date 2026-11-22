@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useElementRef } from '../composables/useElementRef';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -8,7 +9,6 @@ import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import {
   crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked,
@@ -46,9 +46,6 @@ const dotCount = ref(0);
 let awaitingCompletion = false;
 
 const completed = computed(() => props.assignment?.status === 'completed');
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '21 ДЕКАБРЯ');
 const draftKey = computed(() => {
   const assignment = props.assignment;
   return assignment?.task ? `advent:nonogram:v1:${assignment.user_id}:${assignment.id}` : null;
@@ -174,7 +171,7 @@ function backFromResult() {
         </div>
         <div class="nonogram-heading">
           <img class="nonogram-wreath" :src="wreath" alt="" />
-          <p class="nonogram-date">{{ date }}</p>
+          <TaskDateLabel class="nonogram-date" :available-date="assignment?.available_date" :day="day" />
           <h1 id="nonogram-title">Что скрывает нонограм?</h1>
           <p class="nonogram-badge">Обязательное задание</p>
         </div>

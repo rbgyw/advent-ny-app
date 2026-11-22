@@ -168,7 +168,7 @@ function retryImage() {
 
 <template>
   <DecemberTaskLayout :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
-    :task-number="19" title="Где же Поджик?" mandatory @back="emit('back')" @retry="emit('retry')">
+    title="Где же Поджик?" mandatory @back="emit('back')" @retry="emit('retry')">
     <template v-if="success" #decoration>
       <img class="podzhik-found" :src="found" width="104" height="159" alt="Поджик машет рукой" />
     </template>

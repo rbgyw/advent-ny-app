@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -9,7 +10,6 @@ import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { isStereogramSolution, STEREOGRAM_LETTERS, stereogramLetters } from '../utils/stereogram';
 import wordmark from '../assets/stereogram/wordmark.svg';
 import panelArt from '../assets/stereogram/panel.svg';
@@ -31,7 +31,6 @@ const { element: panel, bind: bindPanel } = useElementRef();
 const panelWidth = ref(361), panelHeight = ref(1095);
 const completed = computed(() => props.assignment?.status === 'completed');
 const locked = computed(() => props.loading || props.saving || completed.value || !props.assignment?.task);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const cssUrl = (url: string) => `url("${url}")`;
 const borderDots = computed(() => {
   // Same responsive dot geometry as the existing crossword card; reuse its original SVG.
@@ -98,7 +97,7 @@ onBeforeUnmount(() => observer?.disconnect());
       <AppCard :ref="bindPanel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
-        <p class="stereo-date">{{ date }}</p>
+        <TaskDateLabel class="stereo-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />

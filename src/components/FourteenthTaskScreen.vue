@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -8,7 +9,6 @@ import AppHeader from './ui/AppHeader.vue';
 import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import {
   findRaskobkiAnswer, raskobkiAnswers, raskobkiSlots, type RaskobkiAnswer,
@@ -50,9 +50,6 @@ const progressKey = computed(() => {
 const revealed = (answer: RaskobkiAnswer) => completed.value || solved.value.includes(answer);
 const solvedCount = computed(() => answerIds.filter(revealed).length);
 const allSolved = computed(() => solvedCount.value === answerIds.length);
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '14 ДЕКАБРЯ');
 
 watch(panel, (element, _, onCleanup) => {
   if (!element) return;
@@ -152,7 +149,7 @@ function submit() {
         </div>
         <div class="raskobki-heading">
           <img decoding="async" class="raskobki-wreath" :src="wreath" alt="" />
-          <p class="raskobki-date">{{ date }}</p>
+          <TaskDateLabel class="raskobki-date" :available-date="assignment?.available_date" :day="day" />
           <h1 id="raskobki-title">Ра[скобки]</h1>
           <p class="raskobki-badge">Обязательное задание</p>
         </div>

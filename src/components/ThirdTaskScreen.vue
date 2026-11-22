@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useCampaignClock } from '../composables/useCampaignClock';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -9,7 +10,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models'
 import { formatDate } from '../utils/date'
-import { shortCalendarDate } from '../utils/calendar'
 import { memorySubmissionOpen } from '../utils/memory'
 import TaskAttachments from './TaskAttachments.vue'
 import wordmark from '../assets/first-task/wordmark.svg'
@@ -39,12 +39,11 @@ const textarea = ref<HTMLTextAreaElement | null>(null)
 const attachmentsBusy = ref(false)
 const validation = ref('')
 const popupOpen = ref(false)
-const { now, refreshClock } = useCampaignClock()
+const { now, today, refreshClock } = useCampaignClock()
 const ratio = ref(1477 / 393)
 const completed = computed(() => props.assignment?.status === 'completed')
 const closed = computed(() => !memorySubmissionOpen(props.assignment?.available_date, new Date(now.value)))
 const busy = computed(() => props.saving || attachmentsBusy.value)
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : '3 ДЕКАБРЯ')
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`)
 let observer: ResizeObserver | undefined
 function cssUrl(url: string) { return `url("${url}")` }
@@ -92,12 +91,18 @@ onBeforeUnmount(() => {
         <AppButton class="memory-back" type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
-        <p class="memory-date">{{ date }}</p>
+        <TaskDateLabel class="memory-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
         <LoadingState v-if="loading" class="memory-notice" role="status" />
         <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
-        <p v-else-if="!assignment.task" class="memory-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
+        <p v-else-if="!assignment.task && assignment.available_date > today" class="memory-notice" role="status">
+          Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.
+        </p>
+        <div v-else-if="!assignment.task" class="memory-notice">
+          <p role="alert">Дата открытия уже наступила. Не удалось получить задание.</p>
+          <AppButton class="memory-button" type="button" @click="emit('retry')">Обновить задание</AppButton>
+        </div>
         <template v-else>
           <div class="memory-copy" data-figma-node="28:40850">
             <p>За год в ГЕРОФАРМ происходит столько событий: деловые встречи, совместные проекты, спортивные мероприятия и корпоративные праздники… Но иногда самые яркие воспоминания связаны с обычными рабочими днями: когда удалось справиться со сложной задачей, коллега поддержал в нужный момент или вы впервые приняли участие в спортивном мероприятии.</p>

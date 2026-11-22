@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
 import AppButton from './ui/AppButton.vue';
@@ -8,7 +9,6 @@ import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { wishSnow } from '../content/wish-snow';
 import WishGlobe from './WishGlobe.vue';
 import TaskMusicButton from './TaskMusicButton.vue';
@@ -22,7 +22,6 @@ const started = ref(false), confirmed = ref(false);
 const completed = computed(() => props.assignment?.status === 'completed');
 const stage = computed(() => completed.value ? 'accepted' : started.value ? 'wishing' : 'intro');
 const snowfall = computed(() => started.value && !completed.value && !confirmed.value);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const background = ref<HTMLElement>(), heading = ref<HTMLElement>();
 const ratio = ref(1529 / 393);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
@@ -40,6 +39,7 @@ function confirmWish() {
   confirmed.value = true; emit('edit'); emit('confirm');
 }
 watch(completed, value => { if (value) void focusHeading(); });
+watch(() => props.saveError, error => { if (error) confirmed.value = false; });
 watch(() => props.assignment?.id, () => { started.value = false; confirmed.value = false; });
 onMounted(() => {
   observer = new ResizeObserver(entries => { const size = entries[0]?.contentRect; if (size?.width) ratio.value = size.height / size.width; });
@@ -54,7 +54,7 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
     <div class="wish-layout">
       <AppHeader variant="task" class="wish-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
-        <p class="wish-date">{{ date }}</p>
+        <TaskDateLabel class="wish-date" :available-date="assignment?.available_date" :day="day" />
         <LoadingState v-if="loading" class="wish-notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="wish-notice"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="wish-notice" message="Задание не найдено." />
@@ -79,7 +79,7 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
       </AppCard>
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <div v-if="stage !== 'intro' && !loading && !error && assignment?.task" class="wish-snow" :class="{ 'is-falling': snowfall, 'is-settled': completed }" aria-hidden="true">
+    <div v-if="snowfall && !loading && !error && assignment?.task" class="wish-snow" aria-hidden="true">
       <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img decoding="async" :src="flake.src" alt="" /></span>
     </div>
   </TaskLayout>
@@ -121,10 +121,8 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .wish-error { margin-top: 16px; color: var(--color-action); font-size: 13px; line-height: 18px; overflow-wrap: anywhere; }
 button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
 .wish-snow { position: fixed; z-index: 3; inset: 0; overflow: hidden; pointer-events: none; }
-.wish-flake { position: absolute; top: -48px; opacity: .9; animation-name: wish-snowfall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; animation-play-state: paused; }
+.wish-flake { position: absolute; top: -48px; opacity: .9; animation-name: wish-snowfall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 .wish-flake img { display: block; }
-.wish-snow.is-settled .wish-flake { top: var(--rest-y); animation: none; }
-.wish-snow.is-falling .wish-flake { animation-play-state: running; }
 @keyframes wish-snowfall { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(var(--drift), calc(100svh + 96px), 0) rotate(var(--turn)); } }
 @media (prefers-reduced-motion: reduce) { .wish-flake { top: var(--rest-y); animation: none; } }
 @media (max-width: 360px) { .wish-layout { padding-inline: 12px; } .wish-panel { padding-inline: 18px; } .wish-panel h1 { font-size: 26px; } }

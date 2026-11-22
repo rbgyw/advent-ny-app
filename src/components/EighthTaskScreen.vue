@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -8,7 +9,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { gratitudeError, normalizeGratitude, type GratitudeLetter } from '../utils/gratitude';
 import wordmark from '../assets/gratitude/wordmark.svg';
 import panel from '../assets/gratitude/panel.svg';
@@ -39,7 +39,6 @@ const sending = ref(false), sent = ref(false), sendError = ref('');
 const invalidField = ref('');
 const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof PopupDialog>>();
 const background = ref<HTMLElement>(), ratio = ref(1529 / 393);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
 // Final positions reproduce the nine individual Figma layers. All start behind the envelope front.
@@ -95,7 +94,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
     <div class="gratitude-layout">
       <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
-        <p class="gratitude-date">{{ date }}</p>
+        <TaskDateLabel class="gratitude-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
         <LoadingState v-if="loading" class="gratitude-notice" role="status" />
         <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
