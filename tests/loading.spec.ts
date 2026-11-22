@@ -67,7 +67,7 @@ test('loader fits narrow, landscape, tablet and desktop screens and respects red
     expect(layout.textTop).toBeGreaterThan(layout.snowBottom);
     expect(layout.textBottom).toBeLessThan(viewport.height);
     expect(layout.animation).toBe('none');
-    if (viewport.width === 393 || viewport.width === 1440) await page.screenshot({ path: `/tmp/advent-loader-${viewport.width}.png` });
+    if (viewport.width === 393 || viewport.width === 1440) await page.screenshot({ path: test.info().outputPath(`advent-loader-${viewport.width}.png`) });
   }
   data.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
@@ -80,8 +80,9 @@ test('failed illustration offers a retry instead of exposing a partial calendar'
   await page.goto('/calendar');
   await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось загрузить экран');
   await expect(page.locator('.calendar-page')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
   await page.unroute(asset);
-  await page.getByRole('button', { name: 'Попробовать снова' }).click();
+  await page.keyboard.press('Enter');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.calendar-page')).toBeVisible();
 });
@@ -166,7 +167,7 @@ test('night boot loader fills non-iPhone aspect ratios without SVG side bars', a
     await expect(loader).not.toHaveCSS('background-image', /url\(/);
     const box = await loader.boundingBox();
     expect(box).toEqual({ x: 0, y: 0, width: viewport.width, height: viewport.height });
-    if (viewport.width === 551) await page.screenshot({ path: '/tmp/advent-loader-no-side-bars.png' });
+    if (viewport.width === 551) await page.screenshot({ path: test.info().outputPath('advent-loader-no-side-bars.png') });
   }
   code.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
@@ -201,16 +202,15 @@ test('focused calendar controls are made inert without aria-hidden violations on
   expect(warnings).toEqual([]);
 });
 
-test('a failed route keeps the previous screen inert behind the retry button', async ({ page }) => {
+test('a failed route moves keyboard focus to retry and keeps the previous screen inert', async ({ page }) => {
   await mockBackend(page);
   await page.goto('/calendar');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await page.route('**/TaskView-*.js', route => route.abort());
-  await page.locator('.calendar-window').first().click();
+  await page.locator('.calendar-window').first().press('Enter');
   await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось открыть страницу');
   await expect(page.locator('.screen-content')).toHaveAttribute('inert', '');
   await expect(page.locator('.calendar-page')).toBeHidden();
-  await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
   expect(await page.getByRole('button').count()).toBe(1);
 });

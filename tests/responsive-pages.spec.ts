@@ -51,7 +51,7 @@ for (const route of ['/', '/rules']) {
         const gift = await page.locator('.rules-gift').boundingBox(), examples = await page.locator('.rules-required').boundingBox();
         expect(gift!.y).toBeGreaterThan(examples!.y + examples!.height);
       }
-      if ([393, 1440].includes(viewport.width)) await page.screenshot({ path: `/tmp/advent-fluid-${route === '/' ? 'splash' : 'rules'}-${viewport.width}.png`, fullPage: true });
+      if ([393, 1440].includes(viewport.width)) await page.screenshot({ path: test.info().outputPath(`advent-fluid-${route === '/' ? 'splash' : 'rules'}-${viewport.width}.png`), fullPage: true });
     }
     expect(backend.calls).toHaveLength(0);
   });
@@ -117,7 +117,7 @@ test('calendar scales the artwork and hit areas together and keeps its menu usab
     expect((await page.getByRole('link', { name: 'Правила участия' }).boundingBox())!.height).toBeGreaterThanOrEqual(43.9);
     await page.keyboard.press('Escape');
     await expect(page.locator('.calendar-menu')).not.toHaveAttribute('open');
-    if ([393, 1440].includes(viewport.width)) await page.screenshot({ path: `/tmp/advent-fluid-calendar-${viewport.width}.png`, fullPage: true });
+    if ([393, 1440].includes(viewport.width)) await page.screenshot({ path: test.info().outputPath(`advent-fluid-calendar-${viewport.width}.png`), fullPage: true });
   }
   await page.locator('.calendar-window').first().click();
   await expect(page).toHaveURL(/\/task\/1$/);

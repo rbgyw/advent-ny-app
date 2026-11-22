@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import type { CSSProperties } from 'vue';
+import { ref, watch, type CSSProperties } from 'vue';
 import snowflake from '../../assets/loading/snowflake.svg';
 defineProps<{ label: string; theme: string; background?: string; backgroundLayer?: CSSProperties; error?: string }>();
+
+const retryButton = ref<HTMLButtonElement | null>(null);
+// Move focus to the recovery action once it replaces the loading message.
+watch(retryButton, button => button?.focus({ preventScroll: true }), { flush: 'post' });
 </script>
 
 <template>
@@ -12,7 +16,7 @@ defineProps<{ label: string; theme: string; background?: string; backgroundLayer
       <p v-if="!error" class="screen-loader-label" role="status" aria-live="polite">{{ label }}</p>
       <div v-else class="screen-loader-error">
         <p role="alert">{{ error }}</p>
-        <button type="button" @click="$emit('retry')">Попробовать снова</button>
+        <button ref="retryButton" type="button" @click="$emit('retry')">Попробовать снова</button>
       </div>
     </div>
   </div>

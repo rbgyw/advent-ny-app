@@ -36,7 +36,7 @@ for (const state of ['available', 'closed', 'completed'] as const) {
         if (state === 'closed') await expect(window).toBeDisabled();
         if (state === 'completed') await expect(window.locator('.calendar-completed')).toHaveCount(1);
       }
-      if (state === 'available' && viewport.width === 551) await page.screenshot({ path: '/tmp/advent-calendar-required-windows.png', fullPage: true });
+      if (state === 'available' && viewport.width === 551) await page.screenshot({ path: test.info().outputPath('advent-calendar-required-windows.png'), fullPage: true });
     }
   });
 }
