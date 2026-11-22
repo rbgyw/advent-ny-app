@@ -1,6 +1,8 @@
+import predictions from './word-predictions.json';
+
 export const wordSearchRows = [
   "КАРЬЕРАЕГВПЕРЕМЕНЫ",
-  "БОБУЧЕНИЕДРВКЙБУЁЬ",
+  "БОБУЧЕНИЕДРУЮТБУЁЬ",
   "ЛНПИЖЮЪЕНООГЩЪАИМН",
   "АЧЕЗЛПГНЬХЕАНПЛШЦЭ",
   "ГМРОНРМЖХНКРПУАШЭН",
@@ -19,20 +21,18 @@ export const wordSearchRows = [
   "ЯЗЮХКЧЧПЫЦИЭЪШЦПЬФ"
 ] as const;
 
-const words = [
-  'карьера', 'перемены', 'обучение', 'здоровье', 'отпуск', 'благополучие',
-  'семья', 'достижение', 'перезагрузка', 'изобилие', 'спорт', 'прорыв',
-  'лёгкость', 'вдохновение', 'проект', 'любовь', 'гармония', 'премия',
-  'счастье', 'путешествие', 'баланс', 'отдых', 'энергия',
-];
-
 export function normalizeWord(value: string) {
   return value.trim().toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
 }
 
+export function wordPrediction(value: string): string | undefined {
+  const word = normalizeWord(value);
+  return Object.hasOwn(predictions, word) ? predictions[word as keyof typeof predictions] : undefined;
+}
+
 export function findWord(value: string): number[] {
   const word = normalizeWord(value);
-  if (!words.some(candidate => normalizeWord(candidate) === word)) return [];
+  if (!wordPrediction(word)) return [];
   const size = wordSearchRows.length;
   const rows = wordSearchRows.map(normalizeWord);
   for (let index = 0; index < size; index++) {

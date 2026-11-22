@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -8,7 +9,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { gratitudeError, normalizeGratitude, type GratitudeLetter } from '../utils/gratitude';
 import wordmark from '../assets/gratitude/wordmark.svg';
 import panel from '../assets/gratitude/panel.svg';
@@ -39,7 +39,6 @@ const sending = ref(false), sent = ref(false), sendError = ref('');
 const invalidField = ref('');
 const formElement = ref<HTMLFormElement>(), dialog = ref<InstanceType<typeof PopupDialog>>();
 const background = ref<HTMLElement>(), ratio = ref(1529 / 393);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const gradientTransform = computed(() => `translate(-50%, -50%) matrix(1.8204429496, ${.4559142329 * ratio.value}, 3.0590994236, ${-1.8204429496 * ratio.value}, 0, 0)`);
 const cssUrl = (url: string) => `url("${url}")`;
 // Final positions reproduce the nine individual Figma layers. All start behind the envelope front.
@@ -95,7 +94,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
     <div class="gratitude-layout">
       <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
-        <p class="gratitude-date">{{ date }}</p>
+        <TaskDateLabel class="gratitude-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="gratitude-title">Время сказать<br />«спасибо»</h1>
         <LoadingState v-if="loading" class="gratitude-notice" role="status" />
         <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
@@ -136,16 +135,14 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
       </AppCard>
       <footer class="gratitude-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
-    <PopupDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title" aria-describedby="gratitude-popup-copy">
+    <PopupDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title">
       <div v-if="sent" class="gratitude-scene"><div class="gratitude-envelope">
         <img class="envelope-back" :src="envelopeBack" alt="" />
         <img class="envelope-letter" :src="letterArt" alt="" />
         <AppButton class="gratitude-close" type="button" aria-label="Закрыть окно «Письмо отправлено»" @click="closePopup">×</AppButton>
         <span class="gratitude-star" aria-hidden="true">✦</span>
         <p class="gratitude-post">ПРАЗДНИЧНАЯ ПОЧТА</p>
-        <h2 id="gratitude-popup-title">Письмо<br />отправлено!</h2>
-        <p id="gratitude-popup-copy">Пусть у вашего коллеги сегодня появится еще один повод улыбнуться.</p>
-        <p class="gratitude-warm">С теплом, ГЕРОФАРМ</p>
+        <h2 id="gratitude-popup-title">Письмо отправлено!</h2>
         <div class="gratitude-confetti" aria-hidden="true">
           <span v-for="(piece, index) in confetti" :key="index" class="confetti-piece" :style="{ left: `${piece.x}px`, top: `${piece.y}px`, '--from-x': `${158 - piece.x}px`, '--from-y': `${390 - piece.y}px`, '--delay': `${160 + index * 45}ms`, '--turn': `${index % 2 ? 65 : -75}deg` }"><img :src="piece.src" alt="" /></span>
         </div>
@@ -215,8 +212,6 @@ button { font-family: inherit; cursor: pointer; }
 .gratitude-star { position: absolute; top: 25px; left: 161px; color: transparent; background-clip: text; background-image: linear-gradient(126.57deg, #f9df9b, #f3cb75 46%, #de9e40); font-size: 26px; line-height: 31px; }
 .gratitude-post { position: absolute; top: 73px; left: 0; width: 100%; color: #a7280b; font-size: 10px; line-height: 12px; }
 .gratitude-popup h2 { position: absolute; top: 113px; left: 0; width: 100%; margin: 0; color: #623c28; font: 400 32px/33px 'Advent STIX', serif; letter-spacing: 0; }
-#gratitude-popup-copy { position: absolute; top: 185px; left: 38px; width: 270px; margin: 0; color: #836045; font-size: 14px; line-height: 17px; }
-.gratitude-warm { position: absolute; top: 236px; left: 0; width: 100%; color: #a7280b; font: italic 400 17px/21px 'Advent STIX Italic', serif; }
 .gratitude-confetti { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
 .confetti-piece { position: absolute; animation: gratitude-confetti-out 1150ms cubic-bezier(.2,.72,.25,1) var(--delay) both; }
 .confetti-piece img { display: block; }

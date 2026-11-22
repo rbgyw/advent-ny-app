@@ -15,7 +15,7 @@ export function useVideoVoting(props: DecemberTaskProps, onComplete: () => void)
   const swipe = ref<'left' | 'right' | null>(null);
   const rankingOpen = ref(false);
   const votes = computed(() => new Map(state.value?.votes.map(vote => [vote.videoId, vote.liked])));
-  const current = computed(() => videos.value.find(video => !votes.value.has(video.id)));
+  const current = computed(() => state.value?.complete ? undefined : videos.value.find(video => !votes.value.has(video.id)));
   const ranking = computed(() => rankedVideos(videos.value, state.value?.ranking ?? []));
   const ready = computed(() => Boolean(props.assignment?.task) && !props.loading && !props.error);
   const identity = computed(() => props.assignment ? `${props.assignment.user_id}:${props.assignment.id}` : '');
@@ -49,16 +49,17 @@ export function useVideoVoting(props: DecemberTaskProps, onComplete: () => void)
     const taskId = props.assignment?.task_id;
     if (!ready.value || taskId === undefined) return;
     try {
-      const catalog = await videoVotingService.loadCatalog(controller.signal);
+      const [catalog, result] = await Promise.allSettled([
+        videoVotingService.loadCatalog(controller.signal),
+        videoVotingService.loadState(taskId),
+      ]);
       if (request !== version) return;
-      // No placeholder or not-yet-published card may cast a vote or complete the task.
-      if (!catalog.length) { videos.value = []; return; }
-      const result = await videoVotingService.loadState(taskId);
-      if (request !== version) return;
-      validateCatalog(catalog, result);
-      videos.value = catalog;
-      state.value = result;
-      rankingOpen.value = result.complete;
+      if (result.status === 'rejected') throw result.reason;
+      state.value = result.value;
+      rankingOpen.value = result.value.complete;
+      if (catalog.status === 'rejected') throw catalog.reason;
+      if (catalog.value.length) validateCatalog(catalog.value, result.value);
+      videos.value = catalog.value;
     } catch (reason) {
       if (request !== version) return;
       error.value = reason instanceof Error && reason.message === 'Подборка обновляется. Попробуйте чуть позже.'
@@ -96,22 +97,25 @@ export function useVideoVoting(props: DecemberTaskProps, onComplete: () => void)
       error.value = 'Не удалось сохранить оценку. Попробуйте ещё раз — карточка останется здесь.';
     }
   }
-  async function refreshRanking() {
+  async function refreshState() {
     const taskId = props.assignment?.task_id;
-    if (!ready.value || taskId === undefined || busy.value || loading.value || !videos.value.length) return;
+    if (!ready.value || taskId === undefined || busy.value || loading.value || !state.value) return;
     const request = version;
     busy.value = true;
     error.value = '';
     try {
       const result = await videoVotingService.loadState(taskId);
       if (request !== version) return;
-      validateCatalog(videos.value, result);
       state.value = result;
+      const wasComplete = rankingOpen.value;
+      rankingOpen.value = result.complete;
+      if (result.complete && !wasComplete) onComplete();
+      if (videos.value.length) validateCatalog(videos.value, result);
     } catch {
       if (request === version) error.value = 'Не удалось обновить рейтинг. Попробуйте ещё раз.';
     } finally { if (request === version) busy.value = false; }
   }
   watch([identity, ready], () => { void track(load()); }, { immediate: true });
   onBeforeUnmount(() => { version++; controller?.abort(); clearSwipe(); });
-  return { videos, state, loading, busy, error, swipe, rankingOpen, votes, current, ranking, load, vote, finishSwipe, refreshRanking };
+  return { videos, state, loading, busy, error, swipe, rankingOpen, votes, current, ranking, load, vote, finishSwipe, refreshState };
 }

@@ -47,7 +47,7 @@ function downloadMovies(items: readonly ReturnType<typeof parseMovie>[]) {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="24" title="Киноподборка от сотрудников ГЕРОФАРМ"
+  <DecemberTaskLayout v-bind="props" title="Киноподборка от сотрудников ГЕРОФАРМ"
     @back="emit('back')" @retry="emit('retry')">
     <img class="movie-television" :src="television" width="550" height="460" alt="Ретро-телевизор с надписью Christmas Movies" />
     <div class="december-copy">

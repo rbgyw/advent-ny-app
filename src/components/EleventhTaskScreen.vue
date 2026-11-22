@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -9,14 +10,13 @@ import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
-import { shortCalendarDate } from '../utils/calendar';
 import { isStereogramSolution, STEREOGRAM_LETTERS, stereogramLetters } from '../utils/stereogram';
 import wordmark from '../assets/stereogram/wordmark.svg';
 import panelArt from '../assets/stereogram/panel.svg';
 import wreath from '../assets/stereogram/wreath.svg';
 import badge from '../assets/stereogram/badge.svg';
 import instructions from '../assets/stereogram/instructions.svg';
-import placeholder from '../assets/stereogram/photo-placeholder.svg';
+import stereogram from '../assets/stereogram/heart.webp';
 import cell from '../assets/stereogram/cell.svg';
 import button from '../assets/stereogram/button.svg';
 import errorArt from '../assets/stereogram/error.svg';
@@ -31,7 +31,6 @@ const { element: panel, bind: bindPanel } = useElementRef();
 const panelWidth = ref(361), panelHeight = ref(1095);
 const completed = computed(() => props.assignment?.status === 'completed');
 const locked = computed(() => props.loading || props.saving || completed.value || !props.assignment?.task);
-const date = computed(() => props.assignment ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU') : `${props.day} ДЕКАБРЯ`);
 const cssUrl = (url: string) => `url("${url}")`;
 const borderDots = computed(() => {
   // Same responsive dot geometry as the existing crossword card; reuse its original SVG.
@@ -98,7 +97,7 @@ onBeforeUnmount(() => observer?.disconnect());
       <AppCard :ref="bindPanel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
-        <p class="stereo-date">{{ date }}</p>
+        <TaskDateLabel class="stereo-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />
@@ -111,11 +110,11 @@ onBeforeUnmount(() => observer?.disconnect());
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора. Через некоторое время может появиться объемное изображение.</li><li>Если не получилось сразу, немного приблизьте или отодвиньте изображение и попробуйте снова.</li></ol>
           </section>
-          <div class="stereo-photo stereo-surface" :style="{ '--surface-art': cssUrl(placeholder) }" aria-label="Место для стереокартинки"></div>
+          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" />
           <form class="stereo-form" @submit.prevent="submit">
             <fieldset :disabled="locked" aria-describedby="stereo-answer-hint stereo-feedback">
               <legend>Что вам удалось увидеть?</legend><p id="stereo-answer-hint">Впишите ответ в ячейки.</p>
-              <div class="stereo-cells">
+              <div class="stereo-cells" :style="{ '--letter-count': letters.length }">
                 <div v-for="(_, index) in letters" :key="index" class="stereo-cell stereo-surface" :style="{ '--surface-art': cssUrl(cell) }">
                   <input :ref="el => { if (el) inputRefs[index] = el as HTMLInputElement }" :value="letters[index]" :aria-label="`Буква ${index + 1} из ${letters.length}`" :aria-invalid="incorrect" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" @input="input($event, index)" @compositionend="input($event, index)" @paste="paste($event, index)" @keydown="keydown($event, index)" @focus="($event.target as HTMLInputElement).select()" />
                 </div>
@@ -160,12 +159,12 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .stereo-instructions ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: stereo-step; }
 .stereo-instructions li { position: relative; counter-increment: stereo-step; padding-left: 22px; }
 .stereo-instructions li::before { position: absolute; left: 0; top: 0; content: counter(stereo-step) '.'; color: var(--color-action); font-weight: 700; }
-.stereo-photo { width: 100%; height: 200px; margin-top: 21px; }
+.stereo-photo { display: block; width: min(100%, 500px); height: auto; margin: 21px auto 0; }
 .stereo-form { margin-top: 25px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { padding: 0; font-size: 14px; line-height: 17px; font-weight: 700; }
 #stereo-answer-hint { margin-top: 11px; font-size: 14px; line-height: 17px; }
-.stereo-cells { display: grid; grid-template-columns: repeat(8, minmax(0, 44px)); gap: 6px; margin-top: 14px; }
+.stereo-cells { display: grid; grid-template-columns: repeat(var(--letter-count), minmax(0, 44px)); gap: 6px; margin-top: 14px; }
 .stereo-cell { min-width: 0; height: 48px; }
 .stereo-cell input { display: block; box-sizing: border-box; width: 100%; min-width: 0; height: 48px; padding: 0; border: 0; border-radius: 7px; background: transparent; color: var(--color-ink); font: 700 18px/22px var(--font-ui); text-align: center; text-transform: uppercase; box-shadow: none; }
 .stereo-cell input:disabled { opacity: 1; -webkit-text-fill-color: var(--color-ink); }

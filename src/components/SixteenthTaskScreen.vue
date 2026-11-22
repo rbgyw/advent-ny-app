@@ -42,7 +42,7 @@ function send() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="16" title="Письмо себе в будущее" @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" title="Письмо себе в будущее" @back="emit('back')" @retry="emit('retry')">
     <img class="future-envelope" :src="envelope" alt="" />
     <div class="december-copy">
       <p>Представьте: проходит год, вы готовитесь встречать 2028-й — и вдруг получаете письмо от себя из сегодняшнего дня.</p>

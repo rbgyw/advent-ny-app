@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
@@ -8,7 +9,6 @@ import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { fortuneSky } from '../content/fortune-sky';
 import { fortuneHeading, fortunes } from '../content/fortunes';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import { downloadFortuneCard } from '../utils/fortune-card';
 import { isFortuneIndex } from '../utils/fortune';
@@ -55,9 +55,6 @@ const fortune = computed(() =>
   fortuneIndex.value === null ? null : fortunes[fortuneIndex.value]
 );
 const stage = computed(() => opening.value ? 'opening' : fortune.value ? 'open' : 'closed');
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '25 ДЕКАБРЯ');
 const assignmentKey = computed(() => {
   const assignment = props.assignment;
   return assignment ? `${assignment.user_id}:${assignment.id}:${assignment.task_id}` : null;
@@ -152,7 +149,7 @@ async function saveCard() {
         <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
       </AppHeader>
       <AppCard class="fortune-panel" aria-labelledby="fortune-title">
-        <p class="fortune-date">{{ date }}</p>
+        <TaskDateLabel class="fortune-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="fortune-title">Печенье на счастье</h1>
         <LoadingState v-if="loading" class="fortune-notice" role="status" />
         <div v-else-if="error" class="fortune-notice" role="alert">

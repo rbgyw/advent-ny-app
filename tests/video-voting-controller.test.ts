@@ -80,9 +80,16 @@ describe('video voting interaction controller', () => {
     const { api, complete } = host(); await flushPromises();
     expect(api.current.value).toBeUndefined();
     await api.vote(true);
-    expect(videoVotingService.loadState).not.toHaveBeenCalled();
+    expect(videoVotingService.loadState).toHaveBeenCalledExactlyOnceWith(22);
     expect(videoVotingService.vote).not.toHaveBeenCalled();
     expect(complete).not.toHaveBeenCalled();
+  });
+  it('uses Supabase completion when the media catalog cannot load', async () => {
+    vi.mocked(videoVotingService.loadCatalog).mockRejectedValueOnce(new Error('Media unavailable'));
+    vi.mocked(videoVotingService.loadState).mockResolvedValueOnce({ ...initial, complete: true });
+    const { api } = host(); await flushPromises();
+    expect(api.rankingOpen.value).toBe(true);
+    expect(api.current.value).toBeUndefined();
   });
   it('blocks a JSON/database catalog mismatch instead of accepting unregistered cards', async () => {
     vi.mocked(videoVotingService.loadState).mockResolvedValue({ votes: [], ranking: [], totalVideos: 0, complete: false });

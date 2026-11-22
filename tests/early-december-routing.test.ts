@@ -80,6 +80,21 @@ describe('December 1, 3 and 4 conflict resolution', () => {
     expect(reopened.get<HTMLInputElement>('#memory-author').element.value).toBe('Анна Петрова');
     expect(reopened.get<HTMLInputElement>('#memory-author').element.readOnly).toBe(true);
   });
+  it('rechecks a cached locked memory when the server advances its opening to October', async () => {
+    vi.setSystemTime(new Date('2026-11-22T12:00:00Z'));
+    const memory = earlyTask(3);
+    tasks = [earlyTask(1), { ...memory, task: null }, earlyTask(4)];
+    const locked = await open(3);
+    expect(locked.text()).toContain('Откроется 03.12.2026');
+    locked.unmount();
+
+    tasks = [earlyTask(1), { ...memory, available_date: '2026-10-03' }, earlyTask(4)];
+    const opened = await open(3);
+    expect(opened.get('.memory-date').text()).toBe('3 ОКТЯБРЯ');
+    expect(opened.get<HTMLTextAreaElement>('#memory-answer').element.readOnly).toBe(false);
+    expect(calendarService.getUserCalendar).toHaveBeenCalledTimes(2);
+    opened.unmount();
+  });
   it('does not submit a memory without a sender', async () => {
     const view = await open(3);
     await view.get('#memory-answer').setValue('Совместный проект');

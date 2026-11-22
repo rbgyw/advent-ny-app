@@ -59,11 +59,11 @@ function submit() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :task-number="17" title="Повтори, если сможешь!" mandatory @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" mandatory @back="emit('back')" @retry="emit('retry')">
     <div class="december-copy">
       <p>Праздник все ближе — самое время сделать фото, которые захочется пересматривать!</p>
       <p>Сегодня предлагаем повторить кадр из нашей подборки: зимнюю фотографию, новогоднюю сцену или узнаваемый мем. Можно позвать коллег или устроить маленькую фотосессию самостоятельно.</p>
-      <p>Нажмите «Выбрать фото», посмотрите на референс и повторите его настроение, позу или композицию. Добавьте свою деталь — пусть получится ваша версия кадра!</p>
+      <p>Нажмите «Сделать фото», посмотрите на референс и повторите его настроение, позу или композицию. Добавьте свою деталь — пусть получится ваша версия кадра!</p>
       <p>Если вариант не подходит, нажмите «Другой кадр»: появится новый референс.</p>
       <p>*Загрузите готовую фотографию в форму. Это обязательное задание.</p>
     </div>
@@ -73,15 +73,14 @@ function submit() {
       <button class="december-button" type="button" @click="emit('back')">К календарю</button>
     </div>
     <div v-else-if="!reference" class="photo-form">
-      <button class="december-button" type="button" @click="chooseFrame">Выбрать фото</button>
+      <button class="december-button" type="button" @click="chooseFrame">Сделать фото</button>
     </div>
     <form v-else-if="assignment" class="december-stack photo-form" :aria-busy="busy" @submit.prevent="submit">
       <img class="photo-reference" :src="reference.url" :alt="reference.alt" />
       <button class="december-button secondary" type="button" :disabled="busy" @click="chooseFrame">Другой кадр</button>
       <div>
-        <TaskAttachments :task-id="assignment.task_id" :readonly="false" :disabled="saving" variant="sport" upload-label="Загрузить фото"
+        <TaskAttachments :task-id="assignment.task_id" :readonly="false" :disabled="saving" :limit="1"
           @busy="attachmentBusy = $event" @change="updatePhotos" />
-        <p v-if="!files.length && !attachmentBusy" class="photo-file">Файл не выбран</p>
       </div>
       <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Прикрепите готовую фотографию.' : saveError }}</p>
       <button class="december-button" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить' }}</button>
@@ -98,8 +97,7 @@ function submit() {
 </template>
 
 <style scoped>
-.photo-form { margin-top: 28px; --attachment-border: var(--dec-red); --attachment-background: var(--dec-paper); }
+.photo-form { margin-top: 28px; }
 :deep(h1) { max-width: 230px; }
-.photo-reference { display: block; width: 100%; max-height: 480px; object-fit: contain; border-radius: 13px; background: #fffaf0; }
-.photo-file { margin-top: 12px; font-size: 12px; }
+.photo-reference { display: block; width: auto; height: auto; max-width: 100%; max-height: min(480px, 65svh); margin-inline: auto; object-fit: contain; border-radius: 13px; background: transparent; }
 </style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
 import LoadingState from './ui/LoadingState.vue';
@@ -8,10 +9,9 @@ import AppHeader from './ui/AppHeader.vue';
 import AppCard from './ui/AppCard.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import {
-  findRaskobkiAnswer, raskobkiLetter, raskobkiSlots, type RaskobkiAnswer,
+  findRaskobkiAnswer, raskobkiAnswers, raskobkiSlots, type RaskobkiAnswer,
 } from '../content/raskobki';
 import wordmark from '../assets/wish/wordmark.svg';
 import dot from '../assets/raskobki/dot.svg';
@@ -40,19 +40,16 @@ const invalid = ref(false);
 const { element: panel, bind: bindPanel } = useElementRef();
 const resultHeading = ref<HTMLHeadingElement>();
 const dotCount = ref(0);
-const answerIds = [...new Set(raskobkiSlots.map(slot => slot.answer))];
+const answerIds = raskobkiAnswers;
 
 const completed = computed(() => props.assignment?.status === 'completed');
 const progressKey = computed(() => {
   const assignment = props.assignment;
-  return assignment?.task ? `advent:raskobki:v1:${assignment.user_id}:${assignment.id}` : null;
+  return assignment?.task ? `advent:raskobki:v2:${assignment.user_id}:${assignment.id}` : null;
 });
 const revealed = (answer: RaskobkiAnswer) => completed.value || solved.value.includes(answer);
-const solvedCount = computed(() => raskobkiSlots.filter(slot => revealed(slot.answer)).length);
-const allSolved = computed(() => solvedCount.value === raskobkiSlots.length);
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '14 ДЕКАБРЯ');
+const solvedCount = computed(() => answerIds.filter(revealed).length);
+const allSolved = computed(() => solvedCount.value === answerIds.length);
 
 watch(panel, (element, _, onCleanup) => {
   if (!element) return;
@@ -108,11 +105,9 @@ function submit() {
   }
 
   const answer = findRaskobkiAnswer(guess.value);
-  invalid.value = !answer;
-  if (!answer) {
-    feedback.value = guess.value.trim()
-      ? 'Пока не совпало. Прочитайте подсказку и попробуйте снова.'
-      : 'Введите ответ на любую скобку.';
+  invalid.value = !answer || (answer === 'technologist' && !revealed('process'));
+  if (invalid.value || !answer) {
+    feedback.value = 'Пока не подходит. Попробуйте другой ответ или переключитесь на соседнюю подсказку';
     return;
   }
   if (solved.value.includes(answer)) {
@@ -120,7 +115,6 @@ function submit() {
     return;
   }
 
-  const previousCount = solvedCount.value;
   solved.value.push(answer);
   if (progressKey.value) {
     try {
@@ -131,9 +125,7 @@ function submit() {
     }
   }
   guess.value = '';
-  feedback.value = solvedCount.value - previousCount > 1
-    ? 'Верно! Ответ вставлен в обе скобки.'
-    : 'Верно! Ответ вставлен в поздравление.';
+  feedback.value = 'Верно! Слово появилось в тексте.';
   if (allSolved.value) emit('submit', [...solved.value]);
 }
 </script>
@@ -157,7 +149,7 @@ function submit() {
         </div>
         <div class="raskobki-heading">
           <img decoding="async" class="raskobki-wreath" :src="wreath" alt="" />
-          <p class="raskobki-date">{{ date }}</p>
+          <TaskDateLabel class="raskobki-date" :available-date="assignment?.available_date" :day="day" />
           <h1 id="raskobki-title">Ра[скобки]</h1>
           <p class="raskobki-badge">Обязательное задание</p>
         </div>
@@ -172,28 +164,22 @@ function submit() {
         </p>
         <template v-else>
           <div class="raskobki-instructions">
-            <p>Разгадайте подсказки в квадратных скобках и восстановите новогоднее поздравление.</p>
+            <p>Разгадайте подсказки в квадратных скобках, чтобы восстановить текст.</p>
             <p>Если знаете ответ, просто напишите его в поле внизу. Правильное слово само появится на своём месте.</p>
-            <p>Подсказки можно разгадывать в любом порядке.</p>
+            <p>Если в подсказке есть ещё одни скобки, сначала раскройте внутренние.</p>
           </div>
           <section class="raskobki-chain" aria-labelledby="raskobki-chain-title">
             <AppHeader class="raskobki-chain-header">
               <h2 id="raskobki-chain-title">Словесная цепочка</h2>
-              <span role="status">{{ solvedCount }} из {{ raskobkiSlots.length }}</span>
+              <span role="status">{{ solvedCount }} из {{ answerIds.length }}</span>
             </AppHeader>
-            <div class="raskobki-letter">
-              <p v-for="(paragraph, index) in raskobkiLetter" :key="index">
-                <template v-for="(part, partIndex) in paragraph" :key="partIndex">
-                  <template v-if="part.slot && revealed(part.slot.answer)">{{ part.slot.text }}</template>
-                  <strong v-else-if="part.slot">{{ part.text }}</strong>
-                  <template v-else>{{ part.text }}</template>
-                </template>
-              </p>
-            </div>
+            <p class="raskobki-letter">
+              <template v-if="revealed('gero')">{{ raskobkiSlots.gero.word }}</template><strong v-else>[{{ raskobkiSlots.gero.clue }}]</strong>ФАРМ — био<template v-if="revealed('technologist')">{{ raskobkiSlots.technologist.word }}</template><strong v-else-if="revealed('process')">[{{ raskobkiSlots.technologist.clue }}]</strong><strong v-else>[Специалист, управляющий [{{ raskobkiSlots.process.clue }}]ами на производстве]</strong>ическая компания, которая выводит Россию в <template v-if="revealed('leader')">{{ raskobkiSlots.leader.word }}</template><strong v-else>[{{ raskobkiSlots.leader.clue }}]</strong>ы по продолжительности <template v-if="revealed('asset')">{{ raskobkiSlots.asset.word }}</template><strong v-else>[{{ raskobkiSlots.asset.clue }}]</strong>ной жизни.
+            </p>
           </section>
           <section v-if="completed" class="raskobki-result" aria-labelledby="raskobki-result-title">
-            <h2 id="raskobki-result-title" ref="resultHeading" tabindex="-1">Цепочка раскрыта!</h2>
-            <p>Вы разгадали все подсказки и восстановили поздравление.</p>
+            <h2 id="raskobki-result-title" ref="resultHeading" tabindex="-1">Все скобки раскрыты — история разгадана!</h2>
+            <p>Обязательное задание выполнено.</p>
             <AppButton class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
               К календарю
             </AppButton>
@@ -206,7 +192,7 @@ function submit() {
                   id="raskobki-guess"
                   v-model="guess"
                   type="text"
-                  placeholder="Введите слово"
+                  placeholder="Ваш ответ"
                   autocomplete="off"
                   spellcheck="false"
                   maxlength="120"
@@ -359,8 +345,6 @@ button { cursor: pointer; font: inherit; letter-spacing: inherit; }
   overflow-wrap: anywhere;
 }
 
-.raskobki-letter p { white-space: pre-wrap; }
-.raskobki-letter p + p { margin-top: 12px; }
 .raskobki-letter strong { font-weight: 700; }
 
 .raskobki-form { margin-top: 22px; }

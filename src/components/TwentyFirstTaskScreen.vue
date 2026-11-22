@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useElementRef } from '../composables/useElementRef';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -8,7 +9,6 @@ import LoadingState from './ui/LoadingState.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
-import { shortCalendarDate } from '../utils/calendar';
 import { formatDate } from '../utils/date';
 import {
   crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked,
@@ -46,9 +46,6 @@ const dotCount = ref(0);
 let awaitingCompletion = false;
 
 const completed = computed(() => props.assignment?.status === 'completed');
-const date = computed(() => props.assignment
-  ? shortCalendarDate(props.assignment.available_date).toLocaleUpperCase('ru-RU')
-  : '21 ДЕКАБРЯ');
 const draftKey = computed(() => {
   const assignment = props.assignment;
   return assignment?.task ? `advent:nonogram:v1:${assignment.user_id}:${assignment.id}` : null;
@@ -174,7 +171,7 @@ function backFromResult() {
         </div>
         <div class="nonogram-heading">
           <img class="nonogram-wreath" :src="wreath" alt="" />
-          <p class="nonogram-date">{{ date }}</p>
+          <TaskDateLabel class="nonogram-date" :available-date="assignment?.available_date" :day="day" />
           <h1 id="nonogram-title">Что скрывает нонограм?</h1>
           <p class="nonogram-badge">Обязательное задание</p>
         </div>
@@ -221,7 +218,6 @@ function backFromResult() {
               :tool="tool"
               :enlarged="enlarged"
               :disabled="completed || saving"
-              :completed="completed"
               @mark="markCell"
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
@@ -314,7 +310,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-date { color: var(--accent); font-size: 12px; line-height: 15px; font-weight: 700; }
 
 .nonogram-heading h1 {
-  max-width: 254px;
+  max-width: 225px;
   margin: 13px 0 11px;
   color: var(--heading-color);
   font: 500 28px/30px 'Advent STIX', serif;
@@ -361,7 +357,8 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-rules[open] summary::before { content: '▾'; }
 .nonogram-rules ol { margin: 0; padding: 3px 20px 24px 16px; list-style-position: inside; }
 .nonogram-rules li + li { margin-top: 14px; }
-.nonogram-game { margin-top: 19px; padding: 12px 12px 19px; }
+.nonogram-game { margin-top: 19px; padding: 12px 6px 19px; }
+.nonogram-tools, .nonogram-meta, .nonogram-board-note { margin-inline: 6px; }
 .nonogram-game::before { border-image: url('../assets/nonogram/game.svg') 17 fill / 17px stretch; }
 
 .nonogram-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

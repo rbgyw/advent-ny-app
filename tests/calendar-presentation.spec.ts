@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { mockBackend } from './fixture';
 
-const required = [4, 7, 9, 11, 14, 17, 19, 21];
+const required = [4, 7, 11, 14, 17, 19, 21];
 
 for (const state of ['available', 'closed', 'completed'] as const) {
-  test(`calendar marks exactly the eight required windows when ${state}`, async ({ page }) => {
+  test(`calendar marks exactly the seven required windows when ${state}`, async ({ page }) => {
     await mockBackend(page, { completed: state === 'completed', ...(state === 'closed' ? { lockedAfter: 0 } : {}) });
     await page.goto('/calendar');
     await expect(page.locator('.screen-loader')).toHaveCount(0);
     const artwork = page.locator('.calendar-illustration [data-mandatory=true]');
     expect(await artwork.evaluateAll(nodes => nodes.map(node => Number(node.querySelector('p')?.textContent)).sort((a, b) => a - b))).toEqual(required);
-    await expect(page.locator('.calendar-window.is-mandatory')).toHaveCount(8);
+    await expect(page.locator('.calendar-window.is-mandatory')).toHaveCount(required.length);
     for (const viewport of [{ width: 320, height: 568 }, { width: 551, height: 917 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
       await expect.poll(async () => page.locator('.calendar-canvas').evaluate(el => Math.abs(el.getBoundingClientRect().width - document.querySelector('.calendar-stage')!.getBoundingClientRect().width))).toBeLessThan(1);
-      for (const day of [3, ...required]) {
+      for (const day of [3, 9, ...required]) {
         const window = page.locator('.calendar-window').nth(day - 1);
         const number = page.locator(`.calendar-illustration [data-name="window-${day}"] > p`);
         const buttonBox = await window.boundingBox(), numberBox = await number.boundingBox();
@@ -41,12 +41,17 @@ for (const state of ['available', 'closed', 'completed'] as const) {
   });
 }
 
-test('every task has one full-width background without tiling or horizontal overflow', async ({ page }) => {
+test('every task uses its assigned date and keeps a full-width background without overflow', async ({ page }) => {
   test.setTimeout(120_000);
-  await mockBackend(page);
+  await page.clock.setFixedTime(new Date('2026-11-22T12:00:00Z'));
+  const dateAtPosition = (day: number) => `2026-10-${String(day).padStart(2, '0')}`;
+  await mockBackend(page, { dateAtPosition });
   for (let day = 1; day <= 25; day++) {
     await page.goto(`/task/${day}`);
     await expect(page.locator('.screen-loader')).toHaveCount(0);
+    const date = page.locator('[data-task-date] time');
+    await expect(date, `date label for window ${day}`).toHaveText(`${day} ОКТЯБРЯ`);
+    await expect(date).toHaveAttribute('datetime', dateAtPosition(day));
     for (const viewport of [{ width: 320, height: 568 }, { width: 551, height: 917 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
       await expect.poll(async () => page.locator('main').evaluate(element => {

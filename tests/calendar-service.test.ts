@@ -31,9 +31,32 @@ describe('calendar service', () => {
       return query as never;
     });
     expect(await calendarService.getUserCalendar('user-1')).toEqual([savedAssignment(0)]);
-    expect(supabase.rpc).toHaveBeenCalledExactlyOnceWith('initialize_user_calendar');
+    expect(supabase.rpc).toHaveBeenCalledExactlyOnceWith('prepare_advent_calendar');
     expect(filters).toContainEqual(['user_tasks', 'user_id', 'user-1']);
     expect(filters).toContainEqual(['task_responses', 'user_id', 'user-1']);
+  });
+
+  it('uses the display position when refreshing a saved assignment', async () => {
+    const { task: _task, response, ...userTask } = savedAssignment(0);
+    const baseAssignment = { ...userTask, task_id: 15, position: 17 };
+    const query = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { ...baseAssignment, calendar_position: 10 }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: response, error: null }),
+    };
+    vi.mocked(supabase.from).mockReturnValue(query as never);
+    expect(await calendarService.getTaskProgress('user-1', 15)).toEqual({
+      assignment: { ...baseAssignment, position: 10 },
+      response,
+    });
+  });
+
+  it('keeps authorization errors from the calendar RPC visible', async () => {
+    const error = { message: 'Authentication required', code: '42501' };
+    vi.mocked(supabase.rpc).mockReturnValue({ abortSignal: vi.fn().mockResolvedValue({ data: null, error }) } as never);
+    await expect(calendarService.getUserCalendar('user-1')).rejects.toBe(error);
+    expect(supabase.from).not.toHaveBeenCalled();
   });
 
   it('calls the current save RPC with the complete fortune payload', async () => {

@@ -1,4 +1,4 @@
-export const STEREOGRAM_ANSWER = 'ценности';
+export const STEREOGRAM_ANSWER = 'сердце';
 export const STEREOGRAM_LETTERS = [...STEREOGRAM_ANSWER];
 
 export function stereogramLetters(text: string): string[] {

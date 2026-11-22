@@ -54,8 +54,7 @@ export function parseVideoVotingState(data: unknown): VideoVotingState {
   });
   const totalVideos = Number(item.total_videos);
   if (new Set(ranking.map(row => row.videoId)).size !== ranking.length ||
-    new Set(votes.map(row => row.videoId)).size !== votes.length || ranking.length !== totalVideos ||
-    item.complete !== (totalVideos > 0 && votes.length === totalVideos)) throw new Error('Неполные результаты голосования.');
+    new Set(votes.map(row => row.videoId)).size !== votes.length || ranking.length !== totalVideos) throw new Error('Неполные результаты голосования.');
   return { votes, ranking, totalVideos, complete: item.complete };
 }
 

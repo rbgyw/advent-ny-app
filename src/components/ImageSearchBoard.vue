@@ -67,7 +67,7 @@ function keydown(event: KeyboardEvent) {
       <button type="button" :disabled="disabled || zoom === 3" aria-label="Увеличить изображение" @click="changeZoom(0.5)">+</button>
     </div>
     <p id="search-board-help" class="search-board-help">Увеличивайте и прокручивайте картинку. Поставьте метку на Поджике и нажмите «Проверить выбор».</p>
-    <div ref="viewport" class="search-viewport" tabindex="0" aria-label="Поиск Поджика на зимней картинке"
+    <div ref="viewport" class="search-viewport" :class="{ 'is-zoomed': zoom > 1 }" tabindex="0" aria-label="Поиск Поджика на зимней картинке"
       aria-describedby="search-board-help search-keyboard-help" :aria-disabled="disabled" @keydown="!disabled && keydown($event)">
       <div ref="picture" class="search-picture" :style="{ width: `${percent}%` }"
         @pointerdown="pointerDown" @pointermove="pointerMove" @pointercancel="moved = true"
@@ -87,11 +87,11 @@ function keydown(event: KeyboardEvent) {
 .search-zoom button:disabled { opacity: .45; cursor: default; }
 .search-zoom output { min-width: 48px; color: #70492c; font-size: 12px; text-align: center; }
 .search-board-help { margin-block: 0 16px; font-size: 12px; line-height: 18px; }
-.search-viewport { max-height: 70svh; aspect-ratio: 626 / 838; overflow: auto; border: 1px solid #b98765; border-radius: 13px; background: #fff; touch-action: pan-x pan-y pinch-zoom; overscroll-behavior: contain; overflow-anchor: none; }
-.search-picture { position: relative; min-width: 100%; cursor: crosshair; }
+.search-viewport { box-sizing: border-box; width: 100%; margin-inline: auto; overflow: auto; border: 1px solid #b98765; border-radius: 13px; background: var(--dec-paper); touch-action: pan-x pan-y pinch-zoom; overscroll-behavior: contain; overflow-anchor: none; }
+.search-viewport.is-zoomed { max-height: min(70svh, 680px); }
+.search-picture { position: relative; min-width: 100%; margin-inline: auto; cursor: crosshair; }
 .search-picture img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
 .search-picture .search-target { position: absolute; pointer-events: none; }
 .search-marker { position: absolute; width: 24px; height: 24px; box-sizing: border-box; transform: translate(-50%, -50%); border: 2px solid #a7280b; border-radius: 50%; background: #fff4; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
 .search-keyboard-help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (min-width: 700px) { .search-viewport { max-height: 680px; } }
 </style>

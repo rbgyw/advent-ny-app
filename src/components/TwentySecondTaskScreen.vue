@@ -8,12 +8,13 @@ import brand from '../assets/dec-22/brand.svg';
 
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<{ back: []; retry: []; completed: [] }>();
-const { videos, state, loading, busy, error, swipe, rankingOpen, current, ranking, load, vote, finishSwipe, refreshRanking } = useVideoVoting(props, () => emit('completed'));
+const { videos, state, loading, busy, error, swipe, rankingOpen, current, ranking, load, vote, finishSwipe, refreshState } = useVideoVoting(props, () => emit('completed'));
 const votedCount = computed(() => state.value?.votes.length ?? 0);
 const likedCount = computed(() => state.value?.votes.filter(vote => vote.liked).length ?? 0);
 const progress = computed(() => videos.value.length ? votedCount.value / videos.value.length * 100 : 0);
 const top = computed(() => ranking.value.slice(0, 3));
-function refreshOnFocus() { if (rankingOpen.value && document.visibilityState !== 'hidden') void refreshRanking(); }
+const hasLikes = computed(() => state.value?.ranking.some(video => video.likes > 0));
+function refreshOnFocus() { if (document.visibilityState !== 'hidden') void refreshState(); }
 onMounted(() => {
   window.addEventListener('focus', refreshOnFocus);
   document.addEventListener('visibilitychange', refreshOnFocus);
@@ -25,11 +26,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" :brand-src="brand" :task-number="22"
+  <DecemberTaskLayout v-bind="props" :brand-src="brand"
     :title="rankingOpen ? 'Топ-3 роликов' : 'Свет, камера, контент!'" @back="emit('back')" @retry="emit('retry')">
     <template v-if="rankingOpen">
       <p class="video-thanks" role="status">Спасибо! Ваши оценки учтены.</p>
-      <p class="video-summary">Вам понравилось {{ likedCount }} из {{ videos.length }} видео.</p>
+      <p class="video-summary">Вам понравилось {{ likedCount }} из {{ state?.totalVideos ?? 0 }} видео.</p>
       <ol v-if="top.length" class="video-ranking" aria-label="Общий топ роликов по лайкам всех пользователей">
         <li v-for="(video, index) in top" :key="video.id" class="video-rank-row">
           <span class="video-rank-number">{{ index + 1 }}</span>
@@ -37,10 +38,10 @@ onBeforeUnmount(() => {
           <span class="video-rank-likes" :aria-label="`Лайков: ${video.likes}`">{{ video.likes }} <span aria-hidden="true">❤</span></span>
         </li>
       </ol>
-      <p v-else class="video-no-likes" role="status">Пока у роликов нет лайков. Топ появится, когда участники выберут понравившиеся видео.</p>
+      <p v-else class="video-no-likes" role="status">{{ hasLikes ? 'Рейтинг пока недоступен.' : 'Пока у роликов нет лайков. Топ появится, когда участники выберут понравившиеся видео.' }}</p>
       <div v-if="error" class="video-error" role="alert">
         <p>{{ error }}</p>
-        <button class="december-link" type="button" :disabled="busy" @click="refreshRanking">Обновить рейтинг</button>
+        <button class="december-link" type="button" :disabled="busy" @click="refreshState">Обновить рейтинг</button>
       </div>
       <button class="december-button video-calendar video-ranking-back" type="button" @click="emit('back')"><span>К календарю</span></button>
     </template>

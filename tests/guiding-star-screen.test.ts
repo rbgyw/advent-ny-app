@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import TwentiethTaskScreen from '../src/components/TwentiethTaskScreen.vue';
 import PopupDialog from '../src/components/PopupDialog.vue';
 import { guidingStars, guidingStarExhaustedText, guidingStarHints } from '../src/content/guiding-star';
-import { createGuidingStarProgress } from '../src/utils/guiding-star';
+import { createGuidingStarProgress, guidingStarAttempts } from '../src/utils/guiding-star';
 import { assignment } from './fixtures';
 import type { CalendarTask } from '../src/types/models';
 
@@ -96,14 +96,14 @@ describe('20 December guiding-star screen', () => {
     expect(view.find('.guiding-result').exists()).toBe(false);
   });
 
-  it.each([1, 10])('can find a target beyond the first ten stars on attempt %s', async attempt => {
-    localProgress(12);
+  it.each([1, 15])('can find a target beyond the first fifteen stars on attempt %s', async attempt => {
+    localProgress(16);
     const view = screen();
     await loadImages(view);
     for (let index = 0; index < attempt - 1; index++) await choose(view, index);
-    await choose(view, 11);
+    await choose(view, 15);
     expect(view.get('.guiding-search').attributes('data-phase')).toBe('found');
-    expect(view.findAll('.is-guiding').map(star => star.attributes('data-star-id'))).toEqual([guidingStars[11]!.id]);
+    expect(view.findAll('.is-guiding').map(star => star.attributes('data-star-id'))).toEqual([guidingStars[15]!.id]);
     expect(view.emitted('save')).toBeUndefined();
     await vi.advanceTimersByTimeAsync(420);
     expect(view.get('[role="dialog"]').text()).toContain('Ваша звезда найдена!');
@@ -130,13 +130,13 @@ describe('20 December guiding-star screen', () => {
     localProgress(guidingStars.length);
     const view = screen();
     await loadImages(view);
-    for (let index = 0; index < 10; index++) await choose(view, index);
+    for (let index = 0; index < 15; index++) await choose(view, index);
     expect(view.emitted('save')).toEqual([[{ response: { search_exhausted: true }, complete: true }]]);
     expect(view.text()).not.toContain(guidingStarExhaustedText);
     await vi.advanceTimersByTimeAsync(420);
     expect(view.get('[role="dialog"]').text()).toContain(guidingStarExhaustedText);
     expect(view.findAll<HTMLButtonElement>('.guiding-star').every(button => button.element.disabled)).toBe(true);
-    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(10);
+    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(15);
     await view.setProps({ assignment: completedTask(true) });
     expect(localStorage.getItem(key())).toBeNull();
     expect(view.get('[role="dialog"]').text()).toContain(guidingStarExhaustedText);
@@ -179,7 +179,7 @@ describe('20 December guiding-star screen', () => {
   });
 
   it('resumes an exhausted search and saves only when the assignment is ready', async () => {
-    localProgress(guidingStars.length, 10);
+    localProgress(guidingStars.length, guidingStarAttempts);
     const view = screen({ loading: true });
     expect(view.emitted('save')).toBeUndefined();
     await view.setProps({ loading: false });
@@ -187,10 +187,10 @@ describe('20 December guiding-star screen', () => {
   });
 
   it.each([false, true])('retains search data on save failure and lets the popup retry (exhausted: %s)', async exhausted => {
-    localProgress(exhausted ? guidingStars.length : 1, exhausted ? 9 : 0);
+    localProgress(exhausted ? guidingStars.length : 1, exhausted ? guidingStarAttempts - 1 : 0);
     const view = screen();
     await loadImages(view);
-    await choose(view, exhausted ? 9 : 0);
+    await choose(view, exhausted ? guidingStarAttempts - 1 : 0);
     await vi.advanceTimersByTimeAsync(420);
     if (!exhausted) await wish(view);
     await view.setProps({ saving: true });
