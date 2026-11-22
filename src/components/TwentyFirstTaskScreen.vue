@@ -221,7 +221,6 @@ function backFromResult() {
               :tool="tool"
               :enlarged="enlarged"
               :disabled="completed || saving"
-              :completed="completed"
               @mark="markCell"
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
@@ -314,7 +313,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-date { color: var(--accent); font-size: 12px; line-height: 15px; font-weight: 700; }
 
 .nonogram-heading h1 {
-  max-width: 254px;
+  max-width: 225px;
   margin: 13px 0 11px;
   color: var(--heading-color);
   font: 500 28px/30px 'Advent STIX', serif;
@@ -361,7 +360,8 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 .nonogram-rules[open] summary::before { content: '▾'; }
 .nonogram-rules ol { margin: 0; padding: 3px 20px 24px 16px; list-style-position: inside; }
 .nonogram-rules li + li { margin-top: 14px; }
-.nonogram-game { margin-top: 19px; padding: 12px 12px 19px; }
+.nonogram-game { margin-top: 19px; padding: 12px 6px 19px; }
+.nonogram-tools, .nonogram-meta, .nonogram-board-note { margin-inline: 6px; }
 .nonogram-game::before { border-image: url('../assets/nonogram/game.svg') 17 fill / 17px stretch; }
 
 .nonogram-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

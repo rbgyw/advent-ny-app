@@ -10,7 +10,6 @@ const props = defineProps<{
   tool: MarkingTool;
   enlarged: boolean;
   disabled: boolean;
-  completed: boolean;
 }>();
 const emit = defineEmits<{ mark: [index: number, value: CellMark] }>();
 
@@ -80,7 +79,7 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
 </script>
 
 <template>
-  <div class="nonogram-viewport" :class="{ 'is-enlarged': enlarged, 'is-completed': completed }">
+  <div class="nonogram-viewport" :class="{ 'is-enlarged': enlarged }">
     <div
       ref="scrollArea"
       class="nonogram-scroll"
@@ -101,7 +100,6 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
           <tr>
             <td class="nonogram-corner" aria-hidden="true"></td>
             <th v-for="(clue, column) in columnClues" :key="column" scope="col">
-              <span v-for="index in (completed ? 3 - clue.length : 0)" :key="`empty-${index}`" class="nonogram-column-number" aria-hidden="true"></span>
               <span v-for="(number, index) in clue" :key="index" class="nonogram-column-number">{{ number }}</span>
             </th>
           </tr>
@@ -109,10 +107,9 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
         <tbody>
           <tr v-for="(clue, row) in rowClues" :key="row">
             <th scope="row" class="nonogram-row-clue">
-              <span v-if="completed" class="nonogram-row-numbers">
-                <span>{{ clue.length === 2 ? clue[0] : '' }}</span><span>{{ clue.at(-1) }}</span>
+              <span class="nonogram-row-numbers">
+                <span v-for="(number, index) in clue" :key="index" class="nonogram-row-number">{{ number }}</span>
               </span>
-              <template v-else>{{ clue.join(' ') }}</template>
             </th>
             <td
               v-for="(_, column) in columnClues"
@@ -146,16 +143,17 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
 <style scoped>
 .nonogram-viewport {
   --grid-line: #c5ab81;
-  width: min(100%, max(160px, 85svh));
-  margin: 19px auto 0;
-  container-type: inline-size;
+  --clue-border: #c38e77;
+  --clue-background: #f3c4b2;
+  width: min(100%, 560px);
+  margin: 4px auto 0;
 }
 
 .is-enlarged .nonogram-scroll { overflow: auto; overflow-anchor: none; overscroll-behavior: contain; }
 .nonogram-scroll:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2px; }
 
 .nonogram-board {
-  width: 100cqw;
+  width: 100%;
   table-layout: fixed;
   border-spacing: 0;
   color: var(--color-ink);
@@ -164,13 +162,21 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
   user-select: none;
 }
 
-/* Keep the scroll area's layout size while doubling the table, clues and marks. */
-.is-enlarged .nonogram-board { transform: scale(2); transform-origin: top left; }
-.nonogram-row-clue-width { width: 30px; }
-.nonogram-board th { font-weight: 400; }
-.nonogram-board thead th { vertical-align: bottom; padding: 0 0 4px; }
-.nonogram-column-number { display: block; }
-.nonogram-row-clue { white-space: nowrap; padding: 0 4px 0 0; text-align: right; }
+.is-enlarged .nonogram-board { width: max(150%, 456px); font-size: 14px; }
+.nonogram-row-clue-width { width: 16.6667%; }
+.nonogram-board th { padding: 0; font-weight: 600; }
+.nonogram-board thead th { vertical-align: bottom; }
+.nonogram-column-number, .nonogram-row-number {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  background: var(--clue-background);
+  border: 1px solid var(--clue-border);
+}
+.nonogram-column-number { aspect-ratio: 1.15; border-block-end: 0; }
+.nonogram-row-numbers { display: flex; justify-content: flex-end; }
+.nonogram-row-number { width: 50%; aspect-ratio: 1; border-inline-end: 0; }
+.nonogram-row-number + .nonogram-row-number { margin-inline-start: -1px; }
 
 .nonogram-cell {
   padding: 0;
@@ -202,35 +208,5 @@ function moveFocus(event: KeyboardEvent, row: number, column: number) {
 
 @media (hover: hover) {
   .nonogram-cell button:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--color-action); }
-}
-
-.is-completed { --grid-line: #999; }
-.is-completed .nonogram-board {
-  border: 3px solid #000;
-  color: #000;
-  font: 400 clamp(11px, 4vw, 17px)/1 Georgia, serif;
-}
-.is-completed .nonogram-row-clue-width { width: 16.6667%; }
-.is-completed .nonogram-board thead th { padding: 0; border-inline-end: 1px solid var(--grid-line); }
-.is-completed .nonogram-board th { background: #ddd; }
-.is-completed .nonogram-corner { background: #eee; border-inline-end: 1px solid #000; border-block-end: 1px solid #000; }
-.is-completed .nonogram-column-number {
-  display: grid;
-  aspect-ratio: 1;
-  place-items: center;
-  box-shadow: inset 0 -1px var(--grid-line);
-}
-.is-completed .nonogram-row-clue { padding: 0; text-align: center; }
-.nonogram-row-numbers { display: grid; grid-template-columns: 1fr 1fr; }
-.nonogram-row-numbers span { display: grid; place-items: center; aspect-ratio: 1; }
-.nonogram-row-numbers span:first-child { box-shadow: inset -1px 0 var(--grid-line); }
-.is-completed .nonogram-row-clue { box-shadow: inset 0 -1px var(--grid-line); }
-.is-completed .nonogram-cell { background: #fff; }
-.is-completed .nonogram-cell[data-mark='1'] { background: #000; }
-.is-completed .nonogram-cell:nth-of-type(5) { --split-column: 2px; }
-.is-completed tbody tr:nth-child(5) .nonogram-cell { --split-row: 2px; }
-.is-completed .nonogram-cell {
-  box-shadow: inset calc(-1 * var(--split-column, 0px)) 0 var(--grid-line),
-    inset 0 calc(-1 * var(--split-row, 0px)) var(--grid-line);
 }
 </style>
