@@ -28,30 +28,6 @@ function toggleRecipe() {
     emit('save', { response: { opened: true }, complete: true });
   }
 }
-
-function saveRecipe() {
-  const item = recipe.value;
-  const lines = [item.title, item.servings, item.nutrition ?? '', '', ...item.description, ''];
-  if (item.ingredients.length) {
-    lines.push('Ингредиенты');
-    for (const section of item.ingredients) {
-      if (section.heading) lines.push(section.heading);
-      lines.push(...section.items.map(ingredient => '• ' + ingredient));
-    }
-  }
-  if (item.steps.length) lines.push('', 'Приготовление', ...item.steps.map((step, i) => (i + 1) + '. ' + step));
-  for (const variation of item.variations ?? []) {
-    lines.push('', variation.title, 'Ингредиенты', ...variation.ingredients.map(ingredient => '• ' + ingredient),
-      '', 'Приготовление', ...variation.steps.map((step, i) => (i + 1) + '. ' + step));
-  }
-  if (item.serving) lines.push('', 'Праздничная подача', item.serving);
-  const url = URL.createObjectURL(new Blob(['\uFEFF', lines.join('\r\n')], { type: 'text/plain;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = item.title.replace(/[:/]/g, '') + '.txt';
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 </script>
 
 <template>
@@ -101,7 +77,6 @@ function saveRecipe() {
             <section v-if="recipe.serving"><h4>Праздничная подача</h4><p>{{ recipe.serving }}</p></section>
             <button class="december-link recipe-toggle" type="button" @click="expanded = false">Свернуть рецепт ↑</button>
           </div>
-          <button class="december-button" type="button" @click="saveRecipe">Сохранить рецепт</button>
         </div>
       </article>
       <div v-if="saveError" class="december-stack">
