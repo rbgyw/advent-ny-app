@@ -224,8 +224,8 @@ function retryImage() {
           <p><em>Это обязательное задание для получения подарка.</em></p>
         </div>
         <figure class="podzhik-sample december-panel">
-          <img :src="sample" width="104" height="159" alt="Белый пушистый Поджик с голубыми глазами, красным пятнышком на животе и красными ножками" />
-          <figcaption>Его приметы — белый пушистый силуэт, голубые глаза, красное пятнышко на животе и красные ножки.</figcaption>
+          <img :src="sample" width="104" height="159" alt="Белый пушистый Поджик с голубыми глазами, красным сердечком и красными ножками" />
+          <figcaption>Его приметы — белый пушистый силуэт, голубые глаза, красное сердечко и красные ножки.</figcaption>
         </figure>
         <section class="podzhik-rules" aria-labelledby="podzhik-rules-title">
           <h2 id="podzhik-rules-title">Как играть</h2>
