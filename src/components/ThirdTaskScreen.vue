@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
             </div>
             <label for="memory-author" class="memory-author-label">От кого</label>
             <input id="memory-author" ref="authorInput" v-model="author" class="memory-author" name="author" type="text" autocomplete="name" maxlength="150" placeholder="Имя и фамилия" :readonly="completed || closed" :disabled="saving" required @input="validation = ''; emit('edit')" />
-            <TaskAttachments v-if="userId" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
+            <TaskAttachments v-if="userId" class="memory-attachments" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" variant="memory" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
             <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
@@ -153,6 +153,7 @@ onBeforeUnmount(() => {
 .memory-form > label { display: block; margin-bottom: 16px; color: #623c28; font: 500 20px/27px 'Advent Source Serif', serif; }
 .memory-form > .memory-author-label { margin-top: 16px; }
 .memory-author { box-sizing: border-box; width: 100%; min-width: 0; min-height: 52px; padding: 12px 14px; border: 1px solid #dcc8a8; border-radius: 14px; background: #fffaf0; color: #623c28; font: 400 16px/22px 'Advent Inter', sans-serif; }
+.memory-attachments { margin-block-start: 16px; }
 .memory-author:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
 .memory-input { position: relative; min-height: 156px; }
 .memory-input::before { content: ''; position: absolute; inset: -.5px; border: 14px solid transparent; border-image: var(--textarea-art) 14 fill / 14px stretch; pointer-events: none; }
@@ -160,7 +161,7 @@ onBeforeUnmount(() => {
 .memory-input textarea::placeholder { color: #947a62; opacity: 1; }
 .memory-input textarea:disabled { opacity: .7; }
 .memory-input textarea:focus-visible { outline: 1px solid #a7401d; outline-offset: 0; }
-.memory-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: #a7280b; color: #fff7df; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
+.memory-button { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: min(100%, 313px); min-height: 52px; padding: 10px 16px; margin-inline: auto; border: 0; border-radius: 13px; background: #a7280b; color: #fff7df; font: 700 14px/17px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: center; cursor: pointer; }
 .memory-button:disabled { cursor: default; opacity: .65; -webkit-text-fill-color: currentColor; }
 .memory-button:not(:disabled):hover { background: #962107; }
 .memory-button:focus-visible, .memory-back:focus-visible, .memory-close:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
