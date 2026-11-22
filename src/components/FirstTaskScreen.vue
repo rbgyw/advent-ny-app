@@ -169,9 +169,9 @@ function cssUrl(url: string) {
   box-sizing: border-box;
   position: relative;
   width: 100%;
-  max-width: 393px;
+  max-width: 600px;
   margin-inline: auto;
-  padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 31px;
+  padding: 0 clamp(12px, 4vw, 24px) 31px;
 }
 .first-task-header {
   box-sizing: border-box;
@@ -229,7 +229,7 @@ function cssUrl(url: string) {
   margin: 0 0 21px;
   color: #623c28;
   font:
-    500 28px/30px "Advent STIX",
+    500 clamp(26px, 5vw, 34px)/1.12 "Advent STIX",
     serif;
   letter-spacing: 0;
 }
@@ -245,7 +245,9 @@ function cssUrl(url: string) {
 .first-task-panel {
   position: relative;
   width: 100%;
-  aspect-ratio: 313 / 78;
+  display: grid;
+  place-items: center;
+  min-height: 64px;
   margin-top: 27px;
 }
 .first-task-panel::before {
@@ -279,10 +281,9 @@ function cssUrl(url: string) {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  max-width: 313px;
-  height: 52px;
+  max-width: 100%;
   min-height: 52px;
-  padding: 0 16px;
+  padding: 10px 16px;
   margin: 0;
   border: 0;
   border-radius: 13px;
@@ -292,7 +293,7 @@ function cssUrl(url: string) {
   letter-spacing: 0;
   text-align: center;
   text-decoration: none;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 .first-task-primary {
