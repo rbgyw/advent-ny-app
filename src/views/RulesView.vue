@@ -25,9 +25,10 @@ import back from '../assets/rules/back.svg';
 
       <AppCard class="rules-card" aria-label="Правила участия">
         <h2>Дорогие коллеги, поздравляем вас с наступающим Новым годом!</h2>
-        <p>Декабрь — время приятных хлопот, теплых воспоминаний и предвкушения праздника. Предлагаем провести его вместе: вспомнить яркие моменты уходящего года, пообщаться с коллегами и зарядиться новогодним настроением. Для этого мы и подготовили адвент-календарь.</p>
-        <p>С 1 по 25 декабря каждый день будет открываться новое окошко с заданием или сюрпризом. Вас ждут головоломки, игры, творческие задания и маленькие поводы улыбнуться.</p>
-        <p>Участвуйте в своем темпе и выбирайте активности по настроению. А если хотите получить памятный подарок, правильно выполните <strong>все обязательные задания</strong> — для них предусмотрены <strong>оранжевые окна с золотой окантовкой. Их выполнение будет</strong> отражаться в вашем прогрессе.</p>
+        <p>Декабрь — горячая пора: это время, когда мы завершаем рабочие задачи, строим планы на следующий год, выбираем подарки и готовимся к семейным встречам. За всеми этими делами не всегда даже успеваешь почувствовать приближение праздника.</p>
+        <p>Специально для вас создан новогодний адвент-календарь — чтобы можно было ненадолго переключиться. С 1 по 25 декабря каждый день будет открываться новое окошко.</p>
+        <p>Этот адвент — о нашей компании, ее достижениях и людях, которые за ними стоят. Поэтому мы подготовили 25 заданий — по числу лет ГЕРОФАРМ. Разгадайте традиционный кроссворд о качестве, проверьте, насколько хорошо знаете упаковки наших препаратов, поделитесь памятными моментами работы в ГЕРОФАРМ. А еще — найдите свою путеводную звезду и познакомьтесь с новогодними традициями разных регионов.</p>
+        <p>Обязательные задания прячутся за <strong>оранжевыми окнами с золотой окантовкой.</strong> Их выполнение будет отражаться в вашем прогрессе.</p>
 
         <aside class="rules-required">
           <p class="rules-required-label">Так выглядят обозначения обязательных заданий</p>
@@ -44,8 +45,7 @@ import back from '../assets/rules/back.svg';
           <p><strong>Первые 500 участников, правильно</strong> выполнивших <strong>все обязательные задания, получат подарок от</strong> ГЕРОФАРМ.</p>
         </div>
 
-        <p>Подсказки к некоторым заданиям мы будем публиковать в каналах ГЕРОФАРМ LIFE в <strong>Telegram и MAX.</strong></p>
-        <p>Пусть этот декабрь станет немного теплее, веселее и волшебнее. Начнем?</p>
+        <p>Подсказки к некоторым заданиям мы будем публиковать в каналах ГЕРОФАРМ LIFE в <a class="rules-community-link" href="https://t.me/+7Zwg%7CYFwmIU30GRi" target="_blank" rel="noopener noreferrer">Telegram</a> и <a class="rules-community-link" href="https://max.ru/join/d-gd069xb3KizIdnYoydwqaBFBRk5kmEGGfmVGK5YMc" target="_blank" rel="noopener noreferrer">MAX</a>.</p>
 
         <RouterLink class="rules-register" :to="{ name: 'auth', query: { mode: 'register' } }"><span>Зарегистрироваться</span></RouterLink>
         <RouterLink class="rules-continue" :to="{ name: 'auth', query: { mode: 'login' } }">Уже начали открывать окошки?<br />Продолжить</RouterLink>
@@ -69,6 +69,7 @@ import back from '../assets/rules/back.svg';
 .rules-card p { margin: 0 0 22px; }
 .rules-card > p { max-width: 66ch; }
 .rules-card strong { font-weight: 700; }
+.rules-community-link { color: var(--color-action); font-weight: 700; text-underline-offset: 3px; }
 .rules-card h2 { margin: 0 0 19px; color: inherit; font: 700 clamp(17px, 2vw, 25px)/1.35 var(--font-ui); letter-spacing: 0; }
 .rules-required { margin: 25px 0 40px; font-size: 12px; line-height: 15px; }
 .rules-required .rules-required-label { margin: 0 0 15px; color: #a7280b; font-weight: 700; text-wrap: balance; }
@@ -78,14 +79,13 @@ import back from '../assets/rules/back.svg';
 .rules-gift .rules-gift-label { margin: 0 0 12px; font-size: 13px; line-height: 16px; color: #836045; }
 .rules-gift p:last-child { margin: 0; font-size: 15px; line-height: 21px; }
 .rules-card > .rules-gift + p { line-height: 21px; margin-bottom: 18px; }
-.rules-card > .rules-gift + p + p { line-height: 21px; min-height: 46px; }
 .rules-register, .rules-continue { display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 13px; text-align: center; text-decoration: none; font-weight: 700; }
 .rules-register span { color: transparent; background: linear-gradient(75deg, #e8b77e, #ffe6bc 20%, #fff0d2 73%, #efc087); background-clip: text; }
 .rules-register { min-height: 54px; margin-top: 25px; padding: 0 12px; background: #a7280b; color: #fff0d2; font-size: 15px; line-height: 18px; }
 .rules-continue { min-height: 52px; margin-top: 16px; padding: 8px; border: 1px solid #a7280b; color: #a7280b; font-size: 14px; line-height: 17px; }
 .rules-register:hover { background: #962107; }
 .rules-continue:hover { background: #f8e8c8; }
-.rules-back:focus-visible, .rules-register:focus-visible, .rules-continue:focus-visible { outline: 3px solid #623c28; outline-offset: 4px; }
+.rules-community-link:focus-visible, .rules-back:focus-visible, .rules-register:focus-visible, .rules-continue:focus-visible { outline: 3px solid #623c28; outline-offset: 4px; }
 @media (max-width: 379px) { .rules-required-examples { grid-template-columns: 61px minmax(0, 1fr); row-gap: 16px; } }
 @media (min-width: 700px) {
   .rules-card p { margin-bottom: 24px; }
@@ -93,7 +93,7 @@ import back from '../assets/rules/back.svg';
   .rules-required { margin-block: 30px; font-size: clamp(12px, 1.2vw, 14px); line-height: clamp(15px, 1.6vw, 20px); }
   .rules-gift { min-height: 0; padding: 24px; }
   .rules-gift p:last-child { font-size: 16px; line-height: 25px; }
-  .rules-card > .rules-gift + p, .rules-card > .rules-gift + p + p { line-height: 26px; min-height: 0; }
+  .rules-card > .rules-gift + p { line-height: 26px; }
   .rules-register, .rules-continue { max-width: 420px; margin-inline: auto; min-height: 56px; }
 }
 </style>
