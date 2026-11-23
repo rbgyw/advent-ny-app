@@ -15,7 +15,7 @@ function resourceDiagnostics(page: Page) {
   return messages;
 }
 
-test('calendar reveals data, checks, house and closed windows together', async ({ page }) => {
+test('calendar waits for data but reveals controls before a slow decorative layer', async ({ page }) => {
   await mockBackend(page, { completed: true, lockedAfter: 1 });
   const data = barrier(), shade = barrier(), requested = barrier();
   await page.route('**/rest/v1/user_tasks?*', async route => { await data.wait; await route.fallback(); });
@@ -26,27 +26,26 @@ test('calendar reveals data, checks, house and closed windows together', async (
   await expect(page.locator('.calendar-page')).toBeHidden();
   data.release();
   await requested.wait;
-  await expect(page.locator('.calendar-completed').first()).toBeHidden();
-  await expect(page.locator('.calendar-illustration')).toBeHidden();
-  await expect(page.locator('[role=status]:visible')).toHaveCount(1);
+  await expect(page.locator('.calendar-completed').first()).toBeVisible();
+  await expect(page.locator('.calendar-window').first()).toBeEnabled();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
   shade.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.calendar-completed').first()).toBeVisible();
   await expect(page.locator('.calendar-illustration')).toBeVisible();
   await expect(page.locator('.calendar-window').nth(1)).toBeDisabled();
-  expect(await page.locator('.calendar-page img').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
-  expect(await page.evaluate(() => document.fonts.status)).toBe('loaded');
+  await expect.poll(() => page.locator('.calendar-page img').evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
 });
 
-test('task waits for its text font and has the destination background', async ({ page }) => {
+test('task reveals text with a fallback font while its custom font is pending', async ({ page }) => {
   await mockBackend(page);
   const font = barrier(), requested = barrier();
   await page.route('**/STIXTwoText-*.woff2', async route => { requested.release(); await font.wait; await route.continue(); });
   await page.goto('/task/1', { waitUntil: 'domcontentloaded' });
   await requested.wait;
-  await expect(page.locator('.screen-loader [role=status]')).toHaveText('Загружаем задание...');
-  await expect(page.locator('.first-task-page')).toBeHidden();
-  expect(await page.locator('.screen-loader').evaluate(element => getComputedStyle(element).background)).toBe(await page.locator('.first-task-page').evaluate(element => getComputedStyle(element).background));
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('.first-task-page')).toBeVisible();
+  await expect(page.locator('.first-task-page h1')).toBeVisible();
   font.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.first-task-page')).toBeVisible();
@@ -121,7 +120,7 @@ test('an image decode failure keeps the calendar usable and supplies a text head
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.calendar-title-fallback')).toBeVisible();
   await expect(page.locator('.calendar-window').first()).toBeEnabled();
-  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image decode: .*\/assets\/.*\.svg$/)]));
+  await expect.poll(() => messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image decode: .*\/assets\/.*\.svg$/)]));
 });
 
 test('a missing background and font fall back to the background color and system font', async ({ page }) => {
@@ -139,7 +138,7 @@ test('a missing background and font fall back to the background color and system
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.first-task-page')).toHaveCSS('background-color', 'rgb(198, 61, 15)');
   await expect(page.locator('h1')).toBeVisible();
-  expect(messages).toEqual(expect.arrayContaining([
+  await expect.poll(() => messages).toEqual(expect.arrayContaining([
     expect.stringMatching(/optional background load: .*\/assets\/screen-bg-aBcDe123\.svg$/),
     expect.stringMatching(/optional font load: .*\/assets\/STIXTwoText-.*\.woff2$/),
   ]));
@@ -153,27 +152,27 @@ test('a stalled optional image times out without blocking the calendar', async (
   await page.route('**/91-1115-*.svg', async route => { await asset.wait; await route.continue(); });
   try {
     await page.goto('/calendar', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('.screen-loader')).toHaveCount(0, { timeout: 10_000 });
+    await expect(page.locator('.screen-loader')).toHaveCount(0, { timeout: 3_000 });
     await expect(page.locator('.calendar-window').first()).toBeEnabled();
-    expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image timeout: .*\/assets\/91-1115-.*\.svg$/)]));
+    await expect.poll(() => messages, { timeout: 7_000 }).toEqual(expect.arrayContaining([expect.stringMatching(/optional image timeout: .*\/assets\/91-1115-.*\.svg$/)]));
   } finally {
     asset.release();
   }
   await expect(page.locator('img[data-screen-image-fallback]')).toHaveCount(0);
 });
 
-test('a failed image essential to the task offers retry', async ({ page }) => {
+test('an unavailable game image offers a local retry without hiding the whole task', async ({ page }) => {
   await mockBackend(page);
   const messages = resourceDiagnostics(page);
   const asset = '**/heart-*.webp';
   await page.route(asset, route => route.fulfill({ status: 404 }));
   await page.goto('/task/11');
-  await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось загрузить экран');
-  await expect(page.locator('.stereo-photo')).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
-  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/critical image load: .*\/assets\/heart-.*\.webp$/)]));
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('.stereo-page')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Не удалось загрузить изображение задания');
+  await expect.poll(() => messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image load: .*\/assets\/heart-.*\.webp$/)]));
   await page.unroute(asset);
-  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Попробовать снова' }).click();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.stereo-photo')).toBeVisible();
 });
@@ -204,43 +203,33 @@ test('saving a task keeps its screen visible', async ({ page }) => {
   await expect(page.getByRole('dialog')).toBeVisible();
 });
 
-test('warm gradient follows the destination when the viewport changes during loading', async ({ page }) => {
+test('warm gradient remains responsive while an optional font is pending', async ({ page }) => {
   await mockBackend(page);
   const font = barrier(), requested = barrier();
   await page.route('**/STIXTwoText-*.woff2', async route => { requested.release(); await font.wait; await route.continue(); });
   await page.goto('/task/3', { waitUntil: 'domcontentloaded' });
   await requested.wait;
-  const layer = page.locator('.screen-loader-background > div');
-  await expect(layer).toBeAttached();
-  for (const viewport of [{ width: 393, height: 852 }, { width: 844, height: 390 }]) {
-    await page.setViewportSize(viewport);
-    await expect.poll(async () => {
-      const source = await page.locator('.memory-gradient').evaluate(element => {
-        const style = getComputedStyle(element);
-        return [style.backgroundImage, style.width, style.height, style.transform];
-      });
-      const loader = await layer.evaluate(element => {
-        const style = getComputedStyle(element);
-        return [style.backgroundImage, style.width, style.height, style.transform];
-      });
-      return JSON.stringify(loader) === JSON.stringify(source);
-    }).toBe(true);
-  }
-  font.release();
   await expect(page.locator('.memory-page')).toBeVisible();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  const gradient = page.locator('.memory-gradient');
+  const before = await gradient.evaluate(element => getComputedStyle(element).transform);
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect.poll(() => gradient.evaluate(element => getComputedStyle(element).transform)).not.toBe(before);
+  await expect(gradient).toHaveCSS('background-image', /radial-gradient/);
+  font.release();
 });
 
 test('a completed task prepares its initial dialog before opening the modal', async ({ page }) => {
   await mockBackend(page, { completed: true });
   await page.route('**/rest/v1/task_responses?*', route => route.fulfill({ json: [{ id: 'response-20', task_id: 20, response: { result: 'wished' } }] }));
-  const font = barrier(), requested = barrier();
-  await page.route('**/STIXTwoText-*.woff2', async route => { requested.release(); await font.wait; await route.continue(); });
+  const data = barrier(), requested = barrier();
+  await page.route('**/rest/v1/rpc/is_admin', async route => { requested.release(); await data.wait; await route.fallback(); });
   await page.goto('/task/20', { waitUntil: 'domcontentloaded' });
   await requested.wait;
   await expect(page.locator('dialog[data-screen-dialog-pending]')).toBeAttached();
   await expect(page.locator('dialog[open]')).toHaveCount(0);
   await expect(page.locator('.screen-loader')).toBeVisible();
-  font.release();
+  data.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.getByRole('dialog')).toBeVisible();
 });
@@ -306,4 +295,83 @@ test('a failed route moves keyboard focus to retry and keeps the previous screen
   await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
   expect(await page.getByRole('button').count()).toBe(1);
   expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/critical module load: .*\/assets\/TaskView-.*\.js$/)]));
+});
+
+
+test('direct task 4 and nested-route refresh retain the authorized crossword', async ({ page }) => {
+  await mockBackend(page);
+  await page.goto('/task/4');
+  await expect(page.locator('.crossword-page')).toBeVisible();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await page.reload();
+  await expect(page).toHaveURL('/task/4');
+  await expect(page.locator('.crossword-page')).toBeVisible();
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+});
+
+test('an entry module 404 leaves a working startup retry before Vue exists', async ({ page }) => {
+  await mockBackend(page);
+  await page.route('**/assets/index-*.js', route => route.fulfill({ status: 404 }));
+  await page.goto('/calendar', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#startup-status')).toHaveAttribute('role', 'alert');
+  await expect(page.locator('#startup-retry')).toBeVisible();
+  await page.unroute('**/assets/index-*.js');
+  await page.locator('#startup-retry').click();
+  await expect(page.locator('.calendar-page')).toBeVisible();
+});
+
+test('a failed child module is diagnosed separately and can reload after a build change', async ({ page }) => {
+  await mockBackend(page);
+  const messages = resourceDiagnostics(page);
+  await page.route('**/FourthTaskScreen-*.js', route => route.fulfill({ status: 404 }));
+  await page.goto('/task/4');
+  await expect(page.getByRole('button', { name: 'Загрузить снова' })).toBeVisible();
+  expect(messages.some(message => /critical module load: .*FourthTaskScreen/.test(message))).toBe(true);
+  await page.unroute('**/FourthTaskScreen-*.js');
+  await page.getByRole('button', { name: 'Загрузить снова' }).click();
+  await expect(page.locator('.crossword-page')).toBeVisible();
+});
+
+test('a stalled entry module offers retry after a bounded startup wait', async ({ page }) => {
+  await mockBackend(page);
+  await page.clock.install();
+  const code = barrier(), requested = barrier();
+  await page.route('**/assets/index-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
+  await page.goto('/calendar', { waitUntil: 'commit' });
+  await requested.wait;
+  // The preload scanner can request JS before the inline startup timer runs.
+  await expect(page.locator('#startup-loader')).toHaveAttribute('data-theme', 'calendar');
+  await page.clock.fastForward(30_001);
+  await expect(page.locator('#startup-status')).toHaveAttribute('role', 'alert');
+  await expect(page.locator('#startup-retry')).toBeVisible();
+  code.release();
+  await expect(page.locator('.calendar-page')).toBeVisible();
+});
+
+test('a stalled route import offers retry instead of an endless navigation loader', async ({ page }) => {
+  await mockBackend(page);
+  await page.goto('/calendar');
+  await expect(page.locator('.calendar-page')).toBeVisible();
+  await page.clock.install();
+  const code = barrier(), requested = barrier();
+  await page.route('**/TaskView-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
+  await page.locator('.calendar-window').first().click();
+  await requested.wait;
+  await page.clock.fastForward(30_001);
+  await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось завершить переход');
+  await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeVisible();
+  code.release();
+});
+
+test('a stalled child component has a local module timeout and retry', async ({ page }) => {
+  await mockBackend(page);
+  await page.clock.install();
+  const code = barrier(), requested = barrier();
+  await page.route('**/FourthTaskScreen-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
+  await page.goto('/task/4', { waitUntil: 'domcontentloaded' });
+  await requested.wait;
+  await page.clock.fastForward(25_001);
+  await expect(page.getByText('Не удалось загрузить код задания. Обновите страницу и попробуйте снова.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Загрузить снова' })).toBeVisible();
+  code.release();
 });

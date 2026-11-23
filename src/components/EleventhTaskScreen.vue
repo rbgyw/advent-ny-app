@@ -25,6 +25,8 @@ import dot from '../assets/crossword/dot.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [letters: string[]]; edit: [] }>();
+const imageFailed = ref(false);
+function retryImage() { window.location.reload(); }
 const letters = ref<string[]>(STEREOGRAM_LETTERS.map(() => ''));
 const incorrect = ref(false), inputRefs = ref<HTMLInputElement[]>([]);
 const { element: panel, bind: bindPanel } = useElementRef();
@@ -110,7 +112,9 @@ onBeforeUnmount(() => observer?.disconnect());
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора. Через некоторое время может появиться объемное изображение.</li><li>Если не получилось сразу, немного приблизьте или отодвиньте изображение и попробуйте снова.</li></ol>
           </section>
-          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" data-screen-critical />
+          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" @error="imageFailed = true" />
+          <FeedbackState v-if="imageFailed" kind="error">Не удалось загрузить изображение задания.</FeedbackState>
+          <AppButton v-if="imageFailed" type="button" @click="retryImage">Попробовать снова</AppButton>
           <form class="stereo-form" @submit.prevent="submit">
             <fieldset :disabled="locked" aria-describedby="stereo-answer-hint stereo-feedback">
               <legend>Что вам удалось увидеть?</legend><p id="stereo-answer-hint">Впишите ответ в ячейки.</p>

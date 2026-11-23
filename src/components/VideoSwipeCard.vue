@@ -98,10 +98,10 @@ function animationEnd(event: AnimationEvent) {
 .video-card-viewport { min-width: 0; overflow: hidden; margin-inline: -8px; padding-inline: 8px; }
 .video-swipe-card { touch-action: pan-y; transform: translateX(var(--drag-x)) rotate(var(--drag-rotation)); transition: transform 180ms ease; transform-origin: 50% 75%; user-select: none; }
 .video-swipe-card.is-dragging { transition: none; cursor: grabbing; }
-.video-portrait { position: relative; width: calc(100% - 2px); aspect-ratio: 311 / 468; margin-inline: 1px; overflow: hidden; border-radius: 16px; background: url('../assets/dec-22/placeholder.svg') center / cover no-repeat; }
+.video-portrait { position: relative; width: calc(100% - 2px); aspect-ratio: 311 / 468; margin-inline: 1px; overflow: hidden; border-radius: 16px; background: var(--color-paper) url('../assets/dec-22/placeholder.svg') center / cover no-repeat; }
 .video-portrait video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 16px; color: #fff0c4; text-align: center; }
-.video-placeholder:not(.has-poster) { background: url('../assets/dec-22/placeholder.svg') center / cover no-repeat; }
+.video-placeholder:not(.has-poster) { background: var(--color-paper) url('../assets/dec-22/placeholder.svg') center / cover no-repeat; }
 .video-placeholder:not(.has-poster) > :first-child { margin-top: -12px; }
 .video-placeholder.has-poster { background: #31130e30; }
 .video-placeholder p { font-size: 14px; line-height: 17px; }

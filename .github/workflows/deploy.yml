@@ -39,8 +39,14 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
+      - name: Audit compiled resources
+        run: npm run audit:build
+
+      - name: Test publication ordering
+        run: python3 -m unittest discover -s tests -p "deploy_sftp_test.py"
+
+      - name: Install SFTP client
+        run: sudo apt-get update && sudo apt-get install -y python3-paramiko
 
       - name: Upload dist over SFTP
         env:
@@ -48,12 +54,5 @@ jobs:
           SFTP_PORT: ${{ secrets.SFTP_PORT }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
-        run: |
-          set -euo pipefail
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" <<'LFTP'
-          set cmd:fail-exit yes
-          set net:max-retries 2
-          set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=accept-new"
-          mirror --reverse --verbose dist/ /home/t/tomattorag/geropharm-advent.ru/public_html/
-          bye
-          LFTP
+        # Assets first, atomic index replacement last, no deletion of old chunks.
+        run: /usr/bin/python3 scripts/deploy-sftp.py
