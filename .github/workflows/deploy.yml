@@ -43,7 +43,7 @@ jobs:
         run: npm run audit:build
 
       - name: Test publication ordering
-        run: python3 -m unittest discover -s tests -p "deploy_sftp_test.py"
+        run: python3 -m unittest discover -s tests -p "*deploy*test.py"
 
       - name: Install SFTP client
         run: sudo apt-get update && sudo apt-get install -y python3-paramiko
@@ -54,5 +54,10 @@ jobs:
           SFTP_PORT: ${{ secrets.SFTP_PORT }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_REMOTE_ROOT: /home/t/tomattorag/geropharm-advent_ru/public_html
         # Assets first, atomic index replacement last, no deletion of old chunks.
         run: /usr/bin/python3 scripts/deploy-sftp.py
+
+      - name: Verify the public site serves this build
+        # A successful SFTP transfer alone does not prove the domain uses it.
+        run: python3 scripts/verify-publication.py

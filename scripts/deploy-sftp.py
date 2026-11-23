@@ -9,7 +9,12 @@ from pathlib import Path, PurePosixPath
 import sys
 import uuid
 
-REMOTE_ROOT = '/home/t/tomattorag/geropharm-advent.ru/public_html'
+def deployment_root():
+    destination = os.environ.get('SFTP_REMOTE_ROOT', '').rstrip('/')
+    path = PurePosixPath(destination)
+    if not destination or not path.is_absolute() or '..' in path.parts or destination == '/':
+        raise ValueError('Set SFTP_REMOTE_ROOT to the domain document root in the workflow')
+    return destination
 
 
 def publish(sftp, source, destination):
@@ -59,6 +64,7 @@ def publish(sftp, source, destination):
 
 
 def main():
+    destination = deployment_root()
     import paramiko
     client = paramiko.SSHClient()
     client.load_system_host_keys()
@@ -71,7 +77,7 @@ def main():
                        allow_agent=False, look_for_keys=False)
         with client.open_sftp() as sftp:
             sftp.get_channel().settimeout(60)
-            publish(sftp, Path('dist'), REMOTE_ROOT)
+            publish(sftp, Path('dist'), destination)
     finally:
         client.close()
 
