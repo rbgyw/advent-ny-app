@@ -2,6 +2,9 @@ import errno
 import importlib.util
 from pathlib import Path
 import tempfile
+import os
+import re
+from unittest.mock import patch
 import unittest
 
 spec = importlib.util.spec_from_file_location('deploy', Path(__file__).parents[1] / 'scripts/deploy-sftp.py')
@@ -46,6 +49,19 @@ class PublicationTest(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
+
+    def test_destination_matches_spaceweb_domain_settings(self):
+        workflow = (Path(__file__).parents[1] / '.github/workflows/deploy.yml').read_text()
+        destination = re.search(r'^\s+SFTP_REMOTE_ROOT: (.+)$', workflow, re.MULTILINE).group(1)
+        self.assertEqual(destination, '/home/t/tomattorag/geropharm-advent_ru/public_html')
+        with patch.dict(os.environ, {'SFTP_REMOTE_ROOT': destination}):
+            self.assertEqual(deploy.deployment_root(), destination)
+
+    def test_destination_must_be_explicit_and_absolute(self):
+        for destination in ['', '/', 'public_html', '/home/site/../public_html']:
+            with self.subTest(destination=destination), patch.dict(os.environ, {'SFTP_REMOTE_ROOT': destination}):
+                with self.assertRaises(ValueError):
+                    deploy.deployment_root()
 
     def test_assets_first_atomic_index_last_and_old_tabs_still_work(self):
         sftp = Sftp()
