@@ -3,6 +3,9 @@
   RewriteEngine On
   RewriteBase /
   RewriteRule ^index\.html$ - [L]
+  # Missing assets must stay HTTP 404, including hashed Vite chunks and fonts.
+  RewriteRule ^(?:assets|collections)(?:/|$) - [L]
+  RewriteRule (?:^|/)[^/]+\.[^/]+$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
