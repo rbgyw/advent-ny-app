@@ -1,10 +1,18 @@
-import { test, expect } from '@playwright/test';
-import { mockBackend } from './fixture';
+import { test, expect, type Page } from '@playwright/test';
+import { mockBackend, userId } from './fixture';
 
 function barrier() {
   let release!: () => void;
   const wait = new Promise<void>(resolve => { release = resolve; });
   return { wait, release };
+}
+
+function resourceDiagnostics(page: Page) {
+  const messages: string[] = [];
+  page.on('console', message => {
+    if (message.text().startsWith('[advent]')) messages.push(message.text());
+  });
+  return messages;
 }
 
 test('calendar reveals data, checks, house and closed windows together', async ({ page }) => {
@@ -73,18 +81,101 @@ test('loader fits narrow, landscape, tablet and desktop screens and respects red
   await expect(page.locator('.screen-loader')).toHaveCount(0);
 });
 
-test('failed illustration offers a retry instead of exposing a partial calendar', async ({ page }) => {
+test('password login opens the calendar after RPC 204 and an optional illustration 404', async ({ page }) => {
+  await mockBackend(page, { authenticated: false });
+  const email = 'audit@geropharm.com';
+  const messages = resourceDiagnostics(page);
+  await page.route('**/auth/v1/token?grant_type=password', route => route.fulfill({ json: {
+    access_token: 'local-audit-token', refresh_token: 'local-refresh-token', expires_in: 3600, token_type: 'bearer',
+    user: { id: userId, email, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' },
+  } }));
+  await page.route('**/rest/v1/rpc/prepare_advent_calendar', route => route.fulfill({ status: 204 }));
+  await page.route('**/91-1115-*.svg', route => route.fulfill({ status: 404 }));
+  const prepared = page.waitForResponse(response => response.url().endsWith('/rpc/prepare_advent_calendar') && response.status() === 204);
+  await page.goto('/auth');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Пароль', { exact: true }).fill('test-only-password');
+  await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  await prepared;
+  await expect(page).toHaveURL('/calendar');
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('img[data-screen-image-fallback]').first()).toHaveCSS('opacity', '0');
+  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image load: .*\/assets\/91-1115-.*\.svg$/)]));
+  expect(messages.join()).not.toMatch(/audit@|local-audit-token|test-only-password/);
+  await page.locator('.calendar-window').first().click();
+  await expect(page).toHaveURL('/task/1');
+});
+
+test('an image decode failure keeps the calendar usable and supplies a text heading', async ({ page }) => {
   await mockBackend(page);
-  const asset = '**/91-1115-*.svg';
-  await page.route(asset, route => route.abort());
+  const messages = resourceDiagnostics(page);
+  await page.addInitScript(() => {
+    const decode = HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode = function () {
+      if (this.classList.contains('desktop-calendar-title')) return Promise.reject(new DOMException('Decode failed', 'EncodingError'));
+      return decode.call(this);
+    };
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/calendar');
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('.calendar-title-fallback')).toBeVisible();
+  await expect(page.locator('.calendar-window').first()).toBeEnabled();
+  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image decode: .*\/assets\/.*\.svg$/)]));
+});
+
+test('a missing background and font fall back to the background color and system font', async ({ page }) => {
+  await mockBackend(page);
+  const messages = resourceDiagnostics(page);
+  await page.route('**/assets/FirstTaskScreen-*.css', async route => {
+    const response = await route.fetch();
+    const css = await response.text();
+    // Vite inlines this task's background. Exercise the emitted-file case too.
+    await route.fulfill({ response, body: `${css}\n.first-task-page { background-image: url('/assets/screen-bg-aBcDe123.svg?token=private') !important; }` });
+  });
+  await page.route('**/assets/screen-bg-aBcDe123.svg*', route => route.fulfill({ status: 404 }));
+  await page.route('**/assets/STIXTwoText-*.woff2', route => route.fulfill({ status: 404 }));
+  await page.goto('/task/1');
+  await expect(page.locator('.screen-loader')).toHaveCount(0);
+  await expect(page.locator('.first-task-page')).toHaveCSS('background-color', 'rgb(198, 61, 15)');
+  await expect(page.locator('h1')).toBeVisible();
+  expect(messages).toEqual(expect.arrayContaining([
+    expect.stringMatching(/optional background load: .*\/assets\/screen-bg-aBcDe123\.svg$/),
+    expect.stringMatching(/optional font load: .*\/assets\/STIXTwoText-.*\.woff2$/),
+  ]));
+  expect(messages.join()).not.toContain('token=private');
+});
+
+test('a stalled optional image times out without blocking the calendar', async ({ page }) => {
+  await mockBackend(page);
+  const messages = resourceDiagnostics(page);
+  const asset = barrier();
+  await page.route('**/91-1115-*.svg', async route => { await asset.wait; await route.continue(); });
+  try {
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.screen-loader')).toHaveCount(0, { timeout: 10_000 });
+    await expect(page.locator('.calendar-window').first()).toBeEnabled();
+    expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image timeout: .*\/assets\/91-1115-.*\.svg$/)]));
+  } finally {
+    asset.release();
+  }
+  await expect(page.locator('img[data-screen-image-fallback]')).toHaveCount(0);
+});
+
+test('a failed image essential to the task offers retry', async ({ page }) => {
+  await mockBackend(page);
+  const messages = resourceDiagnostics(page);
+  const asset = '**/heart-*.webp';
+  await page.route(asset, route => route.fulfill({ status: 404 }));
+  await page.goto('/task/11');
   await expect(page.locator('.screen-loader [role=alert]')).toContainText('Не удалось загрузить экран');
-  await expect(page.locator('.calendar-page')).toBeHidden();
+  await expect(page.locator('.stereo-photo')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
+  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/critical image load: .*\/assets\/heart-.*\.webp$/)]));
   await page.unroute(asset);
   await page.keyboard.press('Enter');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
-  await expect(page.locator('.calendar-page')).toBeVisible();
+  await expect(page.locator('.stereo-photo')).toBeVisible();
 });
 
 test('leaving a pending task never reveals it over the next screen', async ({ page }) => {
@@ -204,6 +295,7 @@ test('focused calendar controls are made inert without aria-hidden violations on
 
 test('a failed route moves keyboard focus to retry and keeps the previous screen inert', async ({ page }) => {
   await mockBackend(page);
+  const messages = resourceDiagnostics(page);
   await page.goto('/calendar');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await page.route('**/TaskView-*.js', route => route.abort());
@@ -213,4 +305,5 @@ test('a failed route moves keyboard focus to retry and keeps the previous screen
   await expect(page.locator('.calendar-page')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Попробовать снова' })).toBeFocused();
   expect(await page.getByRole('button').count()).toBe(1);
+  expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/critical module load: .*\/assets\/TaskView-.*\.js$/)]));
 });

@@ -153,6 +153,7 @@ onBeforeUnmount(() => {
             <img class="mobile-title-second" :src="titleSecondLine" alt="" />
             <img class="mobile-title-spark" :src="titleSpark" alt="" />
           </span>
+          <span class="calendar-title-fallback" aria-hidden="true">Новогодний адвент</span>
         </h1>
         <p class="calendar-intro">Нажмите на окошко — и задание откроется.</p>
         <AppButton class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
@@ -228,6 +229,9 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 .calendar-heading { width: fit-content; margin: 0; line-height: 0; }
+.calendar-title-fallback { display: none; font: italic 600 clamp(1.65rem, 4.2vw, 3.75rem)/1.12 var(--font-display); }
+.calendar-heading:has(.desktop-calendar-title[data-screen-image-fallback], .mobile-title-first[data-screen-image-fallback], .mobile-title-second[data-screen-image-fallback]) :is(.desktop-calendar-title, .mobile-calendar-title) { display: none; }
+.calendar-heading:has(.desktop-calendar-title[data-screen-image-fallback], .mobile-title-first[data-screen-image-fallback], .mobile-title-second[data-screen-image-fallback]) .calendar-title-fallback { display: block; }
 .mobile-calendar-title { position: relative; display: block; width: clamp(156px, 49.4vw, 212px); aspect-ratio: 194 / 74.45; }
 .mobile-calendar-title img { position: absolute; display: block; height: auto; }
 .mobile-title-first { top: 0; left: 0; width: 100%; }

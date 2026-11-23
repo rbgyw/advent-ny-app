@@ -2,7 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref } from 'vue';
 import { screenReadinessKey } from '../../composables/useScreenReadiness';
 import { navigationDestination, navigationPending, navigationError, screenPending, screenError, screenBackground, screenBackgroundLayer } from '../../router/status';
-import { waitForScreenResources } from '../../utils/screen-resources';
+import { ImageReadinessError, waitForScreenResources } from '../../utils/screen-resources';
+import { reportResourceFailure } from '../../utils/resource-diagnostics';
 
 const props = defineProps<{ destination: string }>();
 const root = ref<HTMLElement>();
@@ -78,6 +79,8 @@ async function check() {
     }
   } catch (error) {
     if (!current.signal.aborted && attempt === version && isCurrent()) {
+      current.abort();
+      if (!(error instanceof ImageReadinessError)) reportResourceFailure('screen', 'unexpected', undefined, true);
       failed = true;
       screenError.value = 'Не удалось загрузить экран. Проверьте подключение и попробуйте снова.';
       clearTimeout(timeout);
@@ -112,6 +115,7 @@ onMounted(() => {
   timeout = setTimeout(() => {
     if (isCurrent() && !ready.value) {
       controller?.abort();
+      reportResourceFailure('screen', 'timeout', undefined, true);
       failed = true;
       screenError.value = 'Загрузка занимает слишком много времени. Проверьте подключение и попробуйте снова.';
     }
@@ -136,4 +140,8 @@ onBeforeUnmount(() => { disposed = true; controller?.abort(); clearTimeout(timeo
 /* Explicit visibility on a child must not expose it before the whole screen. */
 .screen-content-pending * { visibility: hidden !important; }
 .screen-content-pending dialog[data-screen-dialog-pending] { display: block !important; }
+/* Preserve layout when decorative artwork is missing. Informative images keep
+   their native text alternative inside a neutral placeholder. */
+img[data-screen-image-fallback] { background-color: var(--color-paper); color: var(--color-ink); }
+img[data-screen-image-fallback][alt=""] { opacity: 0 !important; }
 </style>

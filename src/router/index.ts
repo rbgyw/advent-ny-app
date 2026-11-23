@@ -4,6 +4,7 @@ import {
   createWebHistory,
 } from 'vue-router'
 import { navigationPending, navigationError, navigationDestination, screenPending, screenError, screenBackground, screenBackgroundLayer } from './status'
+import { reportNavigationFailure } from '../utils/resource-diagnostics'
 
 
 const SplashView = () => import('../views/SplashView.vue')
@@ -71,8 +72,9 @@ router.afterEach((to, _from, failure) => {
   navigationPending.value = false
   if (failure) screenPending.value = false
 })
-router.onError((_error, to) => {
+router.onError((error, to) => {
   if (to.fullPath !== navigationDestination.value) return
+  reportNavigationFailure(error)
   navigationPending.value = false
   navigationError.value = 'Не удалось открыть страницу. Проверьте подключение.'
 })

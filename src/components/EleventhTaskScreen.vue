@@ -110,7 +110,7 @@ onBeforeUnmount(() => observer?.disconnect());
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора. Через некоторое время может появиться объемное изображение.</li><li>Если не получилось сразу, немного приблизьте или отодвиньте изображение и попробуйте снова.</li></ol>
           </section>
-          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" />
+          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" data-screen-critical />
           <form class="stereo-form" @submit.prevent="submit">
             <fieldset :disabled="locked" aria-describedby="stereo-answer-hint stereo-feedback">
               <legend>Что вам удалось увидеть?</legend><p id="stereo-answer-hint">Впишите ответ в ячейки.</p>
