@@ -4,7 +4,7 @@ import {
   createWebHistory,
 } from 'vue-router'
 import { navigationPending, navigationError, navigationDestination, screenPending, screenError, screenBackground, screenBackgroundLayer } from './status'
-import { reportNavigationFailure } from '../utils/resource-diagnostics'
+import { reportNavigationFailure, reportResourceFailure } from '../utils/resource-diagnostics'
 
 
 const SplashView = () => import('../views/SplashView.vue')
@@ -58,7 +58,15 @@ const router = createRouter({
   ],
 })
 
+let navigationTimer: ReturnType<typeof setTimeout> | undefined;
 router.beforeEach(to => {
+  clearTimeout(navigationTimer);
+  navigationTimer = setTimeout(() => {
+    if (to.fullPath !== navigationDestination.value || !navigationPending.value) return;
+    reportResourceFailure('navigation', 'timeout', undefined, true);
+    navigationPending.value = false;
+    navigationError.value = 'Не удалось завершить переход. Обновите страницу и попробуйте снова.';
+  }, 30_000);
   navigationDestination.value = to.fullPath
   navigationError.value = ''
   navigationPending.value = true
@@ -69,14 +77,16 @@ router.beforeEach(to => {
 })
 router.afterEach((to, _from, failure) => {
   if (to.fullPath !== navigationDestination.value) return
+  clearTimeout(navigationTimer)
   navigationPending.value = false
   if (failure) screenPending.value = false
 })
 router.onError((error, to) => {
   if (to.fullPath !== navigationDestination.value) return
+  clearTimeout(navigationTimer)
   reportNavigationFailure(error)
   navigationPending.value = false
-  navigationError.value = 'Не удалось открыть страницу. Проверьте подключение.'
+  navigationError.value = 'Не удалось открыть страницу. Не загрузился код приложения или произошла ошибка. Попробуйте обновить страницу.'
 })
 
 router.beforeEach(async (to) => {

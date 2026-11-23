@@ -39,3 +39,6 @@ test-results/
 playwright-report/
 # Generated from public/collections/videos.json for publication in Supabase
 /supabase/video-catalog.sql
+
+# Python deployment test artifacts
+__pycache__/

@@ -1,5 +1,5 @@
 import { nextTick } from 'vue';
-import { reportResourceFailure } from './resource-diagnostics';
+import { reportResourceFailure, type ResourceFailure } from './resource-diagnostics';
 
 const OPTIONAL_RESOURCE_TIMEOUT = 4_000;
 
@@ -47,7 +47,9 @@ async function imageReady(image: HTMLImageElement, signal: AbortSignal): Promise
     }
   });
   // A successful load event (including a cache hit) can precede decoding.
-  await abortable(image.decode().catch(() => { throw new ImageReadinessError('decode'); }), signal);
+  if (typeof image.decode === 'function') {
+    await abortable(image.decode().catch(() => { throw new ImageReadinessError('decode'); }), signal);
+  }
 }
 
 function urlsIn(value: string) {
@@ -78,110 +80,151 @@ function fontSources() {
 
 const imageSource = (image: HTMLImageElement) => image.currentSrc || image.src;
 
-export async function waitForScreenResources(root: HTMLElement, signal: AbortSignal) {
-  if (signal.aborted) throw aborted();
-  const optional = new AbortController();
-  const stopOptional = () => optional.abort();
-  const timer = setTimeout(stopOptional, OPTIONAL_RESOURCE_TIMEOUT);
-  signal.addEventListener('abort', stopOptional, { once: true });
-  let finished = false;
+// Diagnostics run independently of screen readiness. Never force lazy images or
+// font downloads merely to reveal a page. Abort on navigation and bound each probe.
+export function observeScreenResources(root: HTMLElement): () => void {
+  const lifetime = new AbortController();
+  const seenImages = new WeakMap<HTMLImageElement, string>();
+  const seenUrls = new Set<string>();
+  const reported = new Set<string>();
+  const fontTimers = new Map<FontFace, ReturnType<typeof setTimeout>>();
+  let frame = 0;
+  const changed = new Set<Element>([root]);
 
-  const resources: Promise<void>[] = [];
-  const urls = new Set<string>();
-  const fonts = new Map<string, { text: string; families: string }>();
+  function report(kind: 'image' | 'background' | 'font' | 'screen', reason: ResourceFailure, source = '') {
+    const key = `${kind}:${reason}:${source}`;
+    if (reported.has(key)) return;
+    reported.add(key);
+    reportResourceFailure(kind, reason, source);
+  }
 
-  async function waitForImage(image: HTMLImageElement) {
-    const critical = image.hasAttribute('data-screen-critical');
-    const resourceSignal = critical ? signal : optional.signal;
-    let source = imageSource(image);
-    while (source) {
-      try {
-        await imageReady(image, resourceSignal);
-        image.removeAttribute('data-screen-image-fallback');
-        return;
-      } catch (error) {
-        if (finished || signal.aborted) throw error;
-        const reason = resourceSignal.aborted ? 'timeout' : error instanceof ImageReadinessError ? error.reason : 'unexpected';
-        reportResourceFailure('image', reason, source, critical);
-        // Allow Vue's own onerror handler to replace the image first.
-        await nextTick();
-        if (finished || signal.aborted) throw error;
-        if (!root.contains(image)) return;
-        const replacement = imageSource(image);
-        if (!resourceSignal.aborted && source !== replacement) {
-          source = replacement;
-          continue;
+  function probe(kind: 'image' | 'background', image: HTMLImageElement, source: string) {
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    lifetime.signal.addEventListener('abort', cancel, { once: true });
+    const timer = setTimeout(cancel, OPTIONAL_RESOURCE_TIMEOUT);
+    void imageReady(image, controller.signal).then(() => {
+      if (kind === 'image' && imageSource(image) === source) image.removeAttribute('data-screen-image-fallback');
+    }, async error => {
+      if (lifetime.signal.aborted) return;
+      const reason = controller.signal.aborted ? 'timeout' : error instanceof ImageReadinessError ? error.reason : 'unexpected';
+      report(kind, reason, source);
+      await nextTick(); // Let component-specific onerror replacements take priority.
+      if (lifetime.signal.aborted || kind !== 'image' || imageSource(image) !== source) return;
+      if (reason !== 'timeout' || !image.naturalWidth) image.setAttribute('data-screen-image-fallback', '');
+    }).finally(() => {
+      clearTimeout(timer);
+      lifetime.signal.removeEventListener('abort', cancel);
+    });
+  }
+
+  function watchImage(image: HTMLImageElement) {
+    const source = imageSource(image);
+    if (!source || seenImages.get(image) === source) return;
+    seenImages.set(image, source);
+    probe('image', image, source);
+  }
+  function assetEvent(event: Event) {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+    if (event.type === 'load') image.removeAttribute('data-screen-image-fallback');
+    watchImage(image);
+  }
+  function scan() {
+    if (lifetime.signal.aborted) return;
+    const visit = (element: Element) => {
+      if (element.matches('dialog:not([open]), [hidden]')) return;
+      const style = getComputedStyle(element);
+      if (style.display === 'none') return;
+      const box = element.getBoundingClientRect();
+      const visible = box.bottom >= 0 && box.top <= innerHeight && box.right >= 0 && box.left <= innerWidth;
+      if (visible) {
+        if (element instanceof HTMLImageElement) watchImage(element);
+        const urls = new Set<string>();
+        if (element instanceof HTMLVideoElement && element.poster) urls.add(element.poster);
+        const layers = [style, getComputedStyle(element, '::before'), getComputedStyle(element, '::after')];
+        if (element instanceof HTMLDialogElement && element.open) layers.push(getComputedStyle(element, '::backdrop'));
+        for (const current of layers) {
+          for (const property of [current.backgroundImage, current.borderImageSource, current.maskImage]) {
+            for (const url of urlsIn(property)) urls.add(url);
+          }
         }
-        if (critical || reason === 'unexpected') throw error;
-        if (image.complete && image.naturalWidth && reason === 'timeout') return;
-        image.setAttribute('data-screen-image-fallback', '');
-        image.addEventListener('load', () => image.removeAttribute('data-screen-image-fallback'), { once: true, signal });
-        return;
-      }
-    }
-  }
-
-  function visit(element: Element) {
-    // Closed dialogs/menus and alternate hidden game states are not initial UI.
-    if (element.matches('dialog:not([open]):not([data-screen-dialog-pending]), [hidden]')) return;
-    const style = getComputedStyle(element);
-    if (style.display === 'none') return;
-    if (element instanceof HTMLImageElement && imageSource(element)) {
-      element.loading = 'eager';
-      resources.push(waitForImage(element));
-    }
-    if (element instanceof HTMLVideoElement && element.poster) urls.add(element.poster);
-    for (const current of [style, getComputedStyle(element, '::before'), getComputedStyle(element, '::after')]) {
-      for (const url of urlsIn(current.backgroundImage)) urls.add(url);
-      for (const url of urlsIn(current.borderImageSource)) urls.add(url);
-      for (const url of urlsIn(current.maskImage)) urls.add(url);
-      const text = current === style
-        ? Array.from(element.childNodes).filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim()
-        : current.content.replace(/^["']|["']$/g, '');
-      if (text && text !== 'none' && text !== 'normal') {
-        const font = `${current.fontStyle} ${current.fontWeight} ${current.fontSize} ${current.fontFamily}`;
-        fonts.set(font, { text: (fonts.get(font)?.text ?? '') + text, families: current.fontFamily });
-      }
-    }
-    for (const child of element.children) {
-      if (element instanceof HTMLDetailsElement && !element.open && child.tagName !== 'SUMMARY') continue;
-      visit(child);
-    }
-  }
-
-  try {
-    visit(root);
-    for (const url of urls) {
-      const image = new Image();
-      image.src = url;
-      // The browser skips unavailable CSS image layers, leaving the
-      // underlying color, gradient or other layers visible.
-      resources.push(imageReady(image, optional.signal).catch(error => {
-        if (finished || signal.aborted) throw error;
-        reportResourceFailure('background', optional.signal.aborted ? 'timeout' : error instanceof ImageReadinessError ? error.reason : 'unexpected', url);
-      }));
-    }
-    let sources: ReturnType<typeof fontSources> | undefined;
-    const reportedFonts = new Set<string>();
-    for (const [font, { text, families }] of fonts) {
-      resources.push(abortable(document.fonts.load(font, text), optional.signal).then(() => {}, error => {
-        if (finished || signal.aborted) throw error;
-        sources ??= fontSources();
-        const urls = families.split(',').flatMap(family => [...(sources?.get(fontFamily(family)) ?? [])]);
-        const reason = optional.signal.aborted ? 'timeout' : 'load';
-        for (const url of urls.length ? urls : ['']) {
-          const key = `${reason}:${url}`;
-          if (reportedFonts.has(key)) continue;
-          reportedFonts.add(key);
-          reportResourceFailure('font', reason, url);
+        for (const url of urls) {
+          if (seenUrls.has(url)) continue;
+          seenUrls.add(url);
+          const image = new Image();
+          image.src = url;
+          probe('background', image, url);
         }
-      }));
-    }
-    await Promise.all(resources);
-  } finally {
-    finished = true;
-    clearTimeout(timer);
-    signal.removeEventListener('abort', stopOptional);
-    stopOptional();
+      }
+      // Inline SVG paths have no independent CSS resource layers in our UI.
+      if (element instanceof SVGElement) return;
+      for (const child of element.children) {
+        if (element instanceof HTMLDetailsElement && !element.open && child.tagName !== 'SUMMARY') continue;
+        visit(child);
+      }
+    };
+    try { for (const element of changed) if (root.contains(element) || element === root) visit(element); }
+    catch { report('screen', 'unexpected'); }
+    finally { changed.clear(); }
   }
+  function schedule() {
+    changed.clear();
+    changed.add(root);
+    scheduleFrame();
+  }
+  function scheduleFrame() {
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; scan(); });
+  }
+  function fontFailure(event: Event) {
+    const faces = (event as Event & { fontfaces?: FontFace[] }).fontfaces ?? [];
+    const sources = fontSources();
+    for (const face of faces) for (const url of sources.get(fontFamily(face.family)) ?? ['']) {
+      report('font', 'load', url);
+    }
+  }
+  function watchFonts() {
+    document.fonts?.forEach(face => {
+      if (face.status !== 'loading' || fontTimers.has(face)) return;
+      fontTimers.set(face, setTimeout(() => {
+        if (face.status !== 'loading' || lifetime.signal.aborted) return;
+        const sources = fontSources().get(fontFamily(face.family)) ?? [''];
+        for (const source of sources) report('font', 'timeout', source);
+      }, OPTIONAL_RESOURCE_TIMEOUT));
+    });
+  }
+  root.addEventListener('error', assetEvent, true);
+  root.addEventListener('load', assetEvent, true);
+  document.fonts?.addEventListener('loadingerror', fontFailure);
+  document.fonts?.addEventListener('loading', watchFonts);
+  watchFonts();
+  const observer = new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') changed.add(record.target as Element);
+      else for (const node of record.addedNodes) if (node instanceof Element) changed.add(node);
+    }
+    if (changed.size) scheduleFrame();
+  });
+  observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['src', 'srcset', 'class', 'style', 'open', 'hidden'] });
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  // A task's font can have failed before this observer was installed.
+  if (document.fonts) {
+    const failed: FontFace[] = [];
+    document.fonts.forEach(face => { if (face.status === 'error') failed.push(face); });
+    if (failed.length) fontFailure({ fontfaces: failed } as unknown as Event);
+  }
+  schedule();
+  return () => {
+    lifetime.abort();
+    cancelAnimationFrame(frame);
+    observer.disconnect();
+    root.removeEventListener('error', assetEvent, true);
+    root.removeEventListener('load', assetEvent, true);
+    document.fonts?.removeEventListener('loadingerror', fontFailure);
+    document.fonts?.removeEventListener('loading', watchFonts);
+    for (const timer of fontTimers.values()) clearTimeout(timer);
+    window.removeEventListener('scroll', schedule);
+    window.removeEventListener('resize', schedule);
+  };
 }

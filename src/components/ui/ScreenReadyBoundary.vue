@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, onErrorCaptured, provide, ref, watch } from 'vue';
 import { screenReadinessKey } from '../../composables/useScreenReadiness';
 import { navigationDestination, navigationPending, navigationError, screenPending, screenError, screenBackground, screenBackgroundLayer } from '../../router/status';
-import { ImageReadinessError, waitForScreenResources } from '../../utils/screen-resources';
+import { observeScreenResources } from '../../utils/screen-resources';
 import { reportResourceFailure } from '../../utils/resource-diagnostics';
 
 const props = defineProps<{ destination: string }>();
@@ -18,7 +18,7 @@ let resizeObserver: ResizeObserver | undefined;
 let backgroundObserver: MutationObserver | undefined;
 let pending = 0;
 let version = 0;
-let controller: AbortController | undefined;
+let stopResources: (() => void) | undefined;
 let timeout: ReturnType<typeof setTimeout>;
 let resizeFrame = 0;
 function resizeBackground() {
@@ -52,20 +52,15 @@ function background() {
 async function check() {
   if (!mounted || pending || ready.value || failed || !isCurrent()) return;
   const attempt = ++version;
-  controller?.abort();
-  const current = new AbortController();
-  controller = current;
   try {
     await nextTick();
     if (attempt !== version || pending || !isCurrent() || !root.value) return;
-    background();
-    await waitForScreenResources(root.value, current.signal);
-    // Child image handlers and ResizeObservers may update the final layout.
-    await nextTick();
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-    if (attempt !== version || pending || !isCurrent()) return;
+    // Only tracked data and component imports gate visibility. Images, fonts
+    // and animation frames (paused in background tabs) never gate readiness.
     background();
     ready.value = true;
+    try { stopResources = observeScreenResources(root.value); }
+    catch { reportResourceFailure('screen', 'unexpected'); }
     resizeObserver?.disconnect();
     backgroundObserver?.disconnect();
     screenPending.value = false;
@@ -77,16 +72,30 @@ async function check() {
       const page = root.value?.querySelector('main');
       if (page) { page.tabIndex = -1; page.focus({ preventScroll: true }); }
     }
-  } catch (error) {
-    if (!current.signal.aborted && attempt === version && isCurrent()) {
-      current.abort();
-      if (!(error instanceof ImageReadinessError)) reportResourceFailure('screen', 'unexpected', undefined, true);
+  } catch {
+    if (attempt === version && isCurrent()) {
+      reportResourceFailure('screen', 'unexpected', undefined, true);
       failed = true;
-      screenError.value = 'Не удалось загрузить экран. Проверьте подключение и попробуйте снова.';
+      screenError.value = 'Ошибка приложения при открытии экрана. Попробуйте обновить страницу.';
       clearTimeout(timeout);
     }
   }
 }
+
+// Redirecting back to the already-mounted page does not mount a new boundary.
+// Restore its readiness after a cancelled/redirected navigation resets status.
+watch([navigationPending, navigationDestination], () => {
+  if (isCurrent() && ready.value && !navigationPending.value) screenPending.value = false;
+});
+onErrorCaptured(() => {
+  if (!isCurrent()) return false;
+  failed = true;
+  version++;
+  clearTimeout(timeout);
+  reportResourceFailure('screen', 'unexpected', undefined, true);
+  screenError.value = 'Ошибка приложения при открытии экрана. Попробуйте обновить страницу.';
+  return false;
+});
 
 provide(screenReadinessKey, {
   ready,
@@ -94,7 +103,6 @@ provide(screenReadinessKey, {
     if (ready.value || disposed) return work;
     pending++;
     version++;
-    controller?.abort();
     // Attach both handlers without creating an unhandled rejected promise.
     const settled = () => { pending--; void check(); };
     work.then(settled, settled);
@@ -114,7 +122,6 @@ onMounted(() => {
   }
   timeout = setTimeout(() => {
     if (isCurrent() && !ready.value) {
-      controller?.abort();
       reportResourceFailure('screen', 'timeout', undefined, true);
       failed = true;
       screenError.value = 'Загрузка занимает слишком много времени. Проверьте подключение и попробуйте снова.';
@@ -122,7 +129,7 @@ onMounted(() => {
   }, 30_000);
   void check();
 });
-onBeforeUnmount(() => { disposed = true; controller?.abort(); clearTimeout(timeout); cancelAnimationFrame(resizeFrame); window.removeEventListener('resize', resizeBackground); resizeObserver?.disconnect(); backgroundObserver?.disconnect(); });
+onBeforeUnmount(() => { disposed = true; stopResources?.(); clearTimeout(timeout); cancelAnimationFrame(resizeFrame); window.removeEventListener('resize', resizeBackground); resizeObserver?.disconnect(); backgroundObserver?.disconnect(); });
 </script>
 
 <template>

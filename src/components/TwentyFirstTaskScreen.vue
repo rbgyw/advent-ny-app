@@ -427,7 +427,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
 }
 
 .nonogram-popup::before { border-image: url('../assets/nonogram/popup.svg') 24 fill / 24px stretch; }
-.nonogram-popup::backdrop { background: url('../assets/nonogram/backdrop.svg') center / 100% 100% no-repeat; }
+.nonogram-popup::backdrop { background: #0a0606c4 url('../assets/nonogram/backdrop.svg') center / 100% 100% no-repeat; }
 
 .nonogram-popup h2 {
   margin: 0 0 21px;

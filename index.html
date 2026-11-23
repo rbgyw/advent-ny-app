@@ -26,6 +26,38 @@
       document.getElementById('startup-loader').dataset.theme = location.pathname.startsWith('/calendar') ? 'calendar' : [4,6,7,11,14,17,19,21,25].includes(startupTask) || ['/', '/rules'].includes(location.pathname.replace(/\/$/, '') || '/') ? 'night' : 'warm';
       document.getElementById('startup-loader').toggleAttribute('data-splash', location.pathname === '/');
       if (startupTask) document.getElementById('startup-status').textContent = 'Загружаем задание...';
+      // This must run before the entry module: it also covers a missing entry
+      // chunk, when main.ts cannot register its own retry handler.
+      (() => {
+        const retry = document.getElementById('startup-retry');
+        const fail = (reason, source) => {
+          if (!document.getElementById('startup-loader')) return;
+          const status = document.getElementById('startup-status');
+          status.textContent = 'Не удалось запустить приложение. Обновите страницу и попробуйте снова.';
+          status.setAttribute('role', 'alert');
+          retry.hidden = false;
+          retry.focus();
+          let safe = '[unknown URL]';
+          try {
+            const url = new URL(source, location.href);
+            if (url.origin === location.origin && /^\/assets\/[\w.-]+-[\w-]{8}\.js$/.test(url.pathname)) safe = url.origin + url.pathname;
+          } catch {}
+          console.error('[advent] critical module ' + reason + ': ' + safe);
+        };
+        retry.addEventListener('click', () => location.reload());
+        const timer = setTimeout(() => fail('timeout'), 30000);
+        const failedModule = event => {
+          if (event.target instanceof HTMLScriptElement && event.target.type === 'module') {
+            clearTimeout(timer);
+            fail('load', event.target.src);
+          }
+        };
+        window.addEventListener('error', failedModule, true);
+        window.addEventListener('advent:mounted', () => {
+          clearTimeout(timer);
+          window.removeEventListener('error', failedModule, true);
+        }, { once: true });
+      })();
     </script>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -4,8 +4,7 @@ import App from './App.vue'
 import './assets/fonts.css'
 import './style.css'
 import './tokens.css'
-
-document.querySelector('#startup-retry')?.addEventListener('click', () => window.location.reload())
+import { reportResourceFailure } from './utils/resource-diagnostics'
 
 async function bootstrap() {
   const app = createApp(App)
@@ -24,10 +23,12 @@ async function bootstrap() {
   const { default: router } = await import('./router')
   app.use(router)
   app.mount('#app')
+  window.dispatchEvent(new Event('advent:mounted'))
   await router.isReady()
 }
 
 bootstrap().catch(() => {
+  reportResourceFailure('screen', 'unexpected', undefined, true)
   const status = document.querySelector('#startup-status')
   if (status) {
     status.textContent = 'Не удалось запустить приложение. Проверьте подключение и обновите страницу.'
