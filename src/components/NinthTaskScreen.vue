@@ -32,9 +32,10 @@ const equipment = [
   ['hood', 'Ламинарный бокс'], ['scale', 'Весовая ячейка'],
   ['fermenter', 'Ферментер'], ['cryo', 'Криохранилище для клеточных банков'],
 ];
+const equipmentByCell: Record<number, string> = { 7: 'Хроматограф', 15: 'Стерилизатор', 10: 'Лиофильная сушилка', 12: 'Холодильная камера', 13: 'Ламинарный бокс', 30: 'Весовая ячейка', 34: 'Ферментер', 48: 'Криохранилище для клеточных банков' };
 const rules = [
   'Поле разделено на зоны. Внутри них находятся предметы, которые помогут разобраться в подсказках.',
-  'В каждой строке и каждом столбце должен находиться ровно один человек.',
+  'В каждой строке и каждом столбце должен находиться ровно один человек. Строка начинается слева направо, столбец — сверху вниз.',
   'У каждого персонажа есть подсказка о его местоположении. Внимательно читайте, относится ли она к самому персонажу или к другому человеку в его зоне.',
   '«Рядом с предметом» означает соседнюю клетку слева, справа, сверху, снизу или по диагонали. Учитываются только клетки в той же зоне: соседство через ее границу не считается.',
   'На лиофильную сушилку и весовую ячейку можно ставить персонажей.',
@@ -100,7 +101,11 @@ function markCell(cell: number) {
 function check() {
   if (props.saving || !suspect.value) return;
   dialog.value = false;
-  invalid.value = suspect.value !== 'natalya' || people.some(person => positions.value[person.id] !== person.cell);
+  const fixedPeopleCorrect = people.filter(person => !['oleg', 'filipp'].includes(person.id))
+    .every(person => positions.value[person.id] === person.cell);
+  const witnessesCorrect = (positions.value.oleg === 10 && positions.value.filipp === 46)
+    || (positions.value.oleg === 11 && positions.value.filipp === 45);
+  invalid.value = suspect.value !== 'natalya' || !fixedPeopleCorrect || !witnessesCorrect;
   if (!invalid.value) emit('save', { response: { solved: true }, complete: true });
 }
 </script>
@@ -108,9 +113,10 @@ function check() {
 <template>
   <DecemberTaskLayout v-bind="props" title="Следствие ведет ГЕРОФАРМ" @back="emit('back')" @retry="emit('retry')">
     <div v-if="!started" class="december-copy">
-      <p>Внимание, детективы! Сегодня вам предстоит разгадать «Мурдоку» — логическую головоломку с персонажами, комнатами и уликами. Вооружайтесь логикой и подключайте детективное чутье.</p>
-      <p>На заводе произошло загадочное происшествие: кто-то подменил образцы, и из-за этого была испорчена экспериментальная серия, над которой работала научная команда.</p>
-      <p>Восстановите картину событий: сопоставьте показания, расположение помещений и оборудования, пока каждый персонаж не окажется на своем месте. Ваша задача — определить виновника подмены.</p>
+            <p>Любите детективы и непростые головоломки? Сегодня можно попробовать себя в роли следователя!</p>
+            <p>Специально для сотрудников ГЕРОФАРМ подготовлена фармацевтическая версия «Мурдоку» — логической игры с персонажами, помещениями и уликами. Задание непростое: помощь друга может пригодиться, поэтому смело объединяйтесь с коллегами и обсуждайте версии.</p>
+            <p>На заводе произошел инцидент: кто-то подменил образцы, и из-за этого была испорчена экспериментальная серия, над которой работала научная команда.</p>
+            <p>Восстановите картину событий: сопоставьте показания, расположение помещений и оборудования, пока каждый персонаж не окажется на своем месте. Ваша задача — определить виновника подмены, расставив всех персонажей на поле.</p>
       <section class="december-panel">
         <h2>Правила</h2>
         <ol class="factory-rules"><li v-for="rule in rules" :key="rule">{{ rule }}</li></ol>
@@ -131,7 +137,7 @@ function check() {
         <img class="factory-map" :src="board" alt="Схема комнат и оборудования завода" />
         <div class="factory-cells" aria-label="Сетка 7 на 7">
           <button v-for="cell in 49" :key="cell" type="button"
-            :class="{ placed: placed.has(cell - 1) }"
+            :class="{ placed: placed.has(cell - 1) }" :title="equipmentByCell[cell - 1]"
             :aria-label="'Строка ' + Math.ceil(cell / 7) + ', столбец ' + ((cell - 1) % 7 + 1) + (placed.get(cell - 1) ? ': ' + placed.get(cell - 1)!.name : markedCells.has(cell - 1) && !completed ? ': крестик' : '')"
             :disabled="completed || saving" @click="markCell(cell - 1)">
             <img v-if="placed.has(cell - 1)" :src="art(placed.get(cell - 1)!.id)" :alt="placed.get(cell - 1)!.name" />
