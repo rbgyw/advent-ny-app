@@ -6,5 +6,4 @@ export interface RegistrationDetails {
 
 export interface RegistrationFormData extends RegistrationDetails {
   email: string
-  password: string
 }

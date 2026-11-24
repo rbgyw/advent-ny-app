@@ -75,12 +75,12 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async register(email: string, password: string, details?: RegistrationDetails): Promise<RegisterResult> {
+    async register(email: string, details?: RegistrationDetails): Promise<RegisterResult> {
       this.loading = true;
       this.error = null;
 
       try {
-        const { data, error } = await authService.register(email, password, details);
+        const { data, error } = await authService.register(email, details);
 
         if (error) {
           this.error = error.message;
@@ -110,19 +110,18 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async login(email: string, password: string) {
+    async login(email: string) {
       this.loading = true;
       this.error = null;
 
       try {
-        const { data, error } = await authService.login(email, password);
+        const { error } = await authService.login(email);
 
         if (error) {
           this.error = error.message;
           return false;
         }
 
-        this.user = data.user;
         return true;
       } catch (error) {
         this.error = error instanceof Error ? error.message : "Ошибка входа";
