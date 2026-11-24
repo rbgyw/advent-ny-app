@@ -1,6 +1,6 @@
 import type { CalendarTask } from '../types/models'
 
-export const mandatoryCalendarDays = [4, 7, 11, 14, 17, 19, 21] as const
+export const mandatoryCalendarDays = [3, 7, 11, 14, 17, 19, 21] as const
 
 export function isMandatoryCalendarDay(day: number): boolean {
   return (mandatoryCalendarDays as readonly number[]).includes(day)
@@ -26,13 +26,13 @@ export function canOpenAssignment(assignment: CalendarTask | undefined, today: s
   return Boolean(assignment?.task?.is_active && assignment.available_date <= today)
 }
 
+const windowTitles = ['Стикеры', 'Спортивные человечки', 'Кроссворд', 'Фото-моменты', 'Перевертыши', 'Таро', 'Спорт', 'Благодарности', 'Мурдоку', 'Первое слово', 'Стереоизображение', 'Кино', 'Снегопад', 'Ра[скобки]', 'Деды Морозы', 'Письмо в будущее', 'Повтори фото', 'Рецепты', 'Поджик', 'Путеводная звезда', 'Нонограм', 'Видео', 'Воспоминания', 'Киноподборка', 'Предсказание'];
+
 export function calendarWindowLabel(day: number, assignment: CalendarTask | undefined, today: string): string {
-  if (!assignment) return `День ${day}. Задание пока не назначено`
-  const title = (assignment.task?.title ? `. ${assignment.task.title}` : '')
-    + (isMandatoryCalendarDay(day) ? '. Обязательное задание' : '')
-  if (assignment.status === 'completed') return `День ${day}${title}. Выполнено`
-  if (!canOpenAssignment(assignment, today)) return `День ${day}${isMandatoryCalendarDay(day) ? '. Обязательное задание' : ''}. Откроется ${shortCalendarDate(assignment.available_date)}`
-  return `День ${day}${title}. ${assignment.available_date === today ? 'Сегодня' : 'Открыть задание'}`
+  if (!canOpenAssignment(assignment, today)) return 'Пока не доступно'
+  const status = assignment?.status === 'completed' ? 'Выполнено'
+    : assignment?.response?.response.submitted_for_review === true ? 'На проверке' : 'Открыть задание'
+  return `День ${day}. ${windowTitles[day - 1]}. ${status}`
 }
 
 /** Four facade columns, two lower side columns and a central door for day 25. */

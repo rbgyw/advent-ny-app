@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
           </span>
           <span class="calendar-title-fallback" aria-hidden="true">Новогодний адвент</span>
         </h1>
-        <p class="calendar-intro">Нажмите на окошко — и задание откроется.</p>
+        <p class="calendar-intro">Нажмите на окошко — и задание откроется</p>
         <AppButton class="calendar-daily" type="button" :disabled="!dailyAssignment || calendarStore.loading" @click="dailyAssignment && openWindow(dailyAssignment.position)">
           <span class="calendar-daily-label">{{ dailyLabel }}</span>
         </AppButton>
@@ -165,12 +165,12 @@ onBeforeUnmount(() => {
         <DesignCanvas class="calendar-stage" :width="desktop ? 1440 : 393" :height="desktop ? 811 : 852" role="region" aria-label="Календарь на 25 дней" :aria-busy="calendarStore.loading">
           <div class="calendar-canvas">
             <component :is="desktop ? DesktopCalendarIllustration : CalendarIllustration" :available-days="windows.filter(window => window.available).map(window => window.day)" />
-            <AppButton v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25, 'is-mandatory': window.mandatory }" :style="window.bounds" type="button" :disabled="!window.available || calendarStore.loading" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
+            <AppButton v-for="window in windows" :key="window.day" class="calendar-window" :class="{ 'is-today': window.isToday, 'is-door': window.day === 25, 'is-mandatory': window.mandatory, 'is-locked': !window.available }" :style="window.bounds" type="button" :disabled="calendarStore.loading" :aria-disabled="!window.available" :aria-label="window.label" :aria-current="window.isToday ? 'date' : undefined" :title="window.label" @click="openWindow(window.day)">
               <template v-if="window.isToday">
                 <img class="calendar-today-outline" :src="todayOutline" alt="" width="70.3" height="61.3" />
                 <span class="calendar-today-badge"><img :src="todayBadge" alt="" width="48" height="14" />Сегодня</span>
               </template>
-              <span v-if="window.completed" class="calendar-completed" aria-hidden="true">
+              <span v-if="window.completed && window.mandatory" class="calendar-completed" aria-hidden="true">
                 <img :src="completedCircle" alt="" width="12" height="12" />
                 <img :src="completedCheck" alt="" width="6.3" height="4.8" />
               </span>
@@ -425,4 +425,5 @@ onBeforeUnmount(() => {
 .calendar-layout-desktop .calendar-today-outline { width:100%; height:100%; left:0; top:0; }
 .calendar-layout-desktop .calendar-today-badge { left:calc(50% - 24px); }
 .calendar-layout-desktop .calendar-notice { left:560px; }
+.calendar-window.is-locked { background: #a8a5a0; mix-blend-mode: saturation; border-radius: 40px 40px 0 0; }
 </style>

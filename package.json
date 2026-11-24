@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && npm run typecheck:gratitude",
+    "typecheck:gratitude": "tsc -p supabase/functions/send-gratitude/tsconfig.json",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "audit:build": "node scripts/audit-build.mjs",
@@ -29,6 +30,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/test-utils": "^2.6.0",
     "@vue/tsconfig": "^0.9.1",
+    "aws4fetch": "1.0.20",
     "jsdom": "^31.0.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",

@@ -17,11 +17,11 @@ test('cipher validates saves and reopens the confirmed result', async ({ page })
 test('the October memory assignment accepts the story and confirms completion', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-11-22T12:00:00Z'));
   const backend = await mockBackend(page, { dateAtPosition: () => '2026-10-03' });
-  await page.goto('/task/3');
-  await expect(page.locator('.memory-date')).toHaveText('3 ОКТЯБРЯ');
+  await page.goto('/task/4');
+  await expect(page.locator('.memory-date')).toHaveText('4 ОКТЯБРЯ');
   await page.locator('#memory-answer').fill('Наше воспоминание');
   await page.locator('#memory-author').fill('Тестовый автор');
-  await page.getByRole('button', { name: 'Поделиться историей', exact: true }).click();
+  await page.getByRole('button', { name: 'Поделиться воспоминанием', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   expect(backend.responses[3]).toEqual({ text: 'Наше воспоминание', author: 'Тестовый автор' });
 });
@@ -29,7 +29,7 @@ test('a missing memory card with a past opening date can be fetched again', asyn
   await page.clock.setFixedTime(new Date('2026-11-22T12:00:00Z'));
   const hiddenTasks = new Set([3]);
   await mockBackend(page, { hiddenTasks, dateAtPosition: () => '2026-10-03' });
-  await page.goto('/task/3');
+  await page.goto('/task/4');
   await expect(page.getByText('Дата открытия уже наступила. Не удалось получить задание.')).toBeVisible();
   await expect(page.locator('#memory-answer')).toHaveCount(0);
   hiddenTasks.delete(3);
@@ -39,7 +39,7 @@ test('a missing memory card with a past opening date can be fetched again', asyn
 test('crossword restores a local draft and saves only the solved flag', async ({ page }) => {
   const backend = await mockBackend(page);
   await page.addInitScript(({ userId, solution }) => sessionStorage.setItem(`advent-crossword-v1:${userId}:4`, JSON.stringify(solution)), { userId, solution: crosswordSolution });
-  await page.goto('/task/4'); await page.getByRole('button', { name: 'Проверить кроссворд', exact: true }).click();
+  await page.goto('/task/3'); await page.getByRole('button', { name: 'Проверить кроссворд', exact: true }).click();
   await expect.poll(() => backend.completed.has(4)).toBe(true); expect(backend.responses[4]).toEqual({ solved: true });
 });
 test('pairs complete all eight matches while keeping the existing turn animation', async ({ page }) => {
@@ -54,7 +54,7 @@ test('pairs complete all eight matches while keeping the existing turn animation
 });
 test('tarot claims one card and restores it without drawing again', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/6');
-  await page.getByRole('button', { name: /Вытащить карту/ }).click();
+  await page.getByRole('button', { name: /Вытянуть карту/ }).click();
   await page.locator('.tarot-deck-card').first().click();
   await expect(page.locator('.tarot-result')).toBeVisible();
   await expect.poll(() => page.locator('.tarot-chosen-image').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
@@ -90,7 +90,7 @@ test('wish hides snow on confirmation and keeps it off on the saved screen', asy
   });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/task/13');
-  await page.getByRole('button', { name: 'Впустить волшебство', exact: true }).click();
+  await page.getByRole('button', { name: 'Запустить снегопад', exact: true }).click();
   await expect(page.locator('.wish-snow')).toBeVisible();
   try {
     await page.getByRole('button', { name: 'Желание загадано', exact: true }).click();

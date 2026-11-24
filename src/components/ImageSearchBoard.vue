@@ -94,4 +94,5 @@ function keydown(event: KeyboardEvent) {
 .search-picture .search-target { position: absolute; pointer-events: none; }
 .search-marker { position: absolute; width: 24px; height: 24px; box-sizing: border-box; transform: translate(-50%, -50%); border: 2px solid #a7280b; border-radius: 50%; background: #fff4; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
 .search-keyboard-help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (min-width: 700px) { .search-board { width: min(100%, calc((100svh - 240px) * 626 / 838)); margin-inline: auto; } }
 </style>

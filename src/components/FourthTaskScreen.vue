@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
@@ -32,6 +33,7 @@ import clueArt from '../assets/crossword/clue.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; userId?: string; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [values: CrosswordValues]; edit: [] }>();
+const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const started = ref(false), expanded = ref(false), selected = ref(1), values = ref<CrosswordValues>({});
 const bulk = ref(''), lengthError = ref(false), inserted = ref(false), checked = ref(false);
 const zoom = ref(59), manualZoom = ref(false), gridViewport = ref<HTMLElement>(), activeCard = ref<HTMLElement>();
@@ -49,6 +51,7 @@ const borderDots = computed(() => {
   return points;
 });
 const completed = computed(() => props.assignment?.status === 'completed');
+watch(completed, async (value, previous) => { if (value && previous === false) { await nextTick(); resultPopup.value?.showModal(); } });
 const word = computed(() => crosswordWords.find(w => w.number === selected.value)!);
 const path = computed(() => wordKeys(word.value));
 const count = computed(() => crosswordWords.filter(w => wordKeys(w).every(key => values.value[key])).length);
@@ -107,33 +110,14 @@ function chooseCell(cell: typeof crosswordCells[number], cycle = false) {
   if (!cell.words.includes(selected.value)) selectWord(cell.words[0]!);
   else if (cycle && cell.words.length > 1) selectWord(cell.words[(cell.words.indexOf(selected.value) + 1) % cell.words.length]!);
 }
-function setCell(key: string, raw: string) {
-  if (props.saving || completed.value) return;
-  const text = normalizeCrossword(raw); const index = path.value.indexOf(key);
-  edited();
-  if (!text) values.value[key] = '';
-  else if (index >= 0) {
-    const letters = text.slice(0, path.value.length - index);
-    for (let i = 0; i < letters.length; i++) values.value[path.value[index + i]!] = letters[i]!;
-    focusCell(path.value[Math.min(index + letters.length, path.value.length - 1)]!);
-  }
-  readWord();
-}
-function cellInput(cell: typeof crosswordCells[number], event: Event) {
-  const input = event.target as HTMLInputElement; chooseCell(cell); setCell(cell.key, input.value); input.value = values.value[cell.key] || '';
-}
 function cellKey(cell: typeof crosswordCells[number], event: KeyboardEvent) {
   const directions: Record<string, [number, number]> = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
   const direction = directions[event.key];
   if (direction) {
     event.preventDefault(); const next = crosswordCells.find(c => c.row === cell.row + direction[0] && c.col === cell.col + direction[1]);
     if (next) { const axis = direction[0] ? 'down' : 'across'; const match = crosswordWords.find(w => w.direction === axis && wordKeys(w).includes(next.key)); if (match) selectWord(match.number); focusCell(next.key); }
-  } else if (event.key === 'Backspace' && !props.saving && !completed.value) {
-    event.preventDefault(); const index = path.value.indexOf(cell.key); const key = values.value[cell.key] ? cell.key : path.value[Math.max(0, index - 1)]!;
-    edited(); values.value[key] = ''; readWord(); focusCell(key);
   } else if (event.key === 'Enter') { event.preventDefault(); navigate(1); focusCell(path.value[0]!); }
 }
-function pasteCell(cell: typeof crosswordCells[number], event: ClipboardEvent) { event.preventDefault(); chooseCell(cell); setCell(cell.key, event.clipboardData?.getData('text') || ''); }
 function cellSurface(cell: typeof crosswordCells[number]) {
   if (checked.value) return values.value[cell.key] === cell.answer ? (path.value.includes(cell.key) ? selectedCorrectArt : correctArt) : wrongArt;
   return path.value.includes(cell.key) ? selectedArt : cellArt;
@@ -183,15 +167,15 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <template v-else-if="!started">
           <div class="crossword-copy">
             <p>В нашей работе важна каждая деталь. Департамент качества помогает следить за тем, чтобы процессы и продукция соответствовали установленным требованиям.</p>
-            <p>Сегодня коллеги предлагают проверить свои знания и внимательность — разгадать кроссворд о качестве.</p>
-            <p class="mandatory">*Прочитайте вопросы и заполните все клетки. Это обязательное задание: для его выполнения нужно правильно разгадать весь кроссворд.</p>
+            <p>Проверьте свои знания и внимательность — разгадайте кроссворд. Если какие-то вопросы вызовут затруднения, обращайтесь за помощью к коллегам из департамента качества — они подскажут.</p>
+            <p class="mandatory">*Это обязательное задание: для его выполнения нужно правильно ответить на все вопросы.</p>
           </div>
           <section class="crossword-rules surface" :style="art(rulesArt)" aria-labelledby="rules-title">
             <h2 id="rules-title">Правила</h2>
             <ol>
-              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">1</span><p>Номер вопроса соответствует номеру начальной клетки слова. Ответы вписывайте по горизонтали или вертикали — в зависимости от раздела с вопросами.</p></li>
-              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">2</span><p>В каждую клетку впишите только одну букву.</p></li>
-              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
+              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">1</span><p>Номер вопроса соответствует номеру начальной клетки слова.</p></li>
+              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">2</span><p>Введите ответы в соответствующие поля. Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
+              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Когда заполните весь кроссворд, нажмите «Проверить кроссворд».</p></li>
             </ol>
           </section>
           <AppButton class="crossword-button start-button" @click="started = true"><span>Начать кроссворд</span></AppButton>
@@ -219,26 +203,26 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             </form>
             <nav class="question-navigation" aria-label="Вопросы кроссворда"><AppButton @click="navigate(-1)">← Предыдущий</AppButton><span>{{ selected }} / 10</span><AppButton @click="navigate(1)">Следующий →</AppButton></nav>
           </section>
-          <p class="grid-help">Вводите буквы прямо в клетки или вставьте целое слово через поле выше.</p>
+          <p class="grid-help">Нажмите на клетку, чтобы выбрать вопрос. Введите целое слово в поле ответа выше и нажмите «Вставить в сетку».</p>
           <div class="crossword-zoom" aria-label="Масштаб кроссворда"><img decoding="async" class="zoom-art" :src="zoomArt" alt="" /><img decoding="async" class="zoom-divider" :src="zoomDivider" alt="" /><AppButton :disabled="zoom <= 40" aria-label="Уменьшить кроссворд" @click="changeZoom(-10)">−</AppButton><output aria-live="polite">{{ zoom }}%</output><AppButton :disabled="zoom >= 150" aria-label="Увеличить кроссворд" @click="changeZoom(10)">+</AppButton></div>
           <div class="grid-panel surface" :style="art(gridArt)">
             <div ref="gridViewport" class="grid-viewport" tabindex="0" aria-label="Сетка кроссворда. Стрелки перемещают по клеткам; увеличенную сетку можно прокручивать.">
               <div class="crossword-grid" :style="{ width: `${13 * (size + 2) - 2}px`, height: `${15 * (size + 2) - 2}px`, '--cell-size': `${size}px` }">
                 <div v-for="cell in crosswordCells" :key="cell.key" class="crossword-cell surface" :style="{ ...art(cellSurface(cell)), left: `${cell.col * (size + 2)}px`, top: `${cell.row * (size + 2)}px` }" :class="{ selected: path.includes(cell.key), correct: checked && values[cell.key] === cell.answer, wrong: checked && values[cell.key] !== cell.answer }">
                   <span v-if="cell.number" class="cell-number">{{ cell.number }}</span>
-                  <input :data-cell="cell.key" :value="values[cell.key] || ''" :readonly="completed" :disabled="saving" :aria-label="`Строка ${cell.row + 1}, столбец ${cell.col + 1}${cell.number ? `, начало вопроса ${cell.number}` : ''}`" :aria-invalid="checked && values[cell.key] !== cell.answer" autocomplete="off" autocapitalize="characters" spellcheck="false" @focus="chooseCell(cell)" @click="chooseCell(cell, true); ($event.target as HTMLInputElement).select()" @input="cellInput(cell, $event)" @keydown="cellKey(cell, $event)" @paste="pasteCell(cell, $event)" />
+                  <input :data-cell="cell.key" :value="values[cell.key] || ''" readonly inputmode="none" :disabled="saving" :aria-label="`Строка ${cell.row + 1}, столбец ${cell.col + 1}${cell.number ? `, начало вопроса ${cell.number}` : ''}`" :aria-invalid="checked && values[cell.key] !== cell.answer" autocomplete="off" autocapitalize="characters" spellcheck="false" @focus="chooseCell(cell)" @click="chooseCell(cell, true); ($event.target as HTMLInputElement).select()" @keydown="cellKey(cell, $event)" />
                 </div>
               </div>
             </div>
           </div>
           <AppButton class="crossword-button check-button" :disabled="saving || completed" @click="check"><span>{{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}</span></AppButton>
-          <p v-if="completed" class="result success" role="status">Все слова на своих местах! Кроссворд разгадан, обязательное задание выполнено</p>
-          <p v-else-if="saveError" class="result invalid" role="alert">{{ saveError }}</p>
+          <p v-if="saveError" class="result invalid" role="alert">{{ saveError }}</p>
           <p v-else-if="checked && !isCrosswordSolution(values)" class="result invalid" role="alert">Не все ответы совпали. Проверьте вопросы и пересечения слов — и попробуйте еще раз</p>
         </div>
       </AppCard>
       <footer class="crossword-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
+    <AdventPopup ref="resultPopup" title="Все слова на своих местах!" message="Кроссворд разгадан, обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
 

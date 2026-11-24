@@ -207,7 +207,7 @@ test('warm gradient remains responsive while an optional font is pending', async
   await mockBackend(page);
   const font = barrier(), requested = barrier();
   await page.route('**/STIXTwoText-*.woff2', async route => { requested.release(); await font.wait; await route.continue(); });
-  await page.goto('/task/3', { waitUntil: 'domcontentloaded' });
+  await page.goto('/task/4', { waitUntil: 'domcontentloaded' });
   await requested.wait;
   await expect(page.locator('.memory-page')).toBeVisible();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
@@ -300,11 +300,11 @@ test('a failed route moves keyboard focus to retry and keeps the previous screen
 
 test('direct task 4 and nested-route refresh retain the authorized crossword', async ({ page }) => {
   await mockBackend(page);
-  await page.goto('/task/4');
+  await page.goto('/task/3');
   await expect(page.locator('.crossword-page')).toBeVisible();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await page.reload();
-  await expect(page).toHaveURL('/task/4');
+  await expect(page).toHaveURL('/task/3');
   await expect(page.locator('.crossword-page')).toBeVisible();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
 });
@@ -324,7 +324,7 @@ test('a failed child module is diagnosed separately and can reload after a build
   await mockBackend(page);
   const messages = resourceDiagnostics(page);
   await page.route('**/FourthTaskScreen-*.js', route => route.fulfill({ status: 404 }));
-  await page.goto('/task/4');
+  await page.goto('/task/3');
   await expect(page.getByRole('button', { name: 'Загрузить снова' })).toBeVisible();
   expect(messages.some(message => /critical module load: .*FourthTaskScreen/.test(message))).toBe(true);
   await page.unroute('**/FourthTaskScreen-*.js');
@@ -368,7 +368,7 @@ test('a stalled child component has a local module timeout and retry', async ({ 
   await page.clock.install();
   const code = barrier(), requested = barrier();
   await page.route('**/FourthTaskScreen-*.js', async route => { requested.release(); await code.wait; await route.continue(); });
-  await page.goto('/task/4', { waitUntil: 'domcontentloaded' });
+  await page.goto('/task/3', { waitUntil: 'domcontentloaded' });
   await requested.wait;
   await page.clock.fastForward(25_001);
   await expect(page.getByText('Не удалось загрузить код задания. Обновите страницу и попробуйте снова.')).toBeVisible();

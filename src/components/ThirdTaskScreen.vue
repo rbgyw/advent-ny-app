@@ -105,22 +105,22 @@ onBeforeUnmount(() => {
         </div>
         <template v-else>
           <div class="memory-copy" data-figma-node="28:40850">
-            <p>За год в ГЕРОФАРМ происходит столько событий: деловые встречи, совместные проекты, спортивные мероприятия и корпоративные праздники… Но иногда самые яркие воспоминания связаны с обычными рабочими днями: когда удалось справиться со сложной задачей, коллега поддержал в нужный момент или вы впервые приняли участие в спортивном мероприятии.</p>
-            <p>Если вам есть чем поделиться, расскажите о своем самом ярком воспоминании или достижении в компании за этот год. Что произошло и почему этот момент остался с вами? Вы также можете поделиться своими фотографиями.</p>
-            <p>В конце адвента мы соберем истории коллег и вспомним этот год вместе.</p>
+            <p>До конца года осталось меньше месяца — самое время вспомнить, каким он был для нас в ГЕРОФАРМ. Наверняка за этот год у вас накопилось немало фотографий: с коллегами, с корпоративных мероприятий или спортивных встреч.</p>
+            <p>Поделитесь одним из снимков и расскажите, какая история за ним стоит. Почему вам запомнился этот день? Какое событие или достижение на нем запечатлено?</p>
+            <p>В конце адвента мы соберем ваши истории в подборку и вспомним этот год вместе.</p>
           </div>
-          <p id="memory-deadline" class="memory-deadline">*Принимаем воспоминания до 10 декабря. Это задание необязательное и не влияет на получение подарка.</p>
+          <p id="memory-deadline" class="memory-deadline">*Принимаем фотографии до 10 декабря. Это задание не является обязательным и не влияет на получение подарка.</p>
           <form class="memory-form" novalidate :aria-busy="busy" @submit.prevent="submit">
             <label for="memory-answer">Мое яркое воспоминание</label>
+            <TaskAttachments v-if="userId" class="memory-attachments" optional attach-label="Прикрепить фотографии" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" @busy="setAttachmentsBusy" />
             <div class="memory-input" :style="{ '--textarea-art': cssUrl(textareaArt) }" data-figma-node="28:40852">
-              <textarea id="memory-answer" ref="textarea" :value="modelValue" :readonly="completed || closed" :disabled="saving" aria-describedby="memory-deadline" placeholder="Что произошло и почему запомнилось?" @input="input"></textarea>
+              <textarea id="memory-answer" ref="textarea" :value="modelValue" :readonly="completed || closed" :disabled="saving" aria-describedby="memory-deadline" placeholder="Описание фото" @input="input"></textarea>
             </div>
             <label for="memory-author" class="memory-author-label">От кого</label>
             <input id="memory-author" ref="authorInput" v-model="author" class="memory-author" name="author" type="text" autocomplete="name" maxlength="150" placeholder="Имя и фамилия" :readonly="completed || closed" :disabled="saving" required @input="validation = ''; emit('edit')" />
-            <TaskAttachments v-if="userId" class="memory-attachments" optional :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" @busy="setAttachmentsBusy" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться историей' }}</AppButton>
+            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться воспоминанием' }}</AppButton>
           </form>
         </template>
       </AppCard>
@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 .memory-form > label { display: block; margin-bottom: 16px; color: #623c28; font: 500 20px/27px 'Advent Source Serif', serif; }
 .memory-form > .memory-author-label { margin-top: 16px; }
 .memory-author { box-sizing: border-box; width: 100%; min-width: 0; min-height: 52px; padding: 12px 14px; border: 1px solid #dcc8a8; border-radius: 14px; background: #fffaf0; color: #623c28; font: 400 16px/22px 'Advent Inter', sans-serif; }
-.memory-attachments { margin-block-start: 16px; }
+.memory-attachments { margin-block: 0 16px; }
 .memory-author:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
 .memory-input { position: relative; min-height: 156px; }
 .memory-input::before { content: ''; position: absolute; inset: -.5px; border: 14px solid transparent; border-image: var(--textarea-art) 14 fill / 14px stretch; pointer-events: none; }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
@@ -6,7 +7,7 @@ import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
 import AppHeader from './ui/AppHeader.vue';
 import AppCard from './ui/AppCard.vue';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import { createPairDeck, initialPairDeck, isPairDeck, isPairsSolution, pairIds } from '../utils/pairs';
@@ -22,12 +23,14 @@ import front from '../assets/pairs/front.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; userId?: string; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [pairs: number[]]; edit: [] }>();
+const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const deck = ref([...initialPairDeck]), matched = ref<number[]>([]), opened = ref<number[]>([]);
-const moves = ref(0), started = ref(false), resolving = ref(false), announcement = ref('');
+const moves = ref(0), started = ref(true), resolving = ref(false), announcement = ref('');
 const ready = ref(false), imageError = ref(false);
 const board = ref<HTMLElement>(), background = ref<HTMLElement>();
 const cardScale = ref(1), ratio = ref(1477 / 393);
 const completed = computed(() => props.assignment?.status === 'completed');
+watch(completed, async (value, previous) => { if (value && previous === false) { await nextTick(); resultPopup.value?.showModal(); } });
 const won = computed(() => isPairsSolution(matched.value));
 const playable = computed(() => started.value && ready.value && !resolving.value && !won.value && !props.saving && !!props.assignment?.task && !props.loading && !props.error);
 const storageKey = computed(() => props.userId && props.assignment?.task_id ? `advent-pairs-v1:${props.userId}:${props.assignment.task_id}` : '');
@@ -41,7 +44,7 @@ let resizeFrame = 0, imageVersion = 0;
 const pendingSizes = new Map<Element, { width: number; height: number }>();
 function clearTurn() { clearTimeout(timer); opened.value = []; resolving.value = false; }
 function restore() {
-  clearTurn(); deck.value = [...initialPairDeck]; matched.value = []; moves.value = 0; started.value = false; announcement.value = '';
+  clearTurn(); deck.value = createPairDeck(); matched.value = []; moves.value = 0; started.value = true; announcement.value = '';
   if (completed.value) { matched.value = [...pairIds]; started.value = true; }
   if (!storageKey.value) return;
   try {
@@ -61,11 +64,6 @@ watch([deck, matched, moves, started], () => {
 watch(board, element => { if (element) observer?.observe(element); });
 function isOpen(index: number) { return opened.value.includes(index) || matched.value.includes(deck.value[index]!); }
 function backArt(index: number) { return index === 0 ? back : index === 1 ? backSecond : index % 4 === 3 ? backRight : backMiddle; }
-function restart() {
-  if (!ready.value || props.saving) return;
-  clearTurn(); deck.value = createPairDeck(); matched.value = []; moves.value = 0; started.value = true;
-  announcement.value = 'Игра началась. Найдите восемь пар.'; emit('edit');
-}
 function submitWin() { if (won.value && !completed.value && !props.saving) emit('submit', [...matched.value]); }
 function flip(index: number) {
   if (!playable.value || isOpen(index)) return;
@@ -130,23 +128,21 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="pairs-copy">
-            <p>Готовы проверить, насколько хорошо вы запоминаете детали?</p>
-            <p>Сегодня тренируем память и внимание в игре с карточками. На их обороте — упаковки препаратов ГЕРОФАРМ. У каждой карточки есть пара: ваша задача — найти все совпадения.</p>
-            <p>Открывайте по две карточки за ход и запоминайте, где какая упаковка находится. Если изображения совпадут, пара останется открытой. Если нет — карточки снова перевернутся. Продолжайте, пока не найдете все пары!</p>
+            <p>В портфеле ГЕРОФАРМ много препаратов, и у каждого есть своя история. В этом году новая глава началась у одного из бестселлеров нашего портфеля — Кортексина. Спустя 25 лет препарат для детей и взрослых появился в аптеках в новой упаковке.</p>
+            <p>Сегодня предлагаем проверить это в игре на память и внимание. На обороте карточек спрятаны упаковки наших препаратов. У каждой есть пара — найдите все совпадения!</p>
+            <p>Открывайте по две карточки за ход и запоминайте расположение упаковок. Если изображения совпадут, пара останется открытой. Если нет — карточки снова повернутся. Продолжайте, пока не найдете все пары!</p>
           </div>
           <div class="pairs-counters" aria-live="polite" aria-atomic="true"><p>Найдено пар: {{ matched.length }} / 8</p><p>Ходов: {{ completed && won && !moves ? '—' : moves }}</p></div>
           <div ref="board" class="pairs-board" :style="{ '--card-scale': cardScale }" role="group" aria-label="Игровое поле: 16 карточек, 8 пар">
             <AppButton v-for="(id, index) in deck" :key="`${index}:${id}`" class="pair-card" :class="{ 'is-open': isOpen(index), 'is-matched': matched.includes(id) }" type="button" :disabled="!playable || isOpen(index)" :aria-label="`Карточка ${index + 1}. ${isOpen(index) ? pairProducts[id]!.name + (matched.includes(id) ? ', пара найдена' : '') : 'Закрыта'}`" :aria-pressed="isOpen(index)" @click="flip(index)">
               <span class="pair-card-scale"><span class="pair-card-rotator">
                 <span class="pair-card-face pair-card-back" aria-hidden="true"><img decoding="async" class="pair-art" :src="backArt(index)" alt="" /><img decoding="async" v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
-                <span class="pair-card-face pair-card-front" aria-hidden="true"><img decoding="async" class="pair-art" :src="front" alt="" /><img decoding="async" class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /><span class="pair-product-name">{{ pairProducts[id]!.name }}</span></span>
+                <span class="pair-card-face pair-card-front" aria-hidden="true"><img decoding="async" class="pair-art" :src="front" alt="" /><img decoding="async" class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /></span>
               </span></span>
             </AppButton>
           </div>
           <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <AppButton type="button" @click="loadImages">Попробовать ещё раз</AppButton></p>
           <p v-else-if="!ready" class="pairs-loading" role="status">Загружаем карточки…</p>
-          <AppButton class="pairs-button pairs-start" type="button" :disabled="!ready || saving" @click="restart"><span>{{ started ? 'Начать заново' : 'Начать игру' }}</span></AppButton>
-          <div v-if="won" class="pairs-result" role="status"><p>Все пары найдены!</p><p>Вы были внимательны к каждой детали.</p></div>
           <p v-if="saving" class="pairs-save-status" role="status">Сохраняем результат…</p>
           <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
           <p v-else-if="won && !completed" class="pairs-save-status">Результат ещё не сохранён. <AppButton type="button" @click="submitWin">Сохранить результат</AppButton></p>
@@ -155,6 +151,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
       </AppCard>
       <footer class="pairs-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
+    <AdventPopup ref="resultPopup" title="Все пары найдены!" message="Вы были внимательны к каждой детали." button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
 
@@ -209,4 +206,5 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 768px) { .pairs-layout { padding-inline: 32px; } .pairs-panel { padding-inline: 32px; } }
 @media (prefers-reduced-motion: reduce) { .pair-card-rotator { transition: none; } }
+@media (min-width: 700px) { .pairs-board { width: min(100%, 420px, calc((100svh - 180px) * .72)); margin-inline: auto; } }
 </style>

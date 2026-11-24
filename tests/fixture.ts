@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 export const userId = '00000000-0000-4000-8000-000000000001';
 export function taskIdAtPosition(position: number): number {
-  return position === 10 ? 15 : position === 15 ? 10 : position;
+  return position === 3 ? 4 : position === 4 ? 3 : position === 10 ? 15 : position === 15 ? 10 : position;
 }
 export async function mockBackend(page: Page, options: { lockedAfter?: number; genericTasks?: boolean; failCalendar?: boolean; failSave?: boolean; delay?: number; completed?: boolean; authenticated?: boolean; dateAtPosition?: (position: number) => string; hiddenTasks?: ReadonlySet<number> } = {}) {
   await page.route('**/*', route => {

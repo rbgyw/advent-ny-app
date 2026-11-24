@@ -24,17 +24,16 @@ import back from '../assets/rules/back.svg';
       </AppHeader>
 
       <AppCard class="rules-card" aria-label="Правила участия">
-        <h2>Дорогие коллеги, поздравляем вас с наступающим Новым годом!</h2>
-        <p>Декабрь — горячая пора: это время, когда мы завершаем рабочие задачи, строим планы на следующий год, выбираем подарки и готовимся к семейным встречам. За всеми этими делами не всегда даже успеваешь почувствовать приближение праздника.</p>
-        <p>Специально для вас создан новогодний адвент-календарь — чтобы можно было ненадолго переключиться. С 1 по 25 декабря каждый день будет открываться новое окошко.</p>
-        <p>Этот адвент — о нашей компании, ее достижениях и людях, которые за ними стоят. Поэтому мы подготовили 25 заданий — по числу лет ГЕРОФАРМ. Разгадайте традиционный кроссворд о качестве, проверьте, насколько хорошо знаете упаковки наших препаратов, поделитесь памятными моментами работы в ГЕРОФАРМ. А еще — найдите свою путеводную звезду и познакомьтесь с новогодними традициями разных регионов.</p>
+        <h2>Новый год уже стучится в окна!</h2>
+        <p>Этот адвент — о нашей компании, ее достижениях и людях, которые за ними стоят. Мы подготовили 25 заданий — по числу лет ГЕРОФАРМ. С 1 по 25 декабря каждый день будет открываться новое окошко.</p>
+        <p>Разгадайте традиционный кроссворд о качестве, проверьте, насколько хорошо знаете упаковки наших препаратов, поделитесь памятными моментами работы в ГЕРОФАРМ. А еще — найдите свою путеводную звезду и познакомьтесь с новогодними традициями разных регионов.</p>
         <p>Обязательные задания прячутся за <strong>оранжевыми окнами с золотой окантовкой.</strong> Их выполнение будет отражаться в вашем прогрессе.</p>
 
         <aside class="rules-required">
           <p class="rules-required-label">Так выглядят обозначения обязательных заданий</p>
           <div class="rules-required-examples">
             <img :src="windowExample" alt="Пример обязательного окна" />
-            <span>Оранжевые окна с золотой окантовкой в Календаре</span>
+            <span>Оранжевые окна с золотой окантовкой в календаре</span>
             <img :src="wreath" alt="" />
             <span>Новогодний венок на страницах с заданиями</span>
           </div>
@@ -42,13 +41,14 @@ import back from '../assets/rules/back.svg';
 
         <div class="rules-gift">
           <p class="rules-gift-label">Подарок от ГЕРОФАРМ</p>
-          <p><strong>Первые 500 участников, правильно</strong> выполнивших <strong>все обязательные задания, получат подарок от</strong> ГЕРОФАРМ.</p>
+          <p><strong>Первые 500 участников, правильно выполнивших все обязательные задания, получат подарок от ГЕРОФАРМ.</strong></p>
         </div>
 
-        <p>Подсказки к некоторым заданиям мы будем публиковать в каналах ГЕРОФАРМ LIFE в <a class="rules-community-link" href="https://t.me/+7Zwg%7CYFwmIU30GRi" target="_blank" rel="noopener noreferrer">Telegram</a> и <a class="rules-community-link" href="https://max.ru/join/d-gd069xb3KizIdnYoydwqaBFBRk5kmEGGfmVGK5YMc" target="_blank" rel="noopener noreferrer">MAX</a>.</p>
+        <p>Подсказки к некоторым заданиям мы будем публиковать в каналах ГЕРОФАРМ LIFE в <a class="rules-community-link" href="https://t.me/+7ZwglYFwmIU3OGRi" target="_blank" rel="noopener noreferrer">Telegram</a> и <a class="rules-community-link" href="https://max.ru/join/d-gd069xb3KizIdnYoydwqaBFBRk5kmEGGfmVGK5YMc" target="_blank" rel="noopener noreferrer">MAX</a>.</p>
 
         <RouterLink class="rules-register" :to="{ name: 'auth', query: { mode: 'register' } }"><span>Зарегистрироваться</span></RouterLink>
-        <RouterLink class="rules-continue" :to="{ name: 'auth', query: { mode: 'login' } }">Уже начали открывать окошки?<br />Продолжить</RouterLink>
+        <p class="rules-returning">Уже начали открывать окошки?</p>
+        <RouterLink class="rules-continue" :to="{ name: 'auth', query: { mode: 'login' } }">Продолжить</RouterLink>
       </AppCard>
     </div>
   </PageLayout>
@@ -82,6 +82,7 @@ import back from '../assets/rules/back.svg';
 .rules-register, .rules-continue { display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 13px; text-align: center; text-decoration: none; font-weight: 700; }
 .rules-register span { color: transparent; background: linear-gradient(75deg, #e8b77e, #ffe6bc 20%, #fff0d2 73%, #efc087); background-clip: text; }
 .rules-register { min-height: 54px; margin-top: 25px; padding: 0 12px; background: #a7280b; color: #fff0d2; font-size: 15px; line-height: 18px; }
+.rules-returning { text-align: center; margin: 24px 0 0 !important; }
 .rules-continue { min-height: 52px; margin-top: 16px; padding: 8px; border: 1px solid #a7280b; color: #a7280b; font-size: 14px; line-height: 17px; }
 .rules-register:hover { background: #962107; }
 .rules-continue:hover { background: #f8e8c8; }

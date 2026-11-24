@@ -56,7 +56,7 @@ test('photo actions attach, replace and remove a photo with a temporary confirma
     ? route.fulfill({ body: png, contentType: 'image/png' })
     : route.fulfill({ json: { Key: reserved?.storage_path } }));
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto('/task/3');
+  await page.goto('/task/4');
 
   async function pick(button: string, name: string) {
     const chooser = page.waitForEvent('filechooser');
@@ -64,7 +64,7 @@ test('photo actions attach, replace and remove a photo with a temporary confirma
     await (await chooser).setFiles({ name, mimeType: 'image/png', buffer: png });
   }
 
-  await pick('Прикрепить фото', 'photo.png');
+  await pick('Прикрепить фотографии', 'photo.png');
   await expect(page.getByRole('img', { name: 'photo.png' })).toBeVisible();
   await pick('Заменить фото', 'new-photo.png');
   await expect(page.getByRole('img', { name: 'new-photo.png' })).toBeVisible();
@@ -91,8 +91,8 @@ test('a memory can be submitted while optional photos load or the upload is deni
   }));
 
   try {
-    await page.goto('/task/3');
-    const submit = page.getByRole('button', { name: 'Поделиться историей', exact: true });
+    await page.goto('/task/4');
+    const submit = page.getByRole('button', { name: 'Поделиться воспоминанием', exact: true });
     await expect(submit).toBeEnabled();
     await page.locator('#memory-answer').fill('Наше воспоминание');
     await page.locator('#memory-author').fill('Тестовый автор');

@@ -26,14 +26,11 @@
       </AppHeader>
       <section class="auth-card" aria-labelledby="login-title">
           <h1 id="login-title">Вход</h1>
-          <p class="auth-intro">Войдите в новогодний адвент-календарь с корпоративной почтой и паролем.</p>
+          <p class="auth-intro">Укажите корпоративную почту — мы отправим код для входа.</p>
           <form @submit.prevent="handleLogin" :aria-busy="authStore.loading">
             <fieldset :disabled="authStore.loading">
               <FormField class="email-field" for-id="login-email" label="Email">
                 <input id="login-email" v-model="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" required />
-              </FormField>
-              <FormField class="password-field" for-id="login-password" label="Пароль">
-                <input id="login-password" v-model="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required />
               </FormField>
               <p v-if="authStore.error" class="auth-error" role="alert">{{ authStore.error }}</p>
               <AppButton :loading="authStore.loading" class="auth-submit" type="submit">{{ authStore.loading ? 'Подождите...' : 'Войти' }}</AppButton>
@@ -63,7 +60,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const mode = ref<AuthMode>(route.query.mode === 'register' ? 'register' : 'login');
 const email = ref('');
-const password = ref('');
 const pendingEmailKey = 'advent.pending-confirmation-email';
 const confirmationEmail = ref<string | null>(sessionStorage.getItem(pendingEmailKey));
 const resending = ref(false);
@@ -98,7 +94,6 @@ async function handleResend() {
 function resetMode(newMode: AuthMode) {
   mode.value = newMode;
   authStore.error = null;
-  password.value = '';
   confirmationEmail.value = null;
   sessionStorage.removeItem(pendingEmailKey);
   invalidCode.value = false;
@@ -124,20 +119,22 @@ async function goToDestination() {
 
 async function handleLogin() {
   if (authStore.loading) return;
-  const success = await authStore.login(email.value.trim().toLowerCase(), password.value);
-  if (success) await goToDestination();
+  const success = await authStore.login(email.value.trim().toLowerCase());
+  if (success) {
+    confirmationEmail.value = email.value.trim().toLowerCase();
+    sessionStorage.setItem(pendingEmailKey, confirmationEmail.value);
+  }
 }
 
 async function handleRegistration(data: RegistrationFormData) {
   if (authStore.loading) return;
-  const result = await authStore.register(data.email, data.password, {
+  const result = await authStore.register(data.email, {
     fullName: data.fullName, workplace: data.workplace, consent: data.consent,
   });
   if (!result.success) return;
   email.value = data.email;
   if (result.needsEmailConfirmation) {
     confirmationEmail.value = data.email;
-    password.value = '';
     sessionStorage.setItem(pendingEmailKey, data.email);
     return;
   }

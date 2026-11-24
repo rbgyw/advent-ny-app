@@ -7,23 +7,24 @@ export const authService = {
     return supabase.auth.getUser();
   },
 
-  async register(email: string, password: string, details?: RegistrationDetails) {
-    return supabase.auth.signUp({
+  async register(email: string, details?: RegistrationDetails) {
+    return supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      password,
-      ...(details ? { options: { data: {
-        full_name: details.fullName,
-        workplace: details.workplace,
-        personal_data_consent: details.consent,
-        personal_data_consent_at: details.consent ? new Date().toISOString() : null,
-      } } } : {}),
+      options: {
+        shouldCreateUser: true,
+        ...(details ? { data: {
+          full_name: details.fullName,
+          workplace: details.workplace,
+          personal_data_consent: details.consent,
+          personal_data_consent_at: details.consent ? new Date().toISOString() : null,
+        } } : {}),
+      },
     });
   },
 
-  async login(email: string, password: string) {
-    return supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
+  async login(email: string) {
+    return supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(), options: { shouldCreateUser: false },
     });
   },
 
@@ -38,7 +39,7 @@ export const authService = {
   },
 
   async resendEmailCode(email: string) {
-    return supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
+    return this.login(email);
   },
 
   onAuthStateChange(

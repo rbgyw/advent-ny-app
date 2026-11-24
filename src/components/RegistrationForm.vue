@@ -12,13 +12,11 @@ const emit = defineEmits<{ submit: [data: RegistrationFormData]; login: [] }>()
 const fullName = ref('')
 const email = ref('')
 const workplace = ref('')
-const password = ref('')
-const passwordRepeat = ref('')
 const consent = ref(false)
 const validationError = ref('')
 const workplaces = [
   'Завод в Пушкине', 'Завод в Оболенске', 'R&D Стрельна', 'R&D Кирочная',
-  'Офис Санкт-Петербург', 'Офис Москва', 'ПП Возрождения', 'ПП Оптикс',
+  'Офис Санкт-Петербург', 'Офис Москва', 'ПП Возрождения', 'ПП Оптиков',
   'Региональный сотрудник', 'Другое',
 ]
 
@@ -32,16 +30,8 @@ function submit() {
     validationError.value = 'Укажите корпоративную почту @geropharm.com.'
     return
   }
-  if (password.value.length < 6) {
-    validationError.value = 'Пароль должен содержать минимум 6 символов.'
-    return
-  }
-  if (password.value !== passwordRepeat.value) {
-    validationError.value = 'Пароли не совпадают.'
-    return
-  }
   emit('submit', {
-    email: email.value.trim().toLowerCase(), password: password.value,
+    email: email.value.trim().toLowerCase(),
     fullName: fullName.value.trim(), workplace: workplace.value, consent: true,
   })
 }
@@ -73,12 +63,6 @@ function submit() {
                   <option v-for="item in workplaces" :key="item" :value="item">{{ item }}</option>
                 </select>
               </div>
-            </FormField>
-            <FormField class="password-field" for-id="register-password" label="Пароль">
-              <input id="register-password" v-model="password" type="password" autocomplete="new-password" minlength="6" placeholder="Минимум 6 символов" required />
-            </FormField>
-            <FormField class="password-repeat-field" for-id="register-password-repeat" label="Повторите пароль">
-              <input id="register-password-repeat" v-model="passwordRepeat" type="password" autocomplete="new-password" minlength="6" placeholder="Введите пароль ещё раз" required />
             </FormField>
             <div class="auth-consent">
               <label class="auth-consent-label" for="register-consent">

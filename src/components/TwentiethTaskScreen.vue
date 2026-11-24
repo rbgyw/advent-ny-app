@@ -137,10 +137,10 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 
 <template>
   <DecemberTaskLayout v-if="!serverResult || !ready" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
-    title="Найдите свою путеводную звезду" @back="emit('back')" @retry="emit('retry')">
+    title="Путеводная звезда" @back="emit('back')" @retry="emit('retry')">
     <p class="guiding-poem"><em>Звезд на небе тьма.<br />Но попробуй отыскать<br />ту, что светит вам.</em></p>
     <div class="december-copy">
-      <p>К картам таро вы уже обращались, желание со снежинкой ГЕРОФАРМ тоже загадывали. Сегодня подключаем звёзды — пусть у задуманного будет ещё больше поддержки.</p>
+      <p>К картам Таро вы уже обращались, желание со снежинкой ГЕРОФАРМ тоже загадывали. Сегодня подключаем звёзды — пусть у задуманного будет ещё больше поддержки.</p>
       <p>Но одного желания порой недостаточно: важно еще понимать, куда двигаться, чтобы его осуществить. Когда-то звезды помогали морякам определять направление и держать курс. А мы предлагаем найти собственную путеводную звезду, которая напомнит о том, к чему хочется прийти в новом году.</p>
       <p>Посмотрите на небо: среди его звезд где-то спряталась ваша путеводная. Нажимайте на звезды, пока не найдете ее.</p>
     </div>
@@ -220,4 +220,5 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
   45% { transform: scale(1.35) rotate(12deg); filter: drop-shadow(0 0 10px #ffe3a7); }
 }
 @media (prefers-reduced-motion: reduce) { .guiding-star.is-twinkling .guiding-star-art { animation: none; } }
+@media (min-width: 700px) { .guiding-sky { max-width: min(480px, calc((100svh - 96px) * 313 / 557)); } :deep(h1) { max-width: none; } }
 </style>

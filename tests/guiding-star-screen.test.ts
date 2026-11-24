@@ -56,7 +56,7 @@ beforeEach(() => {
 describe('20 December guiding-star screen', () => {
   it('renders the poem and all 24 vector stars without an attempt counter', () => {
     const view = screen();
-    expect(view.get('h1').text()).toBe('Найдите свою путеводную звезду');
+    expect(view.get('h1').text()).toBe('Путеводная звезда');
     expect(view.get('.guiding-poem em').text()).toContain('Звезд на небе тьма.');
     expect(view.findAll('.guiding-poem br')).toHaveLength(2);
     expect(view.text()).not.toContain('Осталось попыток');

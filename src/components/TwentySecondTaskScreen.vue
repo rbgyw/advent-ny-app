@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
       <div class="december-copy video-intro">
         <p>Как выглядит жизнь ГЕРОФАРМ через камеру сотрудников? Участники «Мастерской контента» снимают видео о компании, своих командах и событиях, в которых участвуют сами.</p>
         <p>«Мастерская контента» — одно из направлений программы амбассадоров ГЕРОФАРМ. Сегодня смотрите работы участников и выбирайте ролики, которые понравились больше всего.</p>
-        <p>Понравилось видео — смахните вправо, не очень — влево. По оценкам сотрудников сформируется тройка самых популярных роликов.</p>
+        <p>Понравилось видео — нажмите кнопку «Понравилось», не очень — «Пропустить». По итогам голосования здесь появится тройка лидеров</p>
       </div>
       <p v-if="loading" class="video-loading" role="status">Загружаем ролики…</p>
       <template v-else-if="!error || state">
@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
 :deep(.december-date) { margin-bottom: 13px; }
 :deep(.december-content) { margin-top: 25px; }
 :deep(h1) { max-width: 291px; }
-.video-intro { max-width: 480px; }
+.video-intro { width: 100%; }
 .video-counter { margin-top: 22px; color: var(--dec-red); font-size: 12px; font-weight: 700; line-height: 15px; }
 .video-progress { height: 7px; margin-top: 13px; overflow: hidden; border-radius: 4px; background: #ebd6b7; }
 .video-progress > div { height: 100%; border-radius: inherit; background: var(--dec-red); transition: width 200ms ease; }
@@ -105,4 +105,5 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 359px) { .video-choices button { font-size: 12px; } }
 @media (prefers-reduced-motion: reduce) { .video-progress > div { transition: none; } }
+@media (min-width: 700px) { :deep(h1) { max-width: none; } }
 </style>

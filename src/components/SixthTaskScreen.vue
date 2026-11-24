@@ -161,12 +161,12 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <span class="tarot-fan-stage" :style="{ transform: `scale(${fanScale})` }"><span v-for="(item, index) in fanCards" :key="index" class="tarot-fan-card" :style="{ left: `${item.x}px`, top: `${item.y}px`, transform: `rotate(${item.angle}deg)` }"><img decoding="async" class="tarot-fan-image" :src="cardBack" alt="" /><img decoding="async" class="tarot-fan-border" :src="item.border" alt="" /></span><img decoding="async" class="tarot-fan-star" :src="tarotDecorationImage('imgVector7')" alt="" /></span>
         </AppButton>
         <div class="tarot-intro-copy">
-          <p>Сегодня добавим в декабрь немного загадочности: предлагаем заглянуть в будущее с помощью карт таро.</p>
-          <p>Подумайте, что вам хотелось бы узнать у карт, и задайте свой сокровенный вопрос про себя. Не торопитесь: вытянуть карту можно только один раз за весь адвент.</p>
-          <p>Когда будете готовы, нажмите на любую карту в колоде. Перед вами появится карта с небольшим пояснением. Какой смысл найти в ее образах и словах — решать вам.</p>
-          <p>Помните: это игра, а не точный прогноз. Пусть карта станет поводом для размышлений, а решения остаются за вами.</p>
+            <p>Чего вам хочется по-настоящему? О чем вы давно думаете, но пока не нашли ответа? Закройте глаза, сосредоточьтесь и задайте свой сокровенный вопрос про себя.</p>
+            <p>Сегодня ответ можно поискать в образах настоящей колоды — Таро Райдера-Уэйта. Нажмите «Вытянуть карту», чтобы увидеть, какая карта вам досталась, и прочитать пояснение.</p>
+            <p>Трактовка зависит от гадающего: какие образы привлекут ваше внимание и как вы свяжете их со своим вопросом. Пусть послание станет поводом для размышлений, а решения остаются за вами.</p>
+            <p>Обратите внимание: вытянуть карту можно только один раз за весь адвент.</p>
         </div>
-        <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">✦ Вытащить карту ✦</AppButton>
+        <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">Вытянуть карту</AppButton>
       </AppCard>
       <AppCard v-else-if="stage === 'choose'" :ref="bindChoosePanel" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
         <AppButton class="tarot-close" type="button" :disabled="saving || selectedId !== null" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
@@ -187,7 +187,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <img decoding="async" class="tarot-handle" :src="handle" alt="" />
           <TaskDateLabel class="tarot-date tarot-date-left" :available-date="assignment?.available_date" :day="day" />
           <h1 id="tarot-card-title" ref="focusTitle" tabindex="-1">{{ selectedCard.name }}</h1>
-          <div class="tarot-reading-copy" :class="{ 'has-advice': selectedCard.paragraphs[selectedCard.paragraphs.length - 1]?.startsWith('Совет дня:') }"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
+          <div class="tarot-reading-copy"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>
           <p v-if="saving" class="tarot-status" role="status">Сохраняем результат…</p>
           <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>

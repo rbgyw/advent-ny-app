@@ -37,7 +37,7 @@ describe('fortune cookie', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.1);
     const screen = mountScreen();
     await screen.get(selector).trigger('click');
-    expect(screen.emitted('complete')).toEqual([[1]]);
+    expect(screen.emitted('complete')).toEqual([[Math.floor(0.1 * fortunes.length)]]);
     expect(screen.attributes('data-stage')).toBe('closed');
     expect(screen.find('.fortune-result').exists()).toBe(false);
     await screen.setProps({ saving: true });
@@ -71,7 +71,7 @@ describe('fortune cookie', () => {
     expect(screen.get('[role="alert"]').text()).toBe('Нет соединения с Supabase');
     expect(screen.get('.fortune-open-button').text()).toContain('Попробовать снова');
     await screen.get('.fortune-open-button').trigger('click');
-    expect(screen.emitted('complete')).toEqual([[4], [4]]);
+    expect(screen.emitted('complete')).toEqual([[Math.floor(0.4 * fortunes.length)], [Math.floor(0.4 * fortunes.length)]]);
     expect(random).toHaveBeenCalledTimes(1);
     expect(localStorage.length).toBe(0);
   });
@@ -106,7 +106,7 @@ describe('fortune cookie', () => {
     await screen.setProps({ assignment: assignment({ id: 'other', user_id: 'other-user' }) });
     expect(screen.attributes('data-stage')).toBe('closed');
     await screen.get('.fortune-open-button').trigger('click');
-    expect(screen.emitted('complete')).toEqual([[0], [9]]);
+    expect(screen.emitted('complete')).toEqual([[0], [Math.floor(0.9 * fortunes.length)]]);
     expect(random).toHaveBeenCalledTimes(2);
   });
 

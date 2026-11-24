@@ -124,6 +124,7 @@ function cssUrl(url: string) {
               </AppButton>
             </template>
           </div>
+          <AppButton type="button" class="first-task-button first-task-secondary first-task-return" @click="emit('back')">К календарю</AppButton>
         </template>
       </AppCard>
       <footer class="first-task-footer">
@@ -171,7 +172,7 @@ function cssUrl(url: string) {
   box-sizing: border-box;
   position: relative;
   width: 100%;
-  max-width: 600px;
+  max-width: 960px;
   margin-inline: auto;
   padding: 0 clamp(12px, 4vw, 24px) 31px;
 }
@@ -340,4 +341,6 @@ function cssUrl(url: string) {
   line-height: 15px;
   text-align: center;
 }
+.first-task-return { margin-top: 16px; }
+@media (min-width: 768px) { .first-task-layout { padding-inline: 32px; } .first-task-card { padding: 32px; } .first-task-actions { align-items: stretch; } }
 </style>

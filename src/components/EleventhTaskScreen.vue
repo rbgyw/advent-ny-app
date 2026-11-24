@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
@@ -20,11 +21,11 @@ import stereogram from '../assets/stereogram/heart.webp';
 import cell from '../assets/stereogram/cell.svg';
 import button from '../assets/stereogram/button.svg';
 import errorArt from '../assets/stereogram/error.svg';
-import successArt from '../assets/stereogram/success.svg';
 import dot from '../assets/crossword/dot.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; submit: [letters: string[]]; edit: [] }>();
+const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const imageFailed = ref(false);
 function retryImage() { window.location.reload(); }
 const letters = ref<string[]>(STEREOGRAM_LETTERS.map(() => ''));
@@ -32,6 +33,7 @@ const incorrect = ref(false), inputRefs = ref<HTMLInputElement[]>([]);
 const { element: panel, bind: bindPanel } = useElementRef();
 const panelWidth = ref(361), panelHeight = ref(1095);
 const completed = computed(() => props.assignment?.status === 'completed');
+watch(completed, async (value, previous) => { if (value && previous === false) { await nextTick(); resultPopup.value?.showModal(); } });
 const locked = computed(() => props.loading || props.saving || completed.value || !props.assignment?.task);
 const cssUrl = (url: string) => `url("${url}")`;
 const borderDots = computed(() => {
@@ -100,17 +102,18 @@ onBeforeUnmount(() => observer?.disconnect());
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
         <TaskDateLabel class="stereo-date" :available-date="assignment?.available_date" :day="day" />
-        <h1 id="stereo-title">Что скрывается<br />за узором?</h1>
+        <h1 id="stereo-title">Что скрывается <br class="stereo-heading-break" />за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="stereo-notice"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="stereo-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
-          <div class="stereo-copy"><p>На первый взгляд перед вами пестрый хаос.</p><p>Но стоит посмотреть иначе, и среди узоров появится объемное изображение. Что именно скрывается в сегодняшней стереокартинке? Попробуйте разглядеть!</p></div>
+          <div class="stereo-copy">            <p>Среди пестрого узора спряталось объемное изображение. Чтобы его разглядеть, понадобится немного терпения и другой взгляд на привычную картинку.</p>
+            <p>Это обязательное задание для получения приза.</p></div>
           <section class="stereo-instructions stereo-surface" :style="{ '--surface-art': cssUrl(instructions) }" aria-labelledby="stereo-instructions-title">
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
-            <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора. Через некоторое время может появиться объемное изображение.</li><li>Если не получилось сразу, немного приблизьте или отодвиньте изображение и попробуйте снова.</li></ol>
+            <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора.</li><li>Если изображение не появилось, немного приблизьте или отодвиньте картинку и попробуйте снова.</li></ol>
           </section>
           <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" @error="imageFailed = true" />
           <FeedbackState v-if="imageFailed" kind="error">Не удалось загрузить изображение задания.</FeedbackState>
@@ -125,14 +128,14 @@ onBeforeUnmount(() => observer?.disconnect());
               </div>
             </fieldset>
             <AppButton :loading="saving" class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
-            <p v-if="completed" id="stereo-feedback" class="stereo-feedback stereo-success stereo-surface" :style="{ '--surface-art': cssUrl(successArt) }" role="status">Изображение раскрыто! Вы увидели, что скрывалось за узором. Обязательное задание выполнено</p>
-            <p v-else-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
+            <p v-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
           </form>
           <AppButton v-if="completed" class="stereo-calendar" type="button" @click="emit('back')">К календарю</AppButton>
         </template>
       </AppCard>
       <footer class="stereo-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
+    <AdventPopup ref="resultPopup" title="Изображение раскрыто!" message="Вы увидели, что скрывалось за узором. Обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
 
@@ -186,4 +189,5 @@ legend { padding: 0; font-size: 14px; line-height: 17px; font-weight: 700; }
 button:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2px; }
 @media (max-width: 360px) { .stereo-layout { padding-inline: 12px; } .stereo-panel { padding-inline: 18px; } .stereo-cells { gap: 4px; } .stereo-panel h1 { font-size: 26px; } .stereo-wreath { right: 19px; } .stereo-instructions { padding-inline: 12px; } .stereo-instructions h2 { font-size: 18px; } }
 @media (min-width: 768px) { .stereo-layout { padding-inline: 32px; } .stereo-panel { padding-inline: 32px; } .stereo-photo { height: auto; min-height: 240px; aspect-ratio: 313 / 200; } }
+@media (min-width: 700px) { .stereo-heading-break { display: none; } }
 </style>

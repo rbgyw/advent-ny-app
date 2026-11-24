@@ -32,18 +32,6 @@ function markViewed() {
   }
 }
 
-function downloadMovies(items: readonly ReturnType<typeof parseMovie>[]) {
-  const text = items.map(movie => [
-    movie.title + ' (' + movie.year + ')',
-    movie.comment,
-  ].filter(Boolean).join('\r\n')).join('\r\n\r\n');
-  const url = URL.createObjectURL(new Blob(['\uFEFF', text], { type: 'text/plain;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'Киноподборка ГЕРОФАРМ.txt';
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 </script>
 
 <template>
@@ -51,9 +39,9 @@ function downloadMovies(items: readonly ReturnType<typeof parseMovie>[]) {
     @back="emit('back')" @retry="emit('retry')">
     <img class="movie-television" :src="television" width="550" height="460" alt="Ретро-телевизор с надписью Christmas Movies" />
     <div class="december-copy">
-      <p>До Нового года осталась ровно неделя — пора выбирать не только подарки и рецепты, но и кино для праздничных вечеров!</p>
-      <p>Помните, мы предлагали вам поделиться фильмами, которые стоит посмотреть каждому? Мы получили множество рекомендаций и составили из них интересную и многогранную подборку. Сегодня делимся любимыми праздничными фильмами от сотрудников ГЕРОФАРМ.</p>
-      <p>Листайте карточки, выбирайте фильм по душе и сохраняйте подборку на каникулы!</p>
+            <p>До Нового года осталась ровно неделя. Между завершением рабочих задач, покупкой подарков и составлением меню пора выбрать и кино для праздничных вечеров.</p>
+            <p>В декабре вы присылали фильмы, которые советуете посмотреть каждому. Из ваших рекомендаций получилась подборка любимого новогоднего кино сотрудников ГЕРОФАРМ — с комментариями о том, почему эти фильмы стоит увидеть.</p>
+            <p>Листайте карточки, выбирайте фильм по душе и сохраняйте подборку на праздники!</p>
     </div>
     <DecemberCollection title="Фильмы от коллег" filename="movies.json" empty-message="Киноподборка пока не опубликована."
       :parse-item="parseMovie" @ready="markViewed">
@@ -68,9 +56,6 @@ function downloadMovies(items: readonly ReturnType<typeof parseMovie>[]) {
             <p class="movie-comment">{{ item.comment }}</p>
           </template>
         </div>
-      </template>
-      <template #actions="{ items }">
-        <button class="december-button secondary" type="button" @click="downloadMovies(items)">Сохранить подборку</button>
       </template>
     </DecemberCollection>
     <div class="movie-actions december-stack">

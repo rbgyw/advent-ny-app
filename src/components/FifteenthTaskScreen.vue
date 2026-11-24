@@ -44,7 +44,7 @@ function submit() {
       <div class="december-copy">
         <p>Иногда для хорошего напутствия достаточно одного слова. Посмотрите на поле с буквами: слова спрятаны по горизонтали и вертикали.</p>
         <p>Какое из них первым бросилось вам в глаза? Впишите его в поле и нажмите «Сверить курс».</p>
-        <p>Пусть найденное слово станет добрым напутствием на 2027 год — или подсказкой, чего стоит впустить в свою жизнь.</p>
+        <p>Пусть найденное слово станет добрым напутствием на 2027 год — или подсказкой, что стоит впустить в свою жизнь</p>
       </div>
       <section class="december-panel word-panel">
         <div class="word-toolbar">
@@ -93,4 +93,5 @@ function submit() {
 .word-scroll { max-height: 65svh; overflow: auto; }
 .word-scroll .word-grid { width: 648px; }
 .word-scroll .word-grid > span { font-size: 20px; }
+@media (min-width: 700px) { :deep(.december-layout) { max-width: 960px; } :deep(h1) { max-width: none; font-size: clamp(22px, 2.1vw, 28px); white-space: nowrap; } }
 </style>
