@@ -76,7 +76,7 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
           <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" />
           <AppButton v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Запустить снегопад</span></AppButton>
-          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
+          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="wishPopup?.showModal()"><span>{{ saving ? 'Принимаем желание…' : 'Загадать желание' }}</span></AppButton>
           <AppButton v-else class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="emit('back')"><span>К календарю</span></AppButton>
           <p v-if="stage !== 'accepted'" class="wish-note">{{ stage === 'intro' ? 'Маленький момент — только для вас' : 'Ваше желание останется только вашим' }}</p>
         </template>
