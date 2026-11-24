@@ -11,15 +11,9 @@ const brokenImages = ref(new Set<string>());
 
 function parseMemory(value: unknown, source: URL) {
   const item = collectionRecord(value);
-  const name = collectionText(item.name);
-  const text = collectionText(item.text);
-  if (!name || !text) throw new Error('Expected a name and a story');
-  return {
-    name,
-    text,
-    photo: collectionImage(item.photoUrl, source),
-    alt: collectionText(item.photoAlt),
-  };
+  const photo = collectionImage(item.photoUrl, source);
+  if (!photo) throw new Error('Expected a designed memory card image');
+  return { photo, alt: collectionText(item.photoAlt) || 'Воспоминание сотрудника ГЕРОФАРМ' };
 }
 
 function markViewed() {
@@ -33,9 +27,9 @@ function markViewed() {
   <DecemberTaskLayout v-bind="props" title="Этот год запомнится нам"
     @back="emit('back')" @retry="emit('retry')">
     <div class="december-copy">
-      <p>В этом году в ГЕРОФАРМ было много событий, но для каждого он запомнился чем-то своим: новым проектом, личной победой, поддержкой коллег или первым участием в корпоративном мероприятии.</p>
-      <p>В начале декабря мы предложили вам поделиться такими моментами. Спасибо за ваши истории! Сегодня предлагаем узнать, какие события стали особенными для сотрудников ГЕРОФАРМ.</p>
-      <p>Листайте карточки с воспоминаниями коллег — давайте еще раз порадуемся тому, сколько всего произошло за этот год.</p>
+            <p>В этом году в ГЕРОФАРМ было много событий, но для каждого он запомнился чем-то своим: новым проектом, личной победой, поддержкой коллег или участием в корпоративном мероприятии.</p>
+            <p>В начале декабря вы присылали фотографии и рассказывали, какие моменты этого года вам особенно запомнились. Спасибо за ваши истории!</p>
+            <p>Сегодня они собраны в карточках. Листайте и узнавайте, что происходило в разных командах и какие события стали важными для ваших коллег.</p>
     </div>
     <DecemberCollection title="Истории коллег" filename="memories.json" empty-message="Истории коллег пока не опубликованы."
       :parse-item="parseMemory" @ready="markViewed">
@@ -45,10 +39,7 @@ function markViewed() {
             @error="brokenImages.add(item.photo)" />
           <p v-else>Место для фотографии</p>
         </div>
-        <div class="memory-story" tabindex="0" :aria-label="'История: ' + item.name">
-          <h3>{{ item.name }}</h3>
-          <p>{{ item.text }}</p>
-        </div>
+
       </template>
     </DecemberCollection>
     <div class="memory-actions december-stack">
@@ -68,7 +59,7 @@ function markViewed() {
   display: grid;
   place-items: center;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 180px;
   overflow: hidden;
   background: url('../assets/dec-23/photo-placeholder.svg') center / cover no-repeat,
     linear-gradient(150deg, #7b210e, #a7280b 55%, #d25820);
@@ -76,10 +67,11 @@ function markViewed() {
   font-weight: 700;
   text-align: center;
 }
-.memory-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.memory-photo img { display: block; width: 100%; height: auto; object-fit: contain; }
 .memory-story { box-sizing: border-box; height: 192px; overflow-y: auto; padding: 20px 18px; color: #70492c; }
 .memory-story:focus-visible { outline-offset: -3px; }
 .memory-story h3 { margin: 0 0 10px; color: var(--dec-red); font: 700 14px/20px 'Advent Inter', sans-serif; }
 .memory-story p { white-space: pre-line; }
 .memory-actions { margin-top: 24px; }
+@media (min-width: 700px) { :deep(h1) { max-width: none; } }
 </style>
