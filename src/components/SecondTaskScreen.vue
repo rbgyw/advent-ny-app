@@ -176,6 +176,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
             <p v-else-if="saveError" class="cipher-warning cipher-incorrect" role="alert">{{ saveError }}</p>
             <AppButton class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
           </form>
+          <AppButton class="cipher-button cipher-calendar" type="button" @click="emit('back')">К календарю</AppButton>
         </template>
       </AppCard>
       <footer class="cipher-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
@@ -183,7 +184,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
     <PopupDialog v-model:open="popupOpen" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy">
       <AppButton class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</AppButton>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
-      <p id="cipher-success-copy">Подарок — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнивших все обязательные задания адвента. Продолжайте открывать окошки, ведь впереди у нас еще много интересного!</p>
+      <p id="cipher-success-copy">Подарок за выполнение адвента — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнившие все обязательные задания. Возвращайтесь завтра: вас будет ждать первое обязательное задание!</p>
       <div class="cipher-gift" :style="{ backgroundImage: cssUrl(gift) }" data-figma-node="28:40836">Фото спортивной сумки</div>
       <AppButton class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</AppButton>
     </PopupDialog>
