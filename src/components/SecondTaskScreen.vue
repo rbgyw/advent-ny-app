@@ -19,7 +19,7 @@ import alphabetFrame from '../assets/cipher/imgFrame.svg'
 import cell from '../assets/cipher/imgVector2.svg'
 import cellVariant from '../assets/cipher/imgVector3.svg'
 import successCard from '../assets/cipher/success-card.svg'
-import gift from '../assets/cipher/gift-placeholder.svg'
+import giftVideoSrc from '../assets/cipher/gift.mp4'
 
 const props = defineProps<{
   assignment: CalendarTask | undefined
@@ -29,7 +29,6 @@ const props = defineProps<{
   saving: boolean
   error: string | null
   saveError: string | null
-  giftVideoSrc?: string
 }>()
 const emit = defineEmits<{ back: []; retry: []; submit: [letters: string[]]; edit: [] }>()
 const letters = ref<string[]>(Array(15).fill(''))
@@ -187,8 +186,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
       <AppButton class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</AppButton>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
       <p id="cipher-success-copy">Подарок за выполнение адвента — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнившие все обязательные задания. Возвращайтесь завтра: вас будет ждать первое обязательное задание!</p>
-      <PopupLoopVideo v-if="giftVideoSrc" class="cipher-gift-video" :src="giftVideoSrc" :active="popupOpen" label="Спортивная сумка ГЕРОФАРМ" />
-      <div v-else class="cipher-gift" :style="{ backgroundImage: cssUrl(gift) }" data-figma-node="28:40836">Фото спортивной сумки</div>
+      <PopupLoopVideo class="cipher-gift-video" :src="giftVideoSrc" :active="popupOpen" label="Спортивная сумка ГЕРОФАРМ" />
       <AppButton class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</AppButton>
     </PopupDialog>
   </TaskLayout>
@@ -249,7 +247,6 @@ onBeforeUnmount(() => { observer?.disconnect() })
 .cipher-close { position: absolute; right: 6px; top: 0; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
 .cipher-success h2 { margin: 0 0 14px; color: #623c28; font: 500 24px/30px 'Advent STIX', serif; letter-spacing: 0; }
 .cipher-success > p { width: 100%; margin: 0; color: #836045; }
-.cipher-gift { display: grid; place-items: center; width: 100%; aspect-ratio: 297 / 123; margin-top: 15px; background-repeat: no-repeat; background-size: 100% 100%; color: #836045; font-size: 13px; line-height: 16px; }
 .cipher-gift-video { margin-top: 15px; }
 .cipher-calendar { width: 100%; min-width: 0; max-width: 100%; margin-top: 22px; }
 @media (min-width: 768px) { .cipher-layout { padding-inline: 32px; } .cipher-card { padding-inline: 32px; } }
