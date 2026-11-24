@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
           <p id="memory-deadline" class="memory-deadline">*Принимаем фотографии до 10 декабря. Это задание не является обязательным и не влияет на получение подарка.</p>
           <form class="memory-form" novalidate :aria-busy="busy" @submit.prevent="submit">
             <label for="memory-answer">Мое яркое воспоминание</label>
-            <TaskAttachments v-if="userId" class="memory-attachments" optional :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" @busy="setAttachmentsBusy" />
+            <TaskAttachments v-if="userId" class="memory-attachments" optional attach-label="Прикрепить фотографии" :key="`${userId}:${assignment.task_id}`" :task-id="assignment.task_id" :readonly="completed" :disabled="saving || closed" @busy="setAttachmentsBusy" />
             <div class="memory-input" :style="{ '--textarea-art': cssUrl(textareaArt) }" data-figma-node="28:40852">
               <textarea id="memory-answer" ref="textarea" :value="modelValue" :readonly="completed || closed" :disabled="saving" aria-describedby="memory-deadline" placeholder="Описание фото" @input="input"></textarea>
             </div>

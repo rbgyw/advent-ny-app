@@ -3,7 +3,7 @@
     <template v-if="!readonly && photos.length < limit">
       <AppButton class="photo-action" variant="outline" type="button" :aria-describedby="hintId"
         :disabled="controlsDisabled" @click="fileInput?.click()">
-        {{ photos.length ? 'Добавить ещё фото' : 'Прикрепить фото' }}
+        {{ photos.length ? 'Добавить ещё фото' : attachLabel }}
       </AppButton>
       <p :id="hintId" class="photo-hint">
         {{ limit === 1 ? 'Одна фотография.' : `До ${limit} фотографий.` }} JPG, PNG или WebP, до 5 МБ на фото.
@@ -58,7 +58,8 @@ const props = withDefaults(defineProps<{
   disabled: boolean;
   limit?: 1 | typeof MAX_ATTACHMENTS;
   optional?: boolean;
-}>(), { limit: MAX_ATTACHMENTS });
+  attachLabel?: string;
+}>(), { attachLabel: 'Прикрепить фото', limit: MAX_ATTACHMENTS });
 
 const emit = defineEmits<{
   busy: [value: boolean];
