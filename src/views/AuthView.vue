@@ -135,7 +135,7 @@ async function handleRegistration(data: RegistrationFormData) {
   email.value = data.email;
   if (result.needsEmailConfirmation) {
     confirmationEmail.value = data.email;
-      sessionStorage.setItem(pendingEmailKey, data.email);
+    sessionStorage.setItem(pendingEmailKey, data.email);
     return;
   }
   await goToDestination();
