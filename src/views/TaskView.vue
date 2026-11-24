@@ -687,13 +687,14 @@ async function submitSportPhoto({ attachmentId, teamPose }: SportSubmission) {
   if (current?.task?.slug !== 'task-07' || current.status === 'completed' ||
     calendarStore.saving || !isSportLevel(response?.level) || response.submitted_for_review === true ||
     !attachmentId || (response.level === 'team' && !isTeamPose(teamPose))) return;
-  await calendarStore.saveDraft(current.task_id, {
+  await calendarStore.saveProgress(current.task_id, {
     level: response.level,
     text: response.level === 'team' ? '' : answer.value.trim(),
     attachment_id: attachmentId,
     ...(response.level === 'team' && { team_pose: teamPose }),
-    submitted_for_review: true,
-  });
+    submitted_for_review: response.level !== 'basic',
+    submitted: true,
+  }, response.level === 'basic');
 }
 
 function matchesTask(number: number) {

@@ -45,6 +45,7 @@ const selected = computed(() => level.value && sportLevels[level.value]);
 const completed = computed(() => props.assignment?.status === 'completed');
 const pending = computed(() => response.value?.submitted_for_review === true);
 const busy = computed(() => props.saving || uploadBusy.value);
+const posesVisible = ref(false);
 const poseIndex = ref(isTeamPose(response.value?.team_pose) ? teamPoses.indexOf(response.value.team_pose) : 0);
 const pose = computed(() => teamPoses[poseIndex.value]!);
 const title = computed(() => {
@@ -131,7 +132,8 @@ function submit() {
             <p v-for="paragraph in selected.instructions" :key="paragraph">{{ paragraph }}</p>
           </div>
 
-          <section v-if="level === 'team'" class="sport-poses" aria-label="Выбор командной позы">
+          <button v-if="level === 'team' && !posesVisible" class="sport-button" type="button" @click="posesVisible = true">Получить задание</button>
+          <section v-if="level === 'team' && posesVisible" class="sport-poses" aria-label="Выбор командной позы">
             <div class="sport-pose">
               <img :src="poseImages[pose]" :alt="`Командная поза ${poseIndex + 1}`" />
             </div>
@@ -156,17 +158,17 @@ function submit() {
               <textarea v-model="answer" :disabled="saving" placeholder="Добавьте описание" @input="emit('edit')" />
             </label>
             <p v-if="level !== 'basic'" class="sport-publication">
-              Фотография может попасть в подборку в ГЕРОФАРМ LIFE в Telegram и MAX. Убедитесь, что все участники снимка согласны на публикацию.
+              {{ level === 'advanced' ? 'Загружая фотографию, вы соглашаетесь на её публикацию в подборке ГЕРОФАРМ LIFE в Telegram и MAX' : 'Фотография попадет в подборку ГЕРОФАРМ LIFE в Telegram и Max. Убедитесь, что все участники снимка согласны на публикацию.' }}
             </p>
             <p v-if="validation || saveError" class="sport-error" role="alert">{{ validation || saveError }}</p>
-            <button class="sport-button" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить на проверку' }}</button>
+            <button class="sport-button" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : level === 'basic' ? 'Отправить фотографию' : 'Отправить на проверку' }}</button>
           </form>
         </template>
 
         <template v-else>
           <div class="sport-copy sport-intro">
-            <p>«Мышление долголетия» начинается с привычек, которые помогают оставаться активными. Сегодня предлагаем добавить немного движения в декабрь и выбрать спортивное задание по душе.</p>
-            <p>Перед вами три уровня: базовый, продвинутый и командный челлендж. Для выполнения обязательного задания достаточно пройти один из них.</p>
+            <p>«Мышление долголетия» начинается с привычек, которые помогают оставаться активными. Сегодня нас ждет спортивное задание.</p>
+            <p>На выбор есть 3 уровня: базовый, продвинутый и командный челлендж. Для выполнения обязательного задания достаточно пройти один из них.</p>
           </div>
           <p class="sport-warning">Внимательно прочитайте подсказки: <span>после выбора поменять уровень уже не получится!</span></p>
           <p v-if="saveError" class="sport-error" role="alert">{{ saveError }}</p>
