@@ -425,5 +425,5 @@ onBeforeUnmount(() => {
 .calendar-layout-desktop .calendar-today-outline { width:100%; height:100%; left:0; top:0; }
 .calendar-layout-desktop .calendar-today-badge { left:calc(50% - 24px); }
 .calendar-layout-desktop .calendar-notice { left:560px; }
-.calendar-window.is-locked { background: #a8a5a0a6; border-radius: 40px 40px 0 0; }
+.calendar-window.is-locked { background: #a8a5a0; mix-blend-mode: saturation; border-radius: 40px 40px 0 0; }
 </style>
