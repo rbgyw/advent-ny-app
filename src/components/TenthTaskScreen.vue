@@ -17,6 +17,30 @@ const selectedWizard = ref(-1);
 const checked = ref(false);
 const completed = computed(() => props.assignment?.status === 'completed');
 const pairs = computed(() => completed.value ? solution : links.value);
+const wizardOrder = computed(() => {
+  const free = wizards.map((_, index) => index).filter(index => !pairs.value.includes(index));
+  return pairs.value.map(value => value >= 0 ? value : free.shift()!);
+});
+const draggedWizard = ref(-1);
+function connect(place: number, wizard: number) {
+  if (completed.value || props.saving || wizard < 0 || wizard >= wizards.length) return;
+  const previous = links.value.indexOf(wizard);
+  const displaced = links.value[place]!;
+  if (previous >= 0) links.value[previous] = previous === place ? -1 : displaced;
+  links.value[place] = wizard;
+  selectedPlace.value = selectedWizard.value = -1;
+  checked.value = false;
+  emit('edit');
+}
+function dragWizard(event: DragEvent, wizard: number) {
+  draggedWizard.value = wizard;
+  event.dataTransfer?.setData('text/plain', String(wizard));
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+}
+function dropWizard(place: number) {
+  connect(place, draggedWizard.value);
+  draggedWizard.value = -1;
+}
 const totalPairs = computed(() => pairs.value.filter(value => value >= 0).length);
 const pairColors = ['#f5d086', '#d5e6c0', '#eac1ad', '#d7ceeb'];
 
@@ -27,11 +51,7 @@ function pick(column: 'place' | 'wizard', index: number) {
   checked.value = false;
   emit('edit');
   if (selectedPlace.value < 0 || selectedWizard.value < 0) return;
-  const previous = links.value.indexOf(selectedWizard.value);
-  if (previous >= 0) links.value[previous] = -1;
-  links.value[selectedPlace.value] = selectedWizard.value;
-  selectedPlace.value = -1;
-  selectedWizard.value = -1;
+  connect(selectedPlace.value, selectedWizard.value);
 }
 
 function check() {
@@ -52,25 +72,25 @@ function pairStyle(place: number) {
   <DecemberTaskLayout v-bind="props" title="Кто здесь Дед Мороз?" @back="emit('back')" @retry="emit('retry')">
     <img class="frost-art" :src="frost" alt="" />
     <div class="december-copy">
-      <p>ГЕРОФАРМ объединяет коллег из разных регионов и стран. У каждой территории — свои традиции, в том числе новогодние. И даже того, кто приносит подарки, везде зовут по-разному!</p>
-      <p>Помните, как в детстве мы ждали новогоднего чуда? Сегодня предлагаем познакомиться с зимними волшебниками поближе. Сможете определить, где какого Деда Мороза ждут в гости?</p>
-      <p>Сопоставьте карточки: каждой республике или стране подберите имя ее новогоднего героя. Когда все пары будут готовы, проверьте себя!</p>
+            <p>ГЕРОФАРМ объединяет коллег из разных уголков мира. У каждой страны свои традиции, в том числе новогодние. И даже тех, кто приносит подарки, везде зовут по-разному!</p>
+            <p>Перед праздниками новогодним волшебникам предстоит добраться до представительств ГЕРОФАРМ. Но сначала нужно разобраться, кто из них откуда родом.</p>
+            <p>Помогите каждому найти дорогу домой: сопоставьте страну и имя ее новогоднего героя. Когда все пары будут готовы, проверьте себя!</p>
     </div>
     <section class="frost-game december-stack">
-      <div><h2>Найдите пары</h2><p>Нажмите на карточки, чтобы составить пару.</p></div>
+      <div><h2>Найдите пары</h2><p>Перетащите имя волшебника к стране или нажмите на имя и страну. Выбранная карточка встанет напротив страны.</p></div>
       <div class="frost-pairs">
         <div>
           <h3>Территории</h3>
           <button v-for="(place, index) in places" :key="place" type="button" :style="pairStyle(index)"
-            :aria-pressed="selectedPlace === index" :disabled="completed || saving" @click="pick('place', index)">
+            :aria-pressed="selectedPlace === index" :disabled="completed || saving" @click="pick('place', index)" @dragover.prevent @drop.prevent="dropWizard(index)">
             <img :src="location" alt="" />{{ place }}
           </button>
         </div>
         <div>
           <h3>Волшебники</h3>
-          <button v-for="(wizard, index) in wizards" :key="wizard" type="button" :style="pairStyle(pairs.indexOf(index))"
-            :aria-pressed="selectedWizard === index" :disabled="completed || saving" @click="pick('wizard', index)">
-            <img :src="star" alt="" />{{ wizard }}
+          <button v-for="wizard in wizardOrder" :key="wizard" type="button" :style="pairStyle(pairs.indexOf(wizard))"
+            :aria-pressed="selectedWizard === wizard" :draggable="!completed && !saving" @dragstart="dragWizard($event, wizard)" @dragend="draggedWizard = -1" :disabled="completed || saving" @click="pick('wizard', wizard)">
+            <img :src="star" alt="" />{{ wizards[wizard] }}
           </button>
         </div>
       </div>
@@ -81,7 +101,6 @@ function pairStyle(place: number) {
       <button v-if="completed" class="december-button" type="button" @click="emit('back')">К календарю</button>
       <button v-else class="december-button" type="button" :disabled="saving || totalPairs < places.length" @click="check">Проверить пары</button>
     </section>
-    <aside class="december-panel frost-gifts">В ГЕРОФАРМ новогодние подарки вручают детям сотрудников в возрасте от 2 до 14 лет включительно. Если у вас есть ребенок этого возраста, обратитесь к своему HR бизнес-партнеру, чтобы получить подарок.</aside>
   </DecemberTaskLayout>
 </template>
 
