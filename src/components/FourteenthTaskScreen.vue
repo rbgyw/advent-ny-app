@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
@@ -38,7 +39,7 @@ const solved = ref<RaskobkiAnswer[]>([]);
 const feedback = ref('');
 const invalid = ref(false);
 const { element: panel, bind: bindPanel } = useElementRef();
-const resultHeading = ref<HTMLHeadingElement>();
+const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const dotCount = ref(0);
 const answerIds = raskobkiAnswers;
 
@@ -86,7 +87,7 @@ watch([progressKey, completed], ([key, isComplete]) => {
 watch(completed, async (isComplete, wasComplete) => {
   if (isComplete && !wasComplete) {
     await nextTick();
-    resultHeading.value?.focus();
+    resultPopup.value?.showModal();
   }
 });
 
@@ -164,9 +165,11 @@ function submit() {
         </p>
         <template v-else>
           <div class="raskobki-instructions">
-            <p>Разгадайте подсказки в квадратных скобках, чтобы восстановить текст.</p>
-            <p>Если знаете ответ, просто напишите его в поле внизу. Правильное слово само появится на своём месте.</p>
-            <p>Если в подсказке есть ещё одни скобки, сначала раскройте внутренние.</p>
+            <p>Чтобы увидеть целую картину, нужно разобраться в деталях. Разгадайте зашифрованное позиционирование компании в игре «ра[скобки]» — рекурсивном кроссворде, где за одной загадкой прячется следующая.</p>
+            <p>Ответы на подсказки становятся словами в подсказках следующего уровня. Разгадывайте их слой за слоем, пока не раскроете всю цепочку.</p>
+            <p>Если вы знаете любое слово, загаданное в квадратных скобках, — введите его в строку, и оно встанет на своё место. Когда разгадаете все слова, на экране появится зашифрованная фраза — позиционирование компании.</p>
+            <p>Если какое-то слово не получается разгадать, загляните в ГЕРОФАРМ LIFE в  Telegram и MAX.  — сегодня там появятся подсказки.</p>
+            <p>Это обязательное задание для получения подарка.</p>
           </div>
           <section class="raskobki-chain" aria-labelledby="raskobki-chain-title">
             <AppHeader class="raskobki-chain-header">
@@ -177,14 +180,7 @@ function submit() {
               <template v-if="revealed('gero')">{{ raskobkiSlots.gero.word }}</template><strong v-else>[{{ raskobkiSlots.gero.clue }}]</strong>ФАРМ — био<template v-if="revealed('technologist')">{{ raskobkiSlots.technologist.word }}</template><strong v-else-if="revealed('process')">[{{ raskobkiSlots.technologist.clue }}]</strong><strong v-else>[Специалист, управляющий [{{ raskobkiSlots.process.clue }}]ами на производстве]</strong>ическая компания, которая выводит Россию в <template v-if="revealed('leader')">{{ raskobkiSlots.leader.word }}</template><strong v-else>[{{ raskobkiSlots.leader.clue }}]</strong>ы по продолжительности <template v-if="revealed('asset')">{{ raskobkiSlots.asset.word }}</template><strong v-else>[{{ raskobkiSlots.asset.clue }}]</strong>ной жизни.
             </p>
           </section>
-          <section v-if="completed" class="raskobki-result" aria-labelledby="raskobki-result-title">
-            <h2 id="raskobki-result-title" ref="resultHeading" tabindex="-1">Все скобки раскрыты — история разгадана!</h2>
-            <p>Обязательное задание выполнено.</p>
-            <AppButton class="raskobki-button raskobki-calendar" type="button" @click="emit('back')">
-              К календарю
-            </AppButton>
-          </section>
-          <form v-else class="raskobki-form" :aria-busy="saving" @submit.prevent="submit">
+          <form v-if="!completed" class="raskobki-form" :aria-busy="saving" @submit.prevent="submit">
             <template v-if="!allSolved">
               <label for="raskobki-guess">Ваш ответ</label>
               <div class="raskobki-field" :class="{ 'is-invalid': invalid }">
@@ -211,6 +207,7 @@ function submit() {
       </AppCard>
       <footer class="raskobki-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
     </div>
+    <AdventPopup ref="resultPopup" title="Все скобки раскрыты — история разгадана!" message="Обязательное задание выполнено." button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
 
