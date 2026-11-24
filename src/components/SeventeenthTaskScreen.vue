@@ -10,7 +10,7 @@ import type { DecemberTaskProps, DecemberTaskEvents } from '../types/december';
 
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<DecemberTaskEvents>();
-const bankPhotos = import.meta.glob<string>('../assets/dec-17/bank-*.jpg', {
+const bankPhotos = import.meta.glob<string>('../assets/dec-17/bank-[0-9]*.jpg', {
   eager: true, query: '?url', import: 'default',
 });
 const references = [
