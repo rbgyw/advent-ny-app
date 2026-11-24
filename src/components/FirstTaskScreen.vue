@@ -342,5 +342,5 @@ function cssUrl(url: string) {
   text-align: center;
 }
 .first-task-return { margin-top: 16px; }
-@media (min-width: 768px) { .first-task-layout { padding-inline: 32px; } .first-task-card { padding: 32px; } .first-task-actions { align-items: stretch; } .first-task-panel img { width: min(100%, 564px); } }
+@media (min-width: 768px) { .first-task-layout { padding-inline: 32px; } .first-task-card { padding: 32px; } .first-task-actions { align-items: stretch; } }
 </style>
