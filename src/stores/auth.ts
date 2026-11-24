@@ -80,7 +80,7 @@ export const useAuthStore = defineStore("auth", {
       this.error = null;
 
       try {
-        const { data, error } = await authService.register(email, details);
+        const { error } = await authService.register(email, details);
 
         if (error) {
           this.error = error.message;
@@ -91,11 +91,11 @@ export const useAuthStore = defineStore("auth", {
           };
         }
 
-        this.user = data.session?.user ?? null;
+        this.user = null;
 
         return {
           success: true,
-          needsEmailConfirmation: !data.session,
+          needsEmailConfirmation: true,
         };
       } catch (error) {
         this.error =
