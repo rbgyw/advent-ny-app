@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import PopupDialog from './PopupDialog.vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import ImageSearchBoard from './ImageSearchBoard.vue';
 import type { DecemberTaskEvents, DecemberTaskProps } from '../types/december';
@@ -11,6 +12,7 @@ import scene from '../assets/dec-19/search-scene.png';
 
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<DecemberTaskEvents>();
+const resultOpen = ref(false);
 const progress = ref<SearchProgress>(freshSearch());
 const now = ref(Date.now());
 const feedback = ref('');
@@ -27,6 +29,7 @@ const awaitingSave = ref(false);
 const board = ref<HTMLElement>();
 const completed = computed(() => props.assignment?.status === 'completed');
 const success = computed(() => completed.value || progress.value.found);
+watch(success, value => { if (value) resultOpen.value = true; }, { immediate: true });
 const active = computed(() => !success.value && progress.value.deadline !== null);
 const seconds = computed(() => remainingSearchSeconds(progress.value, now.value));
 const timer = computed(() => `${Math.floor(seconds.value / 60).toString().padStart(2, '0')}:${(seconds.value % 60).toString().padStart(2, '0')}`);
@@ -167,29 +170,14 @@ function retryImage() {
 </script>
 
 <template>
-  <DecemberTaskLayout :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
+  <DecemberTaskLayout v-if="!success" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
     title="Где же Поджик?" mandatory @back="emit('back')" @retry="emit('retry')">
-    <template v-if="success" #decoration>
-      <img class="podzhik-found" :src="found" width="104" height="159" alt="Поджик машет рукой" />
-    </template>
     <img v-if="!success" :key="imageRetry" class="podzhik-preload" :src="sceneSource" alt="" aria-hidden="true"
       @load="sceneReady = true; sceneFailed = false" @error="sceneFailed = true; sceneReady = false" />
     <img v-if="!success" :key="`target:${imageRetry}`" class="podzhik-preload podzhik-target-preload" :src="found" alt="" aria-hidden="true"
       @load="targetReady = true; targetFailed = false" @error="targetFailed = true; targetReady = false" />
 
-    <section v-if="success" class="podzhik-result december-stack" aria-live="polite">
-      <h2>Вот он! Поджик найден</h2>
-      <p v-if="completed">Вот он! Поджик найден — отличная работа! Обязательное задание выполнено.</p>
-      <p v-else-if="saving || awaitingSave" role="status">Отличная работа! Сохраняем успешное прохождение…</p>
-      <p v-else>Поджик найден. Сохраните успешное прохождение, чтобы задание было отмечено выполненным.</p>
-      <p v-if="saveError && !completed" class="december-error" role="alert">{{ saveError }}</p>
-      <button v-if="!completed" class="december-button" type="button" :disabled="saving || awaitingSave" @click="sendSuccess">
-        {{ saving || awaitingSave ? 'Сохраняем…' : 'Повторить сохранение' }}
-      </button>
-      <button class="december-button" :class="{ secondary: !completed }" type="button" @click="emit('back')">К календарю</button>
-    </section>
-
-    <section v-else-if="progress.attemptsLeft === 0" class="december-stack podzhik-result" role="status">
+    <section v-if="progress.attemptsLeft === 0" class="december-stack podzhik-result" role="status">
       <h2>Попытки закончились</h2>
       <p>Пять попыток использованы. В этот раз найти Поджика не удалось.</p>
       <p class="podzhik-attempts">Осталось попыток: 0</p>
@@ -250,6 +238,20 @@ function retryImage() {
     </template>
     <p v-if="storageWarning && !completed" class="podzhik-note" role="status">Браузер не разрешил сохранить прогресс. Не закрывайте страницу до завершения игры.</p>
   </DecemberTaskLayout>
+  <main v-else class="december-page podzhik-completed" aria-label="Результат задания" />
+    <PopupDialog v-model:open="resultOpen" class="december-dialog podzhik-result december-stack" aria-labelledby="podzhik-result-title" @close="emit('back')">
+      <h2 id="podzhik-result-title">Вот он! Поджик найден.</h2>
+      <p v-if="completed">Отличная работа! Обязательное задание выполнено.</p>
+      <p v-else-if="saving || awaitingSave" role="status">Отличная работа! Сохраняем успешное прохождение…</p>
+      <p v-else>Поджик найден. Сохраните успешное прохождение, чтобы задание было отмечено выполненным.</p>
+      <p v-if="saveError && !completed" class="december-error" role="alert">{{ saveError }}</p>
+      <button v-if="!completed" class="december-button" type="button" :disabled="saving || awaitingSave" @click="sendSuccess">
+        {{ saving || awaitingSave ? 'Сохраняем…' : 'Повторить сохранение' }}
+      </button>
+      <button class="december-button" :class="{ secondary: !completed }" type="button" @click="emit('back')">К календарю</button>
+    </PopupDialog>
+
+
 </template>
 
 <style scoped>
