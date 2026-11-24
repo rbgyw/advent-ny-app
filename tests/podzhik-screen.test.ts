@@ -17,7 +17,7 @@ function task(): CalendarTask {
 function screen(overrides: Record<string, unknown> = {}) {
   return mount(NineteenthTaskScreen, { props: {
     assignment: task(), day: 19, total: 25, loading: false, saving: false, error: null, saveError: null, ...overrides,
-  } });
+  }, global: { stubs: { PopupDialog: { props: ['open'], template: '<div v-if="open" role="dialog"><slot /></div>' } } } });
 }
 type Screen = ReturnType<typeof screen>;
 async function loadImages(view: Screen) {
@@ -137,7 +137,10 @@ describe('19 December game', () => {
     expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ attemptsLeft: 5, deadline: null, found: true });
     expect(view.text()).not.toContain('Обязательное задание выполнено');
     await view.setProps({ assignment: { ...task(), status: 'completed' }, saving: false });
-    expect(view.text()).toContain('Вот он! Поджик найден — отличная работа! Обязательное задание выполнено.');
+    expect(view.text()).toContain('Отличная работа! Обязательное задание выполнено.');
+    expect(view.find('h1').exists()).toBe(false);
+    expect(view.find('.december-date').exists()).toBe(false);
+    expect(view.find('.december-badge').exists()).toBe(false);
     expect(localStorage.getItem(key)).toBeNull();
   });
 

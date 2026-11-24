@@ -67,6 +67,7 @@ beforeAll(async () => {
   await expect(db.exec('select public.initialize_user_calendar()')).rejects.toThrow('Calendar assignments are inconsistent');
 
   await apply('009_prepare_december_calendar');
+  await apply('011_swap_december_3_and_4');
 }, 30_000);
 
 afterAll(async () => { await db?.close(); });
@@ -76,7 +77,10 @@ describe('calendar preparation after the December swap', () => {
     await login(existingUser);
     const before = await assignments(existingUser);
     await prepare();
-    expect(await assignments(existingUser)).toEqual(before);
+    const after = await assignments(existingUser);
+    expect(after[2]).toMatchObject({ task_id: 4, available_date: '2026-10-03' });
+    expect(after[3]).toMatchObject({ task_id: 3, available_date: '2026-10-04' });
+    expect(after.filter(row => ![3, 4].includes(row.task_id))).toEqual(before.filter(row => ![3, 4].includes(row.task_id)));
     expect(before[9]).toMatchObject({ task_id: 15, available_date: '2026-10-10' });
     expect(before[14]).toMatchObject({ task_id: 10, available_date: '2026-10-15' });
     const result = await db.query<{ response: unknown }>(
@@ -91,6 +95,8 @@ describe('calendar preparation after the December swap', () => {
     await prepare();
     const rows = await assignments(newUser);
     expect(rows.map(row => row.position)).toEqual(Array.from({ length: 25 }, (_, index) => index + 1));
+    expect(rows[2]).toMatchObject({ task_id: 4, available_date: '2026-10-03' });
+    expect(rows[3]).toMatchObject({ task_id: 3, available_date: '2026-10-04' });
     expect(rows[9]).toMatchObject({ task_id: 15, available_date: '2026-10-10' });
     expect(rows[14]).toMatchObject({ task_id: 10, available_date: '2026-10-15' });
     expect(rows[7]).toMatchObject({ task_id: 17, available_date: '2026-10-08' });

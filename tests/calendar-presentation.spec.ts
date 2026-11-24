@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockBackend } from './fixture';
 
-const required = [4, 7, 11, 14, 17, 19, 21];
+const required = [3, 7, 11, 14, 17, 19, 21];
 
 for (const state of ['available', 'closed', 'completed'] as const) {
   test(`calendar marks exactly the seven required windows when ${state}`, async ({ page }) => {
@@ -22,7 +22,7 @@ for (const state of ['available', 'closed', 'completed'] as const) {
         expect(Math.abs(numberBox!.x + numberBox!.width / 2 - buttonBox!.x - buttonBox!.width / 2)).toBeLessThan(2);
         const art = page.locator(`.calendar-illustration [data-name="window-${day}"][data-mandatory]`);
         if (required.includes(day)) {
-          await expect(window).toHaveAccessibleName(/Обязательное задание/);
+          await expect(window).toHaveAccessibleName(state === 'closed' ? 'Пока не доступно' : new RegExp(`День ${day}\\.`));
           await expect(art.locator('[data-name=window-ornament]')).toHaveCount(1);
           expect(await art.evaluate(element => {
             const ornament = element.querySelector('[data-name=window-ornament]')!;
@@ -34,7 +34,7 @@ for (const state of ['available', 'closed', 'completed'] as const) {
           await expect(page.locator(`.calendar-illustration [data-name="window-${day}"] [data-name=window-ornament]`)).toHaveCount(0);
         }
         if (state === 'closed') await expect(window).toBeDisabled();
-        if (state === 'completed') await expect(window.locator('.calendar-completed')).toHaveCount(1);
+        if (state === 'completed') await expect(window.locator('.calendar-completed')).toHaveCount(required.includes(day) ? 1 : 0);
       }
       if (state === 'available' && viewport.width === 551) await page.screenshot({ path: test.info().outputPath('advent-calendar-required-windows.png'), fullPage: true });
     }
