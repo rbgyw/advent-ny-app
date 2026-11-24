@@ -7,8 +7,8 @@
 
 ```dotenv
 RESEND_API_KEY=re_ваш_ключ
-GRATITUDE_FROM=Праздничная почта ГЕРОФАРМ <advent@ваш-подтвержденный-домен.ru>
-APP_ORIGIN=https://адрес-приложения.ru
+GRATITUDE_FROM=Дед Мороз ГЕРОФАРМ <ded-moroz@geropharm-advent.ru>
+APP_ORIGIN=https://geropharm-advent.ru
 ```
 
 `SUPABASE_URL` и `SUPABASE_ANON_KEY` предоставляет Supabase. Почтовый ключ нельзя добавлять в переменные `VITE_*`.

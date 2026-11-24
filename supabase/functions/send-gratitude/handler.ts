@@ -3,7 +3,7 @@ type Env = (name: string) => string | undefined;
 /** Example mail endpoint. All provider secrets stay in the Edge Function. */
 export function createHandler(env: Env, fetcher: typeof fetch = fetch) {
   return async (request: Request): Promise<Response> => {
-    const allowedOrigin = env('APP_ORIGIN') || 'http://localhost:5173';
+    const allowedOrigin = env('APP_ORIGIN') || 'https://geropharm-advent.ru';
     const headers = {
       'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -19,7 +19,7 @@ export function createHandler(env: Env, fetcher: typeof fetch = fetch) {
     const authorization = request.headers.get('authorization');
     if (!authorization?.startsWith('Bearer ')) return reply({ error: 'Войдите в аккаунт.' }, 401);
     const url = env('SUPABASE_URL'), anonKey = env('SUPABASE_ANON_KEY');
-    const apiKey = env('RESEND_API_KEY'), from = env('GRATITUDE_FROM');
+    const apiKey = env('RESEND_API_KEY'), from = env('GRATITUDE_FROM') || 'Дед Мороз ГЕРОФАРМ <ded-moroz@geropharm-advent.ru>';
     if (!url || !anonKey || !apiKey || !from) return reply({ error: 'Отправка писем ещё не настроена.' }, 503);
     try {
       const raw = await request.text();
