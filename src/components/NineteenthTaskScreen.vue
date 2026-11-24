@@ -272,7 +272,8 @@ function retryImage() {
 .podzhik-check { margin-top: 20px; }
 .podzhik-feedback { min-height: 40px; margin-top: 16px; color: var(--dec-red); }
 .podzhik-note { margin-top: 16px; font-size: 12px; line-height: 18px; }
-.podzhik-result h2 { font-size: 22px; line-height: 27px; font-weight: 600; }
+.podzhik-result { --dec-red: #a7280b; --dec-paper: #fcf6e8; --dec-ink: #623c28; color: #623c28; color-scheme: light; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.podzhik-result h2 { color: #623c28; font: 600 22px/27px 'Advent STIX', serif; letter-spacing: 0; }
 .podzhik-found { position: absolute; right: 0; top: 24px; display: block; }
 .podzhik-result .podzhik-attempts { margin-top: 0; }
 .podzhik-image-error { margin-top: 16px; color: var(--dec-red); }
