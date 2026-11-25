@@ -5,6 +5,9 @@ import PopupDialog from './PopupDialog.vue';
 import envelope from '../assets/dec-16/envelope.svg';
 import stamp from '../assets/dec-16/stamp.svg';
 import type { DecemberTaskProps, DecemberTaskEvents } from '../types/december';
+import { corporateEmailRequired, getEmailError } from '../utils/email-policy';
+
+const corporateOnly = corporateEmailRequired();
 
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<DecemberTaskEvents>();
@@ -27,7 +30,7 @@ watch(completed, (done, before) => {
 function send() {
   if (props.saving || completed.value) return;
   const address = email.value.trim().toLowerCase();
-  addressError.value = !/^[a-z0-9_+-]+(?:\.[a-z0-9_+-]+)*@geropharm\.com$/.test(address);
+  addressError.value = Boolean(getEmailError(address));
   letterError.value = !letter.value.trim();
   if (addressError.value) {
     emailInput.value?.focus();
@@ -46,9 +49,9 @@ function send() {
     <img class="future-envelope" :src="envelope" alt="" />
     <div class="december-copy">
             <p>За год многое может измениться: одни планы осуществятся, другие уступят место новым. Тем интереснее будет вспомнить, о чем вы думаете и мечтаете сейчас, в декабре 2026-го.</p>
-            <p>Напишите себе письмо — оно придет на вашу корпоративную почту в декабре 2027 года.</p>
+            <p>Напишите себе письмо — оно придет на вашу {{ corporateOnly ? 'корпоративную почту' : 'почту' }} в декабре 2027 года.</p>
             <p>Расскажите, чем живете сейчас, за что себя благодарите и к чему хотите прийти. Может быть, это будет что-то амбициозное — то, на что вы давно не решались, или напоминание о любимом деле, для которого хочется сохранить побольше времени?</p>
-            <p>Укажите свою корпоративную почту и в канун 2028 года оно вернется к вам.</p>
+            <p>Укажите {{ corporateOnly ? 'свою корпоративную почту' : 'свой email' }} и в канун 2028 года оно вернется к вам.</p>
     </div>
     <div v-if="completed" class="december-stack future-form">
       <p role="status">Письмо сохранено.</p>
@@ -56,13 +59,13 @@ function send() {
     </div>
     <form v-else class="december-stack future-form" novalidate @submit.prevent="send">
       <label class="december-field">
-        Моя корпоративная почта
+        {{ corporateOnly ? 'Моя корпоративная почта' : 'Мой email' }}
         <input ref="emailInput" v-model="email" type="email" autocomplete="email" maxlength="254" placeholder="ivan.ivanov@geropharm.com"
           aria-describedby="future-email-help" :aria-invalid="addressError" :disabled="saving" required
           @input="addressError = false; emit('edit')" />
       </label>
-      <p id="future-email-help">Укажите свою корпоративную почту ГЕРОФАРМ. На другие адреса волшебное письмо отправить не получится.</p>
-      <p v-if="addressError" class="december-error" role="alert">Проверьте адрес: нужна ваша корпоративная почта ГЕРОФАРМ.</p>
+      <p id="future-email-help">{{ corporateOnly ? 'Укажите свою корпоративную почту ГЕРОФАРМ. На другие адреса волшебное письмо отправить не получится.' : 'Укажите свой корректный email. Для тестирования разрешены любые домены.' }}</p>
+      <p v-if="addressError" class="december-error" role="alert">{{ corporateOnly ? 'Проверьте адрес: нужна ваша корпоративная почта ГЕРОФАРМ.' : 'Укажите корректный email-адрес.' }}</p>
       <label class="december-field">
         Письмо себе в будущее
         <span class="future-paper">
@@ -81,7 +84,7 @@ function send() {
       <div class="december-stack">
         <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="success = false">×</button>
         <h2 id="future-success-title">Письмо отправилось в будущее!</h2>
-        <p>Письмо сохранено для отправки на указанную корпоративную почту в канун 2028 года.</p>
+        <p>Письмо сохранено для отправки на указанную {{ corporateOnly ? 'корпоративную почту' : 'почту' }} в канун 2028 года.</p>
         <button class="december-button" type="button" @click="emit('back')">К календарю</button>
       </div>
     </PopupDialog>

@@ -10,6 +10,7 @@ import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import { gratitudeError, normalizeGratitude, type GratitudeLetter } from '../utils/gratitude';
+import { corporateEmailRequired } from '../utils/email-policy';
 import wordmark from '../assets/gratitude/wordmark.svg';
 import panel from '../assets/gratitude/panel.svg';
 import checkbox from '../assets/gratitude/checkbox.svg';
@@ -29,6 +30,7 @@ import confetti6 from '../assets/gratitude/confetti-6.svg';
 import confetti7 from '../assets/gratitude/confetti-7.svg';
 import confetti9 from '../assets/gratitude/confetti-9.svg';
 
+const corporateOnly = corporateEmailRequired();
 const props = defineProps<{
   assignment?: CalendarTask; day: number; total?: number; loading: boolean; error?: string | null;
   send: (letter: GratitudeLetter, requestId: string) => Promise<void>;
@@ -103,8 +105,9 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
         <template v-else>
           <div class="gratitude-copy">
             <p>Иногда простое «спасибо» значит больше, чем кажется. Вспомните, кого из коллег вам хочется поблагодарить в этом году: за помощь в проекте, своевременную подсказку или поддержку в непростой момент. Расскажите об этом в письме — человеку будет приятно узнать, что его участие было для вас важным.</p>
-            <p>Заполните форму ниже: укажите корпоративную почту коллеги и напишите, за что хотите сказать ему спасибо. Вы можете отправить благодарность от своего имени или остаться тайным Дедом Морозом — для этого отметьте «Отправить анонимно».</p>
-            <p>Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Отправить его можно только на корпоративную почту ГЕРОФАРМ — на личные адреса доставка не работает.</p>
+            <p>Заполните форму ниже: укажите {{ corporateOnly ? 'корпоративную почту' : 'email' }} коллеги и напишите, за что хотите сказать ему спасибо. Вы можете отправить благодарность от своего имени или остаться тайным Дедом Морозом — для этого отметьте «Отправить анонимно».</p>
+            <p v-if="corporateOnly">Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Отправить его можно только на корпоративную почту ГЕРОФАРМ — на личные адреса доставка не работает.</p>
+            <p v-else>Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Для тестирования можно указать корректный email любого домена.</p>
             <p>Дед Мороз внимательно следит за праздничной почтой! Отправляйте коллегам только добрые слова, обидные шутки оставьте за пределами его волшебного мешка.</p>
             <p>А если хочется подписать настоящую открытку от руки — воспользуйтесь новогодней почтой ГЕРОФАРМ. На площадках вас будут ждать праздничные открытки и ящики для отправки. Напишите пожелания коллеге из другого офиса или близкому человеку, укажите адрес получателя и опустите открытку в ящик. С почтовой маркой ее можно отправить и в другой город. А еще открытку можно просто взять домой и вручить лично.</p>
           </div>
@@ -121,7 +124,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
             <div class="gratitude-field gratitude-recipient">
               <label for="gratitude-recipient">Кому</label>
               <div class="gratitude-input" :style="{ '--input-art': cssUrl(inputArt) }"><input id="gratitude-recipient" v-model="form.recipient" name="recipient" type="email" autocomplete="off" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" maxlength="254" :disabled="sending" required :aria-invalid="invalidField === 'recipient'" aria-describedby="gratitude-email-hint gratitude-error" /></div>
-              <p id="gratitude-email-hint" class="gratitude-hint">Только корпоративная почта @geropharm.com</p>
+              <p id="gratitude-email-hint" class="gratitude-hint">{{ corporateOnly ? 'Только корпоративная почта @geropharm.com' : 'Корректный email любого домена' }}</p>
             </div>
             <div class="gratitude-field gratitude-message">
               <label for="gratitude-message">Ваша благодарность</label>

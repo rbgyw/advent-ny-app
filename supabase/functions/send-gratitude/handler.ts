@@ -1,5 +1,6 @@
 import { renderGratitudeEmail } from './email-template.ts';
 import { postboxConfig, sendPostbox, type Env } from './postbox.ts';
+import { emailError, enforceCorporateEmail } from '../_shared/email-policy.ts';
 
 async function readBody(request: Request): Promise<string> {
   const reader = request.body?.getReader();
@@ -43,6 +44,7 @@ export function createHandler(env: Env, fetcher: typeof fetch = fetch) {
     const url = env('SUPABASE_URL'), anonKey = env('SUPABASE_ANON_KEY');
     const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
     const mailConfig = postboxConfig(env);
+    const corporateOnly = enforceCorporateEmail(env('ENFORCE_CORPORATE_EMAIL'));
     if (!url || !anonKey || !serviceKey || !mailConfig || !allowedOrigin)
       return reply({ error: 'Отправка писем ещё не настроена.' }, 503);
     // Auth, REST and journal calls also have bounded waits. No HTTP retries.
@@ -73,8 +75,8 @@ export function createHandler(env: Env, fetcher: typeof fetch = fetch) {
       const senderName = anonymous === true ? '' : typeof body.senderName === 'string' ? body.senderName.trim() : '';
       if (!Number.isSafeInteger(taskId) || Number(taskId) <= 0 || typeof requestId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId) || typeof anonymous !== 'boolean')
         return reply({ error: 'Некорректные параметры письма.' }, 400);
-      if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@geropharm\.com$/i.test(recipient) || recipient.length > 254)
-        return reply({ error: 'Используйте корпоративную почту @geropharm.com.' }, 400);
+      const recipientError = emailError(recipient, corporateOnly);
+      if (recipientError) return reply({ error: recipientError }, 400);
       if (!message || message.length > 5000 || (!anonymous && (!senderName || senderName.length > 120)))
         return reply({ error: 'Заполните имя и текст благодарности.' }, 400);
       const authHeaders = { apikey: anonKey, Authorization: authorization, 'Content-Type': 'application/json' };
@@ -82,8 +84,8 @@ export function createHandler(env: Env, fetcher: typeof fetch = fetch) {
       const userResponse = await backend(`${url}/auth/v1/user`, { headers: authHeaders });
       if (!userResponse.ok) return reply({ error: 'Сессия истекла. Войдите снова.' }, 401);
       const user = await userResponse.json();
-      if (typeof user.id !== 'string' || !user.email_confirmed_at || !/^[^\s@]+@geropharm\.com$/i.test(user.email || ''))
-        return reply({ error: 'Доступно только сотрудникам ГЕРОФАРМ.' }, 403);
+      if (typeof user.id !== 'string' || !user.email_confirmed_at || emailError(user.email, corporateOnly))
+        return reply({ error: corporateOnly ? 'Доступно только сотрудникам ГЕРОФАРМ с подтверждённой почтой.' : 'Подтвердите корректный email через OTP.' }, 403);
       // User-scoped REST calls preserve RLS and check that the requested task is open.
       const [taskResponse, assignmentResponse] = await Promise.all([
         backend(`${url}/rest/v1/tasks?id=eq.${taskId}&select=slug,is_active`, { headers: authHeaders }),

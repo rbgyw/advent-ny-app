@@ -26,7 +26,7 @@
       </AppHeader>
       <section class="auth-card" aria-labelledby="login-title">
           <h1 id="login-title">Вход</h1>
-          <p class="auth-intro">Укажите корпоративную почту — мы отправим код для входа.</p>
+          <p class="auth-intro">{{ corporateOnly ? 'Укажите корпоративную почту — мы отправим код для входа.' : 'Укажите email — мы отправим код для входа.' }}</p>
           <form @submit.prevent="handleLogin" :aria-busy="authStore.loading">
             <fieldset :disabled="authStore.loading">
               <FormField class="email-field" for-id="login-email" label="Email">
@@ -53,6 +53,9 @@ import { useAuthStore } from '../stores/auth';
 import RegistrationForm from '../components/RegistrationForm.vue';
 import VerificationCodeForm from '../components/VerificationCodeForm.vue';
 import type { RegistrationFormData } from '../types/registration';
+import { corporateEmailRequired } from '../utils/email-policy';
+
+const corporateOnly = corporateEmailRequired();
 
 type AuthMode = 'login' | 'register';
 const route = useRoute();

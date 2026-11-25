@@ -10,6 +10,8 @@ Learn more about the recommended Project Setup and IDE Support in the [Vue Docs 
 
 ## Благодарности коллегам — задание 8
 
+Корпоративный домен управляется независимыми `VITE_ENFORCE_CORPORATE_EMAIL` (frontend) и `ENFORCE_CORPORATE_EMAIL` (Edge/Auth Hooks). Только точная строка `false` разрешает другие домены; по умолчанию режим строгий. Инвентарь проверок, ручное подключение подписанных Auth Hooks и настройки Supabase: [политика email](docs/email-domain-policy.md). OTP/JWT/RLS и лимиты отправки сохраняются; автоматического production deploy нет.
+
 Edge Function `send-gratitude` использует Yandex Cloud Postbox (SESv2 / AWS Signature V4). API и тексты письма сохранены; HTML и текст формируются отдельно в `supabase/functions/send-gratitude/email-template.ts`. Отправитель — Дед Мороз `<ded-moroz@geropharm-advent.ru>`, Reply-To — тот же адрес. JWT и доступ к заданию проверяются сервером; OTP Supabase Auth не изменён.
 
 Перед ручным deploy обязательна миграция `013_gratitude_send_journal.sql`: она добавляет постоянную дедупликацию, блокировку неоднозначных результатов и лимиты отправки. Успех API означает принятие письма Postbox, а не доставку. Настройка секретов, команды развёртывания и восстановление после ошибок: [инструкция send-gratitude](supabase/functions/send-gratitude/README.md).

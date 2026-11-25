@@ -17,6 +17,9 @@ import errorCell3 from '../assets/verification/2-imgVector3.svg'
 import errorCell4 from '../assets/verification/2-imgVector4.svg'
 import focusRing from '../assets/verification/1-imgVector5.svg'
 import underline from '../assets/verification/0-imgVector5.svg'
+import { corporateEmailRequired } from '../utils/email-policy'
+
+const corporateOnly = corporateEmailRequired()
 
 const props = defineProps<{
   loading: boolean
@@ -120,7 +123,7 @@ onUnmounted(() => clearInterval(timer))
       </AppHeader>
       <section class="auth-card verification-card" :class="{ 'has-message': message }" :style="{ backgroundImage: cssUrl(message ? errorCard : card) }" aria-labelledby="verification-title">
         <h1 id="verification-title">Подтвердите вход</h1>
-        <p id="verification-description" class="auth-intro verification-intro">Код подтверждения отправлен<br class="verification-line-break" /> на вашу корпоративную почту.</p>
+        <p id="verification-description" class="auth-intro verification-intro">Код подтверждения отправлен<br class="verification-line-break" /> {{ corporateOnly ? 'на вашу корпоративную почту.' : 'на вашу почту.' }}</p>
         <form :aria-busy="busy" novalidate @submit.prevent="submit">
           <fieldset :disabled="busy">
             <legend class="verification-label">Код подтверждения</legend>
