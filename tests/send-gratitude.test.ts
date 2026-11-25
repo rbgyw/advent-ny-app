@@ -20,7 +20,7 @@ function request(body: unknown = letter, headers: HeadersInit = {}) {
   });
 }
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
-function fixture() {
+function fixture(overrides: Record<string, string | undefined> = {}) {
   const sends: Request[] = [];
   const progress: unknown[] = [];
   const records = new Map<string, { hash: string; id: string; state: string; reason?: string }>();
@@ -68,7 +68,7 @@ function fixture() {
     }
     throw new Error(`Unexpected mocked request: ${url.pathname}`);
   });
-  return { options, fetcher, sends, progress, records, handler: createHandler(env, fetcher) };
+  return { options, fetcher, sends, progress, records, handler: createHandler(name => name in overrides ? overrides[name] : env(name), fetcher) };
 }
 beforeEach(() => {
   // Any accidental use of live networking fails. Only the explicit mock is used.
@@ -166,6 +166,61 @@ describe('gratitude email and Postbox transport', () => {
 });
 
 describe('send-gratitude authorization and durable idempotency', () => {
+  it.each([undefined, 'true', '', 'False', '0', 'off', ' false '])('fails closed for server email policy %j despite client overrides', async flag => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: flag, VITE_ENFORCE_CORPORATE_EMAIL: 'false' });
+    const response = await f.handler(request({ ...letter, recipient: 'qa@example.org', ENFORCE_CORPORATE_EMAIL: 'false' }));
+    expect(response.status).toBe(400);
+    f.options.email = 'qa@example.org';
+    expect((await f.handler(request())).status).toBe(403);
+    expect(f.sends).toHaveLength(0);
+  });
+  it('allows confirmed external authors and recipients with only the server flag false, retaining deduplication and limits', async () => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: 'false', VITE_ENFORCE_CORPORATE_EMAIL: 'true' });
+    f.options.email = 'qa@example.org';
+    const external = { ...letter, recipient: 'receiver@example.net' };
+    expect((await f.handler(request(external))).status).toBe(200);
+    expect((await f.handler(request(external))).status).toBe(200);
+    expect(f.sends).toHaveLength(1);
+    expect((await f.sends[0]!.json()).Destination.ToAddresses).toEqual(['receiver@example.net']);
+    f.options.limited = true;
+    expect((await f.handler(request({ ...external, requestId: '30000000-0000-4000-8000-000000000001', message: 'Другое письмо' }))).status).toBe(429);
+    expect(f.sends).toHaveLength(1);
+  });
+  it.each(['not-an-email', 'name@', 'a..b@example.net', 'name@bad..domain', 'x@example.net\r\nBcc: attacker@example.org'])('still rejects malformed recipients in development: %s', async recipient => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: 'false' });
+    expect((await f.handler(request({ ...letter, recipient }))).status).toBe(400);
+    expect(f.fetcher).not.toHaveBeenCalled();
+  });
+  it('does not relax OTP confirmation, JWT, or task access in development', async () => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: 'false' });
+    f.options.email = 'qa@example.org'; f.options.confirmed = false;
+    expect((await f.handler(request())).status).toBe(403);
+    f.options.confirmed = true; f.options.authStatus = 401;
+    expect((await f.handler(request())).status).toBe(401);
+    f.options.authStatus = 200; f.options.date = '2999-12-31';
+    expect((await f.handler(request())).status).toBe(403);
+    expect(f.sends).toHaveLength(0);
+    expect(f.records.size).toBe(0);
+  });
+  it('never resends an ambiguous external email in development', async () => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: 'false' });
+    f.options.email = 'qa@example.org';
+    f.options.provider = async () => { throw new Error('Connection lost after acceptance'); };
+    const body = { ...letter, recipient: 'receiver@example.net' };
+    expect((await f.handler(request(body))).status).toBe(409);
+    expect((await f.handler(request(body))).status).toBe(409);
+    expect(f.sends).toHaveLength(1);
+    expect(f.progress).toHaveLength(0);
+  });
+  it('only retries progress after acceptance for external emails in development', async () => {
+    const f = fixture({ ENFORCE_CORPORATE_EMAIL: 'false' });
+    f.options.email = 'qa@example.org'; f.options.progressFails = true;
+    const body = { ...letter, recipient: 'receiver@example.net' };
+    expect((await f.handler(request(body))).status).toBe(503);
+    f.options.progressFails = false;
+    expect((await f.handler(request(body))).status).toBe(200);
+    expect(f.sends).toHaveLength(1);
+  });
   it('resumes only progress persistence after acceptance, including after reload/new UUID', async () => {
     const f = fixture(); f.options.progressFails = true;
     expect((await f.handler(request())).status).toBe(503);

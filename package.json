@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && npm run typecheck:gratitude",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && npm run typecheck:gratitude && npm run typecheck:auth-email-policy",
     "typecheck:gratitude": "tsc -p supabase/functions/send-gratitude/tsconfig.json",
+    "typecheck:auth-email-policy": "tsc -p supabase/functions/auth-email-policy/tsconfig.json",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "audit:build": "node scripts/audit-build.mjs",
@@ -32,6 +33,7 @@
     "@vue/tsconfig": "^0.9.1",
     "aws4fetch": "1.0.20",
     "jsdom": "^31.0.1",
+    "standardwebhooks": "1.0.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.1.0",

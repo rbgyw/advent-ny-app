@@ -2,6 +2,11 @@ import { defineStore } from "pinia";
 import type { User } from "@supabase/supabase-js";
 import { authService } from "../services/auth.service";
 import type { RegistrationDetails } from "../types/registration";
+import { getEmailError } from '../utils/email-policy';
+
+function allowedUser(user: User | null): User | null {
+  return user && !getEmailError(user.email) ? user : null;
+}
 
 type RegisterResult = {
   success: boolean;
@@ -37,7 +42,7 @@ export const useAuthStore = defineStore("auth", {
 
         if (!listenerRegistered) {
           authService.onAuthStateChange((_event, session) => {
-            this.user = session?.user ?? null;
+            this.user = allowedUser(session?.user ?? null);
           });
 
           listenerRegistered = true;
@@ -53,7 +58,8 @@ export const useAuthStore = defineStore("auth", {
 
             this.user = null;
           } else {
-            this.user = data.user;
+            this.user = allowedUser(data.user);
+            if (data.user && !this.user) this.error = getEmailError(data.user.email);
           }
         } catch (error) {
           this.error =
@@ -148,7 +154,11 @@ export const useAuthStore = defineStore("auth", {
           this.error = 'Не удалось подтвердить вход. Запросите новый код.';
           return { success: false, invalidCode: false };
         }
-        this.user = data.session.user;
+        this.user = allowedUser(data.session.user);
+        if (!this.user) {
+          this.error = getEmailError(data.session.user.email);
+          return { success: false, invalidCode: false };
+        }
         return { success: true, invalidCode: false };
       } catch {
         this.error = 'Не удалось проверить код. Проверьте подключение и попробуйте ещё раз.';

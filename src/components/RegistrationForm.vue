@@ -6,6 +6,9 @@ import AppHeader from './ui/AppHeader.vue';
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { RegistrationFormData } from '../types/registration'
+import { corporateEmailRequired, getEmailError } from '../utils/email-policy'
+
+const corporateOnly = corporateEmailRequired()
 
 defineProps<{ loading: boolean; error: string | null }>()
 const emit = defineEmits<{ submit: [data: RegistrationFormData]; login: [] }>()
@@ -26,8 +29,9 @@ function submit() {
     validationError.value = 'Заполните все поля и подтвердите согласие.'
     return
   }
-  if (!/^[^\s@]+@geropharm\.com$/i.test(email.value.trim())) {
-    validationError.value = 'Укажите корпоративную почту @geropharm.com.'
+  const emailError = getEmailError(email.value)
+  if (emailError) {
+    validationError.value = emailError
     return
   }
   emit('submit', {
@@ -54,7 +58,7 @@ function submit() {
             </FormField>
             <FormField class="email-field" for-id="register-email" label="Email">
               <input id="register-email" v-model="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="ivan.ivanov@geropharm.com" aria-describedby="register-email-hint" required />
-              <p id="register-email-hint" class="auth-hint">Укажите корпоративную почту ГЕРОФАРМ (@geropharm.com).</p>
+              <p id="register-email-hint" class="auth-hint">{{ corporateOnly ? 'Укажите корпоративную почту ГЕРОФАРМ (@geropharm.com).' : 'Укажите email — на него придёт код подтверждения.' }}</p>
             </FormField>
             <FormField class="workplace-field" for-id="register-workplace" label="Площадка">
               <div class="auth-select">

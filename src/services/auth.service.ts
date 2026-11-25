@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import type { RegistrationDetails } from "../types/registration";
+import { assertEmailAllowed } from '../utils/email-policy';
 
 export const authService = {
   async getCurrentUser() {
@@ -8,6 +9,7 @@ export const authService = {
   },
 
   async register(email: string, details?: RegistrationDetails) {
+    assertEmailAllowed(email);
     return supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
@@ -23,6 +25,7 @@ export const authService = {
   },
 
   async login(email: string) {
+    assertEmailAllowed(email);
     return supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(), options: { shouldCreateUser: false },
     });
@@ -33,6 +36,7 @@ export const authService = {
   },
 
   async verifyEmailCode(email: string, token: string) {
+    assertEmailAllowed(email);
     return supabase.auth.verifyOtp({
       email: email.trim().toLowerCase(), token, type: 'email',
     });
