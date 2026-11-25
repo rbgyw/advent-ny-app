@@ -110,7 +110,8 @@ describe('December 1, 3 and 4 conflict resolution', () => {
     expect(view.get('.crossword-date').text()).toBe('3 ДЕКАБРЯ');
     expect(view.get('h1').text()).toContain('Качество');
     await view.get('.start-button').trigger('click');
-    expect(view.get<HTMLInputElement>('[data-cell]').element.readOnly).toBe(true);
+    expect(view.get('[data-cell]').element.tagName).toBe('BUTTON');
+    expect(view.find('.crossword-cell input').exists()).toBe(false);
     for (const word of crosswordWords) {
       await view.get('.questions-toggle').trigger('click');
       await view.findAll('.clue-option').find(option => option.text().startsWith(`${word.number}.`))!.trigger('click');

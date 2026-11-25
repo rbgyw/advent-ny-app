@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useCampaignClock } from '../composables/useCampaignClock';
 import AppButton from './ui/AppButton.vue';
@@ -64,13 +66,13 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
 <template>
   <TaskLayout class="film-page">
     <div ref="background" class="film-background" aria-hidden="true"><div class="film-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="film-layout">
-      <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+    <TaskContainer class="film-layout">
+      <AppHeader class="film-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton @click="emit('back')" placement="header" /></AppHeader>
       <AppCard class="film-panel" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="film-title">
         <TaskDateLabel class="film-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
         <LoadingState v-if="loading" class="film-notice" role="status" />
-        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>
+        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button task-action" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -92,12 +94,13 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
             </div>
             <p v-if="validation || saveError" id="film-feedback" class="film-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" id="film-feedback" class="film-error" role="status">Приём рекомендаций завершён 17 декабря.</p>
-            <AppButton class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
+            <AppButton class="film-button film-submit task-action" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
           </form>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="film-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup
       ref="dialog"
       title="Готово!"
@@ -151,4 +154,6 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 button:focus-visible { outline: 2px solid #623c28; outline-offset: 2px; }
 @media (max-width: 360px) { .film-layout { padding-inline: 12px; } .film-panel { padding-inline: 18px; } .film-panel h1 { font-size: 26px; } }
 @media (min-width: 768px) { .film-layout { padding-inline: 32px; } .film-panel { padding-inline: 32px; } .film-tv { width: min(100%, 470px); margin-inline: auto; } }
+
+.task-content-return { margin-top: 24px; }
 </style>

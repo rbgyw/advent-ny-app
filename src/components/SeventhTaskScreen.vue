@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import PopupDialog from './PopupDialog.vue';
@@ -95,10 +97,10 @@ function submit() {
 
 <template>
   <main class="sport-page">
-    <div class="sport-layout">
+    <TaskContainer class="sport-layout">
       <header class="sport-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" />
-        <button class="sport-back" type="button" @click="emit('back')">← К календарю</button>
+        <CalendarReturnButton class="sport-back" @click="emit('back')" placement="header" />
       </header>
       <article class="sport-card" aria-labelledby="sport-title">
         <header class="sport-card-header">
@@ -113,7 +115,7 @@ function submit() {
         <p v-if="loading" class="sport-notice" role="status">Загружаем задание…</p>
         <div v-else-if="error" class="sport-notice">
           <p role="alert">{{ error }}</p>
-          <button class="sport-button" type="button" @click="emit('retry')">Попробовать ещё раз</button>
+          <button class="sport-button task-action" type="button" @click="emit('retry')">Попробовать ещё раз</button>
         </div>
         <p v-else-if="!assignment" class="sport-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="sport-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
@@ -123,7 +125,7 @@ function submit() {
             <p>Мы проверим его и после одобрения отметим задание как выполненное.</p>
             <p class="sport-status">На проверке</p>
           </template>
-          <button class="sport-button" type="button" @click="emit('back')">К календарю</button>
+
         </div>
 
         <template v-else-if="selected">
@@ -132,7 +134,7 @@ function submit() {
             <p v-for="paragraph in selected.instructions" :key="paragraph">{{ paragraph }}</p>
           </div>
 
-          <button v-if="level === 'team' && !posesVisible" class="sport-button" type="button" @click="posesVisible = true">Получить задание</button>
+          <button v-if="level === 'team' && !posesVisible" class="sport-button sport-get-task task-action" type="button" @click="posesVisible = true">Получить задание</button>
           <section v-if="level === 'team' && posesVisible" class="sport-poses" aria-label="Выбор командной позы">
             <div class="sport-pose">
               <img :src="poseImages[pose]" :alt="`Командная поза ${poseIndex + 1}`" />
@@ -144,7 +146,7 @@ function submit() {
             </nav>
           </section>
 
-          <form class="sport-form" :aria-busy="busy" @submit.prevent="submit">
+          <form v-if="level !== 'team' || posesVisible" class="sport-form" :aria-busy="busy" @submit.prevent="submit">
             <TaskAttachments
               :task-id="assignment.task_id"
               :readonly="false"
@@ -161,7 +163,7 @@ function submit() {
               {{ level === 'advanced' ? 'Загружая фотографию, вы соглашаетесь на её публикацию в подборке ГЕРОФАРМ LIFE в Telegram и MAX' : 'Фотография попадет в подборку ГЕРОФАРМ LIFE в Telegram и Max. Убедитесь, что все участники снимка согласны на публикацию.' }}
             </p>
             <p v-if="validation || saveError" class="sport-error" role="alert">{{ validation || saveError }}</p>
-            <button class="sport-button" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : level === 'basic' ? 'Отправить фотографию' : 'Отправить на проверку' }}</button>
+            <button class="sport-button task-action" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : level === 'basic' ? 'Отправить фотографию' : 'Отправить на проверку' }}</button>
           </form>
         </template>
 
@@ -176,13 +178,14 @@ function submit() {
             <section v-for="(item, key) in sportLevels" :key="key" class="sport-level">
               <h2>{{ item.name }}</h2>
               <p>{{ item.summary }}</p>
-              <button class="sport-button" type="button" :disabled="saving" @click="openConfirmation(key)">{{ item.button }}</button>
+              <button class="sport-button task-action" type="button" :disabled="saving" @click="openConfirmation(key)">{{ item.button }}</button>
             </section>
           </div>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="sport-calendar" :completed="completed || pending" @click="emit('back')" />
       </article>
       <footer class="sport-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
 
     <PopupDialog
       v-model:open="confirmOpen"
@@ -193,8 +196,8 @@ function submit() {
       <button class="sport-close" type="button" aria-label="Закрыть" @click="confirmOpen = false">×</button>
       <h2 id="sport-confirm-title">Подтвердите уровень</h2>
       <p id="sport-confirm-copy">Вы выбираете {{ sportLevels[choice].name }}. После подтверждения изменить выбор не получится.</p>
-      <button class="sport-button" type="button" autofocus @click="confirmLevel">Подтвердить выбор</button>
-      <button class="sport-button sport-secondary" type="button" @click="confirmOpen = false">Я передумал(а)</button>
+      <button class="sport-button task-action" type="button" autofocus @click="confirmLevel">Подтвердить выбор</button>
+      <button class="sport-button sport-secondary task-action" type="button" @click="confirmOpen = false">Я передумал(а)</button>
     </PopupDialog>
   </main>
 </template>
@@ -272,6 +275,7 @@ h2 { font-size: 20px; line-height: 25px; }
 button:disabled { opacity: .65; cursor: default; }
 button:focus-visible, textarea:focus-visible { outline: 2px solid var(--sport-ink); outline-offset: 2px; }
 .sport-status { margin: 18px 0 12px; font-size: 12px; line-height: 16px; }
+.sport-get-task { margin-top: 24px; }
 .sport-form { display: grid; gap: 16px; margin-top: 24px; }
 .sport-description { display: grid; gap: 8px; font-weight: 700; }
 .sport-description textarea { box-sizing: border-box; width: 100%; min-height: 132px; padding: 14px; border: 1px solid #dcc8a8; border-radius: 14px; background: var(--sport-paper); color: var(--sport-ink); font: 400 14px/20px 'Advent Inter', sans-serif; resize: vertical; }
@@ -312,4 +316,6 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid var(--sport-in
   .sport-card { padding-inline: 32px; }
   .sport-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+.sport-calendar { margin-top: 24px; }
 </style>

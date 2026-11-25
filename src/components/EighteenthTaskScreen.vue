@@ -84,7 +84,7 @@ function toggleRecipe() {
         <p class="december-error" role="alert">{{ saveError }}</p>
         <button class="december-link" type="button" :disabled="saving" @click="emit('save', { response: { opened: true }, complete: true })">Повторить сохранение прогресса</button>
       </div>
-      <button class="december-button secondary" type="button" @click="emit('back')">К календарю</button>
+
     </section>
   </DecemberTaskLayout>
 </template>

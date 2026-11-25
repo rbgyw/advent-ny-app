@@ -2,7 +2,10 @@
 import { computed, nextTick, ref } from 'vue';
 import type { SearchBounds, SearchPoint } from '../utils/podzhik';
 
-defineProps<{ src: string; targetSrc: string; target: SearchBounds; disabled?: boolean }>();
+const props = withDefaults(defineProps<{
+  src: string; targetSrc?: string; target?: SearchBounds; disabled?: boolean;
+  sceneWidth?: number; sceneHeight?: number; maxZoom?: number;
+}>(), { sceneWidth: 626, sceneHeight: 838, maxZoom: 3 });
 const emit = defineEmits<{ choose: [point: SearchPoint, width: number, height: number] }>();
 const viewport = ref<HTMLDivElement>();
 const picture = ref<HTMLDivElement>();
@@ -17,7 +20,7 @@ async function changeZoom(offset: number) {
   if (!element) return;
   const centerX = (element.scrollLeft + element.clientWidth / 2) / element.scrollWidth;
   const centerY = (element.scrollTop + element.clientHeight / 2) / element.scrollHeight;
-  zoom.value = Math.max(1, Math.min(3, zoom.value + offset));
+  zoom.value = Math.max(1, Math.min(props.maxZoom, zoom.value + offset));
   await nextTick();
   element.scrollLeft = centerX * element.scrollWidth - element.clientWidth / 2;
   element.scrollTop = centerY * element.scrollHeight - element.clientHeight / 2;
@@ -60,11 +63,11 @@ function keydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <div class="search-board">
+  <div class="search-board" :style="{ '--scene-ratio': sceneWidth / sceneHeight }">
     <div class="search-zoom" role="group" aria-label="Масштаб изображения">
       <button type="button" :disabled="disabled || zoom === 1" aria-label="Уменьшить изображение" @click="changeZoom(-0.5)">−</button>
       <output aria-live="polite">{{ percent }}%</output>
-      <button type="button" :disabled="disabled || zoom === 3" aria-label="Увеличить изображение" @click="changeZoom(0.5)">+</button>
+      <button type="button" :disabled="disabled || zoom === maxZoom" aria-label="Увеличить изображение" @click="changeZoom(0.5)">+</button>
     </div>
     <p id="search-board-help" class="search-board-help">Увеличивайте и прокручивайте картинку. Поставьте метку на Поджике и нажмите «Проверить выбор».</p>
     <div ref="viewport" class="search-viewport" :class="{ 'is-zoomed': zoom > 1 }" tabindex="0" aria-label="Поиск Поджика на зимней картинке"
@@ -72,8 +75,8 @@ function keydown(event: KeyboardEvent) {
       <div ref="picture" class="search-picture" :style="{ width: `${percent}%` }"
         @pointerdown="pointerDown" @pointermove="pointerMove" @pointercancel="moved = true"
         @click="!disabled && click($event)">
-        <img class="search-scene" :src="src" alt="Заснеженный горнолыжный склон с множеством людей, ёлок и небольших домиков" width="626" height="838" draggable="false" />
-        <img class="search-target" :src="targetSrc" :style="{ left: `${target.left * 100}%`, top: `${target.top * 100}%`, width: `${(target.right - target.left) * 100}%` }" alt="" aria-hidden="true" width="104" height="159" draggable="false" />
+        <img class="search-scene" :src="src" alt="Заснеженный горнолыжный склон с множеством людей, ёлок и небольших домиков" :width="sceneWidth" :height="sceneHeight" draggable="false" />
+        <img v-if="targetSrc && target" class="search-target" :src="targetSrc" :style="{ left: `${target.left * 100}%`, top: `${target.top * 100}%`, width: `${(target.right - target.left) * 100}%` }" alt="" aria-hidden="true" width="104" height="159" draggable="false" />
         <span v-if="marker" class="search-marker" :style="{ left: `${marker.x * 100}%`, top: `${marker.y * 100}%` }" aria-hidden="true"></span>
       </div>
     </div>
@@ -94,5 +97,5 @@ function keydown(event: KeyboardEvent) {
 .search-picture .search-target { position: absolute; pointer-events: none; }
 .search-marker { position: absolute; width: 24px; height: 24px; box-sizing: border-box; transform: translate(-50%, -50%); border: 2px solid #a7280b; border-radius: 50%; background: #fff4; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
 .search-keyboard-help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (min-width: 700px) { .search-board { width: min(100%, calc((100svh - 240px) * 626 / 838)); margin-inline: auto; } }
+@media (min-width: 700px) { .search-board { width: min(100%, calc((100svh - 240px) * var(--scene-ratio))); margin-inline: auto; } }
 </style>

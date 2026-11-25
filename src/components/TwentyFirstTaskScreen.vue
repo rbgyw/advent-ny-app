@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useElementRef } from '../composables/useElementRef';
 import AppButton from './ui/AppButton.vue';
@@ -11,7 +13,7 @@ import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import {
-  crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked,
+  crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked, withCompletedLineCrosses,
   type CellMark, type MarkingTool,
 } from '../content/nonogram';
 import NonogramBoard from './NonogramBoard.vue';
@@ -46,6 +48,7 @@ const dotCount = ref(0);
 let awaitingCompletion = false;
 
 const completed = computed(() => props.assignment?.status === 'completed');
+const displayedCells = computed(() => withCompletedLineCrosses(completed.value ? solvedNonogram : cells.value));
 const draftKey = computed(() => {
   const assignment = props.assignment;
   return assignment?.task ? `advent:nonogram:v1:${assignment.user_id}:${assignment.id}` : null;
@@ -57,6 +60,7 @@ const rules = [
   'Между соседними группами должна оставаться хотя бы одна пустая клетка.',
   'Группы не обязательно начинаются у края поля. Пустые клетки могут быть и перед первой группой, и после последней.',
   'Отмечайте крестиками клетки, которые точно должны остаться пустыми: так будет проще находить решение.',
+  'Когда строка или столбец закрашены правильно, оставшиеся пустые клетки в них автоматически отмечаются крестиками.',
   'Сверяйте подсказки строк и столбцов. Когда все клетки окажутся на своих местах, появится изображение!',
 ];
 
@@ -154,10 +158,10 @@ function backFromResult() {
 
 <template>
   <TaskLayout class="nonogram-page">
-    <div class="nonogram-layout">
+    <TaskContainer class="nonogram-layout">
       <AppHeader class="nonogram-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard :ref="bindPanel" class="nonogram-panel" aria-labelledby="nonogram-title">
         <div class="nonogram-dots" aria-hidden="true">
@@ -179,7 +183,7 @@ function backFromResult() {
         <LoadingState v-if="loading" class="nonogram-notice" role="status" />
         <div v-else-if="error" class="nonogram-notice" role="alert">
           <p>{{ error }}</p>
-          <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>
+          <AppButton class="nonogram-primary task-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </div>
         <p v-else-if="!assignment" class="nonogram-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="nonogram-notice">
@@ -214,7 +218,7 @@ function backFromResult() {
               </AppButton>
             </div>
             <NonogramBoard
-              :cells="completed ? solvedNonogram : cells"
+              :cells="displayedCells"
               :tool="tool"
               :enlarged="enlarged"
               :disabled="completed || saving"
@@ -222,23 +226,24 @@ function backFromResult() {
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
           </section>
-          <AppButton class="nonogram-primary" type="button" :disabled="saving" @click="check">
-            {{ completed ? 'К календарю' : saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
+          <AppButton v-if="!completed" class="nonogram-primary task-action" type="button" :disabled="saving" @click="check">
+            {{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
           </AppButton>
           <p v-if="completed" class="nonogram-feedback nonogram-success" role="status">Нонограм разгадан!</p>
           <p v-else-if="validation || saveError" class="nonogram-feedback nonogram-error" role="alert">
             {{ validation || saveError }}
           </p>
+          <CalendarReturnButton class="nonogram-return" :completed="completed" @click="emit('back')" />
         </template>
       </AppCard>
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
 
     <PopupDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
       <AppButton class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</AppButton>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
-      <AppButton class="nonogram-primary" type="button" @click="backFromResult">К календарю</AppButton>
+      <CalendarReturnButton class="nonogram-primary" @click="backFromResult" completed />
     </PopupDialog>
   </TaskLayout>
 </template>
@@ -465,4 +470,6 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
   .nonogram-panel { padding-inline: 32px; }
 }
 @media (min-width: 700px) { .nonogram-heading h1 { max-width: none; } }
+
+.nonogram-return { margin-top: 16px; }
 </style>

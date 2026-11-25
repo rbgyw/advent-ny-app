@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AppButton from './AppButton.vue';
+import CalendarReturnButton from './CalendarReturnButton.vue';
 defineProps<{ wordmark?: string; variant?: 'task' }>();
 defineEmits<{ back: [] }>();
 </script>
 <template>
   <header :class="{ 'task-header': variant === 'task' }">
     <slot name="brand"><img v-if="wordmark" decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /></slot>
-    <slot><AppButton type="button" @click="$emit('back')">← К календарю</AppButton></slot>
+    <slot><CalendarReturnButton @click="$emit('back')" placement="header" /></slot>
   </header>
 </template>
 <style scoped>

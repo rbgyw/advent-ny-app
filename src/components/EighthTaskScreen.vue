@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -93,23 +95,21 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
 <template>
   <TaskLayout class="gratitude-page">
     <div ref="background" class="gratitude-background" aria-hidden="true"><div class="gratitude-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="gratitude-layout">
-      <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" @click="emit('back')">← К календарю</AppButton></AppHeader>
+    <TaskContainer class="gratitude-layout">
+      <AppHeader class="gratitude-header"><img :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton @click="emit('back')" placement="header" /></AppHeader>
       <AppCard class="gratitude-panel" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="gratitude-title">
         <TaskDateLabel class="gratitude-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="gratitude-title">Время сказать спасибо</h1>
         <LoadingState v-if="loading" class="gratitude-notice" role="status" />
-        <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send" @click="emit('retry')">Попробовать снова</AppButton></div>
+        <div v-else-if="error" class="gratitude-notice" role="alert"><p>{{ error }}</p><AppButton class="gratitude-send task-action" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="gratitude-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="gratitude-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="gratitude-copy">
             <p>Иногда простое «спасибо» значит больше, чем кажется. Вспомните, кого из коллег вам хочется поблагодарить в этом году: за помощь в проекте, своевременную подсказку или поддержку в непростой момент. Расскажите об этом в письме — человеку будет приятно узнать, что его участие было для вас важным.</p>
             <p>Заполните форму ниже: укажите {{ corporateOnly ? 'корпоративную почту' : 'email' }} коллеги и напишите, за что хотите сказать ему спасибо. Вы можете отправить благодарность от своего имени или остаться тайным Дедом Морозом — для этого отметьте «Отправить анонимно».</p>
-            <p v-if="corporateOnly">Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Отправить его можно только на корпоративную почту ГЕРОФАРМ — на личные адреса доставка не работает.</p>
-            <p v-else>Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Для тестирования можно указать корректный email любого домена.</p>
+            <p>Письмо автоматически придет получателю с адреса ded-moroz@geropharm-advent.ru. Отправить его можно только на корпоративную почту ГЕРОФАРМ — на личные адреса доставка не работает.</p>
             <p>Дед Мороз внимательно следит за праздничной почтой! Отправляйте коллегам только добрые слова, обидные шутки оставьте за пределами его волшебного мешка.</p>
-            <p>А если хочется подписать настоящую открытку от руки — воспользуйтесь новогодней почтой ГЕРОФАРМ. На площадках вас будут ждать праздничные открытки и ящики для отправки. Напишите пожелания коллеге из другого офиса или близкому человеку, укажите адрес получателя и опустите открытку в ящик. С почтовой маркой ее можно отправить и в другой город. А еще открытку можно просто взять домой и вручить лично.</p>
           </div>
           <form ref="formElement" class="gratitude-form" novalidate :aria-busy="sending" @submit.prevent="submit" @input="edit">
             <label class="gratitude-anonymous">
@@ -132,12 +132,13 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
             </div>
             <div class="gratitude-signature"><p>С наилучшими пожеланиями,</p><p>{{ !form.anonymous && form.senderName.trim() ? form.senderName.trim() : 'Твой тайный Дед Мороз' }}</p></div>
             <p v-if="sendError" id="gratitude-error" class="gratitude-error" role="alert">{{ sendError }}</p>
-            <AppButton class="gratitude-send" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></AppButton>
+            <AppButton class="gratitude-send task-action" :style="{ '--button-art': cssUrl(buttonArt) }" type="submit" :disabled="sending"><span>{{ sending ? 'Отправляем…' : sent ? 'Письмо отправлено' : 'Отправить благодарность' }}</span></AppButton>
           </form>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="sent" @click="emit('back')" />
       </AppCard>
       <footer class="gratitude-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <PopupDialog ref="dialog" class="gratitude-popup" aria-labelledby="gratitude-popup-title">
       <div v-if="sent" class="gratitude-scene"><div class="gratitude-envelope">
         <img class="envelope-back" :src="envelopeBack" alt="" />
@@ -150,7 +151,7 @@ onBeforeUnmount(() => { identityVersion++; observer?.disconnect(); closePopup();
           <span v-for="(piece, index) in confetti" :key="index" class="confetti-piece" :style="{ left: `${piece.x}px`, top: `${piece.y}px`, '--from-x': `${158 - piece.x}px`, '--from-y': `${390 - piece.y}px`, '--delay': `${160 + index * 45}ms`, '--turn': `${index % 2 ? 65 : -75}deg` }"><img :src="piece.src" alt="" /></span>
         </div>
         <img class="envelope-front" :src="envelopeFront" alt="" />
-        <AppButton class="gratitude-calendar" type="button" @click="closePopup(); emit('back')">К календарю</AppButton>
+        <CalendarReturnButton class="gratitude-calendar" @click="closePopup(); emit('back')" completed />
       </div></div>
     </PopupDialog>
   </TaskLayout>
@@ -226,4 +227,6 @@ button:focus-visible { outline: 2px solid #623c28; outline-offset: -3px; }
 @media (max-width: 360px) { .gratitude-layout { padding-inline: 12px; } .gratitude-panel { padding-inline: 18px; } .gratitude-popup { width: 304px; height: 407.1px; } .gratitude-scene { height: 407.1px; } .gratitude-envelope { transform: scale(.88115942); transform-origin: top left; } }
 @media (min-width: 768px) { .gratitude-layout { padding-inline: 32px; } .gratitude-panel { padding-inline: 32px; } }
 @media (max-height: 520px) { .gratitude-popup { top: 16px; } }
+
+.task-content-return { margin-top: 24px; }
 </style>

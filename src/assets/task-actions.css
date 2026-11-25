@@ -1,0 +1,42 @@
+/* Shared geometry and states for ordinary task actions. Illustrated gold
+   actions, game controls and header navigation retain their own styling. */
+:root body :is(button, a).task-action {
+  --task-action-fill: #a7280b;
+  --task-action-ink: #fff0d2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 52px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 1px solid var(--task-action-fill);
+  border-radius: 13px;
+  background-color: var(--task-action-fill);
+  color: var(--task-action-ink);
+  font: 700 14px/18px var(--font-ui);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:root body .task-action:is(.secondary, .sport-secondary, .outline, .first-task-secondary, .ui-button--outline) {
+  --task-action-fill: #fcf6e8;
+  --task-action-ink: #a7280b;
+  border-color: #dcc8a8;
+  background-image: none;
+}
+
+:root body :is(button, a).task-action:not(:disabled):hover {
+  background-color: var(--task-action-fill);
+  color: var(--task-action-ink);
+  filter: brightness(.94);
+}
+
+:root body .task-action + .task-action { margin-top: 16px; }
+:root body :is(.december-stack, .sport-form, .first-task-actions, .video-choices, .photo-actions) > .task-action + .task-action { margin-top: 0; }
+:root body :is(.first-task-actions, .video-choices, .photo-actions) { gap: 16px; }
+:root body .task-action:disabled { cursor: default; }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import { computed, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import PopupDialog from './PopupDialog.vue';
@@ -55,7 +56,7 @@ function send() {
     </div>
     <div v-if="completed" class="december-stack future-form">
       <p role="status">Письмо сохранено.</p>
-      <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+
     </div>
     <form v-else class="december-stack future-form" novalidate @submit.prevent="send">
       <label class="december-field">
@@ -78,14 +79,14 @@ function send() {
       </label>
       <p v-if="letterError" class="december-error" role="alert">Напишите письмо перед отправкой.</p>
       <p v-if="saveError" class="december-error" role="alert">{{ saveError }}</p>
-      <button class="december-button" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
+      <button class="december-button task-action" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
     </form>
     <PopupDialog v-model:open="success" class="december-dialog" aria-labelledby="future-success-title">
       <div class="december-stack">
         <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="success = false">×</button>
         <h2 id="future-success-title">Письмо отправилось в будущее!</h2>
         <p>Письмо сохранено для отправки на указанную {{ corporateOnly ? 'корпоративную почту' : 'почту' }} в канун 2028 года.</p>
-        <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+        <CalendarReturnButton class="december-button" @click="emit('back')" completed />
       </div>
     </PopupDialog>
   </DecemberTaskLayout>

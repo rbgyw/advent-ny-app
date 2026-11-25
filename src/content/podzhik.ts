@@ -1,23 +1,20 @@
 import type { SearchBounds, SearchCircle } from '../utils/podzhik';
 
-// Coordinates are measured inside the 316 × 419 px illustration in Figma.
+// Matched to the character already embedded in podzic_new.png and the review screenshot.
+// In the 4096 × 3102 reference, the landmark is 1200 px from the RIGHT edge.
 export const podzhikTarget: SearchCircle = {
-  x: 153,
-  y: 65,
-  radius: 20,
-  width: 316,
-  height: 419,
+  x: 4096 - 1200,
+  y: 3102 - 462,
+  radius: 30,
+  width: 4096,
+  height: 3102,
 };
 
-const centerX = podzhikTarget.x / podzhikTarget.width;
-const centerY = podzhikTarget.y / podzhikTarget.height;
-const characterWidth = 0.06;
-const characterHeight = (characterWidth * 626 * 159 / 104) / 838;
-
-// Keep the character artwork centered on the accepted point.
+// Measured silhouette bounds in search-panorama.webp (2617 × 1982).
+// These follow the embedded character, rather than a separately positioned overlay.
 export const podzhikBounds: SearchBounds = {
-  left: centerX - characterWidth / 2,
-  top: centerY - characterHeight / 2,
-  right: centerX + characterWidth / 2,
-  bottom: centerY + characterHeight / 2,
+  left: 1832 / 2617,
+  top: 1651 / 1982,
+  right: 1874 / 2617,
+  bottom: 1716 / 1982,
 };

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import music from '../assets/music/2_dec.mp3';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -129,16 +132,16 @@ onBeforeUnmount(() => { observer?.disconnect() })
 <template>
   <TaskLayout class="cipher-page">
     <div ref="gradient" class="cipher-background" aria-hidden="true"><div class="cipher-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="cipher-layout">
+    <TaskContainer class="cipher-layout">
       <AppHeader class="cipher-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" class="cipher-wordmark" data-figma-node="39:14" />
-        <AppButton class="cipher-back" type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton class="cipher-back" @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard class="cipher-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="cipher-title" data-figma-node="28:39852">
         <TaskDateLabel class="cipher-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
         <LoadingState v-if="loading" class="cipher-notice" role="status" />
-        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
+        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button task-action" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="cipher-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="cipher-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -148,7 +151,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
           </div>
           <h2 class="cipher-instruction-title">Задание</h2>
           <p id="cipher-instructions" class="cipher-instructions">Перед вами алфавит: каждой позе человечка соответствует определенная буква. Посмотрите на зашифрованное сообщение, найдите каждую позу в алфавите и введите соответствующую букву в ячейку. В итоге вы узнаете, какой подарок вас ждет.</p>
-          <TaskMusicButton class="cipher-music" />
+          <TaskMusicButton class="cipher-music" :src="music" />
           <div ref="board" class="cipher-alphabet" aria-label="Алфавит спортивных человечков" data-figma-node="28:39861">
             <div class="cipher-alphabet-inner" :style="{ transform: `scale(${boardScale})`, backgroundImage: cssUrl(alphabetFrame) }">
               <template v-for="(figure, index) in cipherAlphabet" :key="figure.node">
@@ -175,19 +178,19 @@ onBeforeUnmount(() => { observer?.disconnect() })
             </fieldset>
             <p v-if="incorrect" class="cipher-warning cipher-incorrect" role="alert">В шифре еще осталась загадка.<br />Сверьтесь с алфавитом и попробуйте снова!</p>
             <p v-else-if="saveError" class="cipher-warning cipher-incorrect" role="alert">{{ saveError }}</p>
-            <AppButton class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
+            <AppButton class="cipher-button cipher-check task-action" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
           </form>
-          <AppButton class="cipher-button cipher-calendar" type="button" @click="emit('back')">К календарю</AppButton>
+          <CalendarReturnButton class="cipher-button cipher-calendar" @click="emit('back')" :completed="completed" />
         </template>
       </AppCard>
       <footer class="cipher-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <PopupDialog v-model:open="popupOpen" class="cipher-success" :style="{ '--success-art': cssUrl(successCard) }" aria-labelledby="cipher-success-title" aria-describedby="cipher-success-copy">
       <AppButton class="cipher-close" type="button" aria-label="Закрыть окно результата" @click="popupOpen = false">×</AppButton>
       <h2 id="cipher-success-title">Вы разгадали шифр!</h2>
       <p id="cipher-success-copy">Подарок за выполнение адвента — спортивная сумка ГЕРОФАРМ. Ее получат первые 500 участников, правильно выполнившие все обязательные задания. Возвращайтесь завтра: вас будет ждать первое обязательное задание!</p>
       <PopupLoopVideo class="cipher-gift-video" :src="giftVideoSrc" :active="popupOpen" label="Спортивная сумка ГЕРОФАРМ" />
-      <AppButton class="cipher-button cipher-calendar" type="button" @click="popupOpen = false; emit('back')">К календарю</AppButton>
+      <CalendarReturnButton class="cipher-button cipher-calendar" @click="popupOpen = false; emit('back')" completed />
     </PopupDialog>
   </TaskLayout>
 </template>
@@ -200,11 +203,11 @@ onBeforeUnmount(() => { observer?.disconnect() })
 .cipher-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; box-sizing: border-box; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .cipher-background { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .cipher-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%); }
-.cipher-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 31px; }
+.cipher-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 31px; }
 .cipher-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .cipher-wordmark { display: block; margin-inline: auto; }
 .cipher-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; margin: 0; background: transparent; color: #fff1cf; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
-.cipher-card { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px); }
+.cipher-card { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px 24px; }
 .cipher-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 24px solid transparent; border-image: var(--card-art) 24 fill / 24px stretch; }
 .cipher-date { margin: 0 0 14px; color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
 .cipher-card h1 { margin: 0 0 21px; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; letter-spacing: 0; }
@@ -241,7 +244,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
 .cipher-footer { margin-top: 24px; font-size: 12px; line-height: 15px; text-align: center; }
 .cipher-notice { min-height: 120px; margin: 0; color: #836045; overflow-wrap: anywhere; }
 .cipher-notice .cipher-button { margin-top: 24px; }
-.cipher-success { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px clamp(16px, calc((100vw - 345px) / 2), 24px) 24px; border: 0; background: transparent; overflow-y: auto; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.cipher-success { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px 24px 24px; border: 0; background: transparent; overflow-y: auto; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .cipher-success::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 23px solid transparent; border-image: var(--success-art) 23 fill / 23px stretch; }
 .cipher-success::backdrop { background: rgb(66 35 19 / 55%); }
 .cipher-close { position: absolute; right: 6px; top: 0; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
@@ -250,4 +253,6 @@ onBeforeUnmount(() => { observer?.disconnect() })
 .cipher-gift-video { margin-top: 15px; }
 .cipher-calendar { width: 100%; min-width: 0; max-width: 100%; margin-top: 22px; }
 @media (min-width: 768px) { .cipher-layout { padding-inline: 32px; } .cipher-card { padding-inline: 32px; } }
+
+@media (max-width: 360px) { .cipher-layout { padding-inline: 12px; } .cipher-card { padding-inline: 18px; } }
 </style>

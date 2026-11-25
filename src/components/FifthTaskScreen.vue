@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
@@ -117,13 +119,13 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 <template>
   <TaskLayout class="pairs-page">
     <div ref="background" class="pairs-background" aria-hidden="true"><div class="pairs-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="pairs-layout">
-      <AppHeader class="pairs-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton type="button" class="pairs-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+    <TaskContainer class="pairs-layout">
+      <AppHeader class="pairs-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton class="pairs-back" @click="emit('back')" placement="header" /></AppHeader>
       <AppCard class="pairs-panel" :class="{ 'is-won': won }" :style="{ '--panel-art': cssUrl(panel) }" aria-labelledby="pairs-title">
         <TaskDateLabel class="pairs-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="pairs-title">Что скрывают карточки?</h1>
         <LoadingState v-if="loading" class="pairs-notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>
+        <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button task-action" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="pairs-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -144,13 +146,14 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
           <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <AppButton type="button" @click="loadImages">Попробовать ещё раз</AppButton></p>
           <p v-else-if="!ready" class="pairs-loading" role="status">Загружаем карточки…</p>
           <p v-if="saving" class="pairs-save-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
+          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button task-action" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
           <p v-else-if="won && !completed" class="pairs-save-status">Результат ещё не сохранён. <AppButton type="button" @click="submitWin">Сохранить результат</AppButton></p>
           <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="pairs-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup ref="resultPopup" title="Все пары найдены!" message="Вы были внимательны к каждой детали." button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
@@ -160,11 +163,11 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 .pairs-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: var(--color-ink); background: #c63d0f; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left; }
 .pairs-background { position: absolute; top: 0; left: 0; width: 100%; height: max(100%, 1477px); z-index: -1; overflow: hidden; pointer-events: none; }
 .pairs-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: var(--background-task-glow); }
-.pairs-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 25px; }
+.pairs-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 25px; }
 .pairs-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .pairs-header > img { display: block; margin-inline: auto; }
 .pairs-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px var(--font-ui); cursor: pointer; }
-.pairs-panel { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 30px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; }
+.pairs-panel { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 30px 24px 28px; }
 .pairs-panel.is-won { padding-bottom: 49px; }
 .pairs-panel::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 24px solid transparent; border-image: var(--panel-art) 24 fill / 24px stretch; }
 .pairs-date { margin: 0 0 13px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }
@@ -185,7 +188,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 .pair-card-front { transform: rotateY(180deg); }
 .pair-art { position: absolute; left: -.5px; top: -.5px; pointer-events: none; }
 .pair-sparkle { position: absolute; left: 22.175px; top: 36.175px; pointer-events: none; }
-.pair-product { position: absolute; max-width: none; object-fit: cover; pointer-events: none; }
+.pair-product { position: absolute; max-width: none; object-fit: contain; pointer-events: none; }
 .pair-product-name { position: absolute; top: 80.6px; left: -4px; width: 81px; color: var(--color-ink); font: 400 7.884px/10px var(--font-ui); text-align: center; white-space: nowrap; }
 .pairs-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: var(--color-action); color: #fff7df; font: 700 14px/17px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
 .pairs-button > span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
@@ -207,4 +210,10 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 @media (min-width: 768px) { .pairs-layout { padding-inline: 32px; } .pairs-panel { padding-inline: 32px; } }
 @media (prefers-reduced-motion: reduce) { .pair-card-rotator { transition: none; } }
 @media (min-width: 700px) { .pairs-board { width: min(100%, 420px, calc((100svh - 180px) * .72)); margin-inline: auto; } }
+
+.task-content-return { margin-top: 24px; }
+
+@media (max-width: 360px) { .pairs-layout { padding-inline: 12px; } .pairs-panel { padding-inline: 18px; } }
+
+.pairs-button { left: auto; transform: none; width: 100%; min-width: 0; max-width: none; }
 </style>

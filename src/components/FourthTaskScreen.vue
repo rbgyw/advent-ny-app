@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
@@ -63,7 +65,7 @@ const art = (url: string) => ({ '--surface-art': cssUrl(url) });
 let observer: ResizeObserver | undefined;
 let resizeFrame = 0;
 const pendingSizes = new Map<Element, { width: number; height: number }>();
-function readWord() { bulk.value = path.value.map(key => values.value[key] || '').join(''); lengthError.value = false; inserted.value = false; }
+function readWord() { bulk.value = path.value.every(key => values.value[key]) ? path.value.map(key => values.value[key]).join('') : ''; lengthError.value = false; inserted.value = false; }
 watch([storageKey, completed], () => {
   values.value = {}; started.value = false; checked.value = false; selected.value = 1;
   if (completed.value) { values.value = { ...crosswordSolution }; started.value = true; checked.value = true; }
@@ -97,8 +99,8 @@ function insertWord() {
 }
 function focusCell(key: string) {
   nextTick(() => {
-    const input = gridViewport.value?.querySelector<HTMLInputElement>(`[data-cell="${key}"]`);
-    input?.focus({ preventScroll: true }); input?.select();
+    const input = gridViewport.value?.querySelector<HTMLButtonElement>(`[data-cell="${key}"]`);
+    input?.focus({ preventScroll: true });
     if (input && gridViewport.value) {
       const r = input.getBoundingClientRect(), v = gridViewport.value.getBoundingClientRect();
       if (r.left < v.left) gridViewport.value.scrollLeft -= v.left - r.left + 4;
@@ -152,8 +154,8 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 
 <template>
   <TaskLayout background-variant="night" class="crossword-page">
-    <div class="crossword-layout">
-      <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+    <TaskContainer class="crossword-layout">
+      <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton class="calendar-back" @click="emit('back')" placement="header" /></AppHeader>
       <AppCard :ref="bindCard" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
         <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
@@ -161,7 +163,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <h1 id="crossword-title">Качество начинается с деталей</h1>
         <div class="crossword-badge" :style="{ backgroundImage: cssUrl(badge) }">Обязательное задание</div>
         <LoadingState v-if="loading" class="notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="notice"><p>{{ error }}</p><AppButton class="crossword-button" @click="emit('retry')">Попробовать ещё раз</AppButton></FeedbackState>
+        <FeedbackState v-else-if="error" kind="error" class="notice"><p>{{ error }}</p><AppButton class="crossword-button task-action" @click="emit('retry')">Попробовать ещё раз</AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else-if="!started">
@@ -178,10 +180,10 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Когда заполните весь кроссворд, нажмите «Проверить кроссворд».</p></li>
             </ol>
           </section>
-          <AppButton class="crossword-button start-button" @click="started = true"><span>Начать кроссворд</span></AppButton>
+          <AppButton class="crossword-button start-button task-action" @click="started = true"><span>Начать кроссворд</span></AppButton>
         </template>
         <div v-else class="crossword-game" :class="{ completed, 'is-expanded': expanded }" :aria-busy="saving">
-          <AppButton class="crossword-button outline" @click="started = false">← К описанию задания</AppButton>
+          <AppButton class="crossword-button outline task-action" @click="started = false">← К описанию задания</AppButton>
           <section class="questions surface" :style="art(questionsArt)">
             <AppButton class="questions-toggle" :aria-expanded="expanded" aria-controls="all-crossword-questions" @click="expanded = !expanded">{{ expanded ? '▾' : '▸' }} Все вопросы · 10</AppButton>
             <div v-if="expanded" id="all-crossword-questions" class="all-questions">
@@ -199,7 +201,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               <label for="crossword-answer">Ответ</label>
               <div class="word-input surface" :class="{ invalid: lengthError }" :style="art(inputArt)"><input id="crossword-answer" :value="bulk" :readonly="completed" :disabled="saving" autocomplete="off" autocapitalize="characters" spellcheck="false" :aria-invalid="lengthError" aria-describedby="active-clue-copy answer-length" @input="inputBulk" /></div>
               <p id="answer-length" class="answer-length" :class="{ invalid: lengthError }" :role="lengthError ? 'alert' : 'status'">{{ lengthError ? `Нужно ${word.answer.length} букв. Введено ${bulk.length}` : inserted ? 'Ответ вставлен в сетку' : `${bulk.length} из ${word.answer.length} букв` }}</p>
-              <AppButton class="crossword-button insert-button" :disabled="saving || completed"><span>Вставить в сетку</span></AppButton>
+              <AppButton class="crossword-button insert-button task-action" :disabled="saving || completed"><span>Вставить в сетку</span></AppButton>
             </form>
             <nav class="question-navigation" aria-label="Вопросы кроссворда"><AppButton @click="navigate(-1)">← Предыдущий</AppButton><span>{{ selected }} / 10</span><AppButton @click="navigate(1)">Следующий →</AppButton></nav>
           </section>
@@ -210,18 +212,19 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
               <div class="crossword-grid" :style="{ width: `${13 * (size + 2) - 2}px`, height: `${15 * (size + 2) - 2}px`, '--cell-size': `${size}px` }">
                 <div v-for="cell in crosswordCells" :key="cell.key" class="crossword-cell surface" :style="{ ...art(cellSurface(cell)), left: `${cell.col * (size + 2)}px`, top: `${cell.row * (size + 2)}px` }" :class="{ selected: path.includes(cell.key), correct: checked && values[cell.key] === cell.answer, wrong: checked && values[cell.key] !== cell.answer }">
                   <span v-if="cell.number" class="cell-number">{{ cell.number }}</span>
-                  <input :data-cell="cell.key" :value="values[cell.key] || ''" readonly inputmode="none" :disabled="saving" :aria-label="`Строка ${cell.row + 1}, столбец ${cell.col + 1}${cell.number ? `, начало вопроса ${cell.number}` : ''}`" :aria-invalid="checked && values[cell.key] !== cell.answer" autocomplete="off" autocapitalize="characters" spellcheck="false" @focus="chooseCell(cell)" @click="chooseCell(cell, true); ($event.target as HTMLInputElement).select()" @keydown="cellKey(cell, $event)" />
+                  <button type="button" :data-cell="cell.key" :disabled="saving" :aria-label="`Строка ${cell.row + 1}, столбец ${cell.col + 1}${cell.number ? `, начало вопроса ${cell.number}` : ''}${values[cell.key] ? `, буква ${values[cell.key]}` : ''}`" :aria-pressed="path.includes(cell.key)" @click="chooseCell(cell, true)" @keydown="cellKey(cell, $event)">{{ values[cell.key] || '' }}</button>
                 </div>
               </div>
             </div>
           </div>
-          <AppButton class="crossword-button check-button" :disabled="saving || completed" @click="check"><span>{{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}</span></AppButton>
+          <AppButton class="crossword-button check-button task-action" :disabled="saving || completed" @click="check"><span>{{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}</span></AppButton>
           <p v-if="saveError" class="result invalid" role="alert">{{ saveError }}</p>
           <p v-else-if="checked && !isCrosswordSolution(values)" class="result invalid" role="alert">Не все ответы совпали. Проверьте вопросы и пересечения слов — и попробуйте еще раз</p>
         </div>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="crossword-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup ref="resultPopup" title="Все слова на своих местах!" message="Кроссворд разгадан, обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
@@ -229,12 +232,12 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 <style scoped>
 :global(#app:has(.crossword-page)) { width: 100%; border: 0; }
 .crossword-page { min-height: 100svh; width: 100%; overflow: clip; color-scheme: light; color: #70492c;  font: 400 14px/20px var(--font-ui); text-align: left; letter-spacing: 0; }
-.crossword-layout { box-sizing: border-box; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 39px; }
+.crossword-layout { box-sizing: border-box; max-width: 760px; margin-inline: auto; padding: 0 16px 39px; }
 .crossword-header { position: relative; height: 94px; box-sizing: border-box; padding-top: 34px; }
 .crossword-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .calendar-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font-size: 12px; font-weight: 400; }
-.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, var(--color-cream) 73.0769%, #efc087 100%); }
+.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px 24px 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, var(--color-cream) 73.0769%, #efc087 100%); }
 .crossword-card.is-playing { padding-bottom: 42px; }
 .card-dots { position: absolute; pointer-events: none; inset: 0; }
 .card-dots img { position: absolute; }
@@ -303,11 +306,15 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .crossword-cell { position: absolute; width: var(--cell-size); height: var(--cell-size); }
 .crossword-cell::before { border: 3px solid transparent; border-image: var(--surface-art) 3 fill / 3px stretch; }
 .cell-number { position: absolute; top: 1px; left: 2px; pointer-events: none; color: #836045; font-size: calc(var(--cell-size) * .22); line-height: 1.2; }
-.crossword-cell input { display: block; box-sizing: border-box; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 3px; outline-offset: 0; background: transparent; color: var(--color-ink); caret-color: var(--color-action); font: 400 calc(var(--cell-size) * .5)/1 var(--font-ui); text-align: center; }
-.crossword-cell input:focus-visible { outline: 1px solid #a7401d; }
+.crossword-cell button { display: block; box-sizing: border-box; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 3px; outline-offset: 0; background: transparent; color: var(--color-ink); cursor: pointer; user-select: none; caret-color: transparent; font: 400 calc(var(--cell-size) * .5)/1 var(--font-ui); text-align: center; }
+.crossword-cell button:focus-visible { outline: 1px solid #a7401d; }
 .check-button { margin-top: 24px; }
 .result { margin: 20px 16px 0; line-height: 20px; }
 .success { color: #447047; }
 .crossword-footer { margin-top: 27px; color: #fff1cf; font-size: 12px; line-height: 15px; font-weight: 400; text-align: center; }
 @media (min-width: 768px) { .crossword-layout { padding-inline: 32px; } .crossword-card { padding-inline: 32px; } }
+
+.task-content-return { margin-top: 24px; }
+
+@media (max-width: 360px) { .crossword-layout { padding-inline: 12px; } .crossword-card { padding-inline: 18px; } }
 </style>

@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
         <p>{{ error }}</p>
         <button class="december-link" type="button" :disabled="busy" @click="refreshState">Обновить рейтинг</button>
       </div>
-      <button class="december-button video-calendar video-ranking-back" type="button" @click="emit('back')"><span>К календарю</span></button>
+
     </template>
     <template v-else>
       <div class="december-copy video-intro">
@@ -59,8 +59,8 @@ onBeforeUnmount(() => {
         </div>
         <VideoSwipeCard :key="current?.id ?? 'placeholder'" :video="current" :busy="busy || !current" :swipe="swipe" class="video-deck" @vote="vote" @settled="finishSwipe" />
         <div class="video-choices" aria-label="Оценить ролик">
-          <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(false)">Пропустить</button>
-          <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(true)">Понравилось <span aria-hidden="true">❤</span></button>
+          <button class="december-button secondary task-action" type="button" :disabled="busy || !current" @click="vote(false)">Пропустить</button>
+          <button class="december-button secondary task-action" type="button" :disabled="busy || !current" @click="vote(true)">Понравилось <span aria-hidden="true">❤</span></button>
         </div>
         <p v-if="busy && !swipe" class="video-saving" role="status">Сохраняем оценку…</p>
       </template>
@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
         <p>{{ error }}</p>
         <button v-if="!state" class="december-link" type="button" @click="load">Попробовать ещё раз</button>
       </div>
-      <button class="december-button video-calendar" type="button" @click="emit('back')"><span>К календарю</span></button>
+
     </template>
   </DecemberTaskLayout>
 </template>

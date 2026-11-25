@@ -30,3 +30,22 @@ describe('review 7 games', () => {
     expect(new Set(names).size).toBe(4);
   });
 });
+
+it('does not place a selected person on a manual or automatic cross, or forbidden equipment', async () => {
+  const view = mount(NinthTaskScreen, { props, global: { stubs } });
+  await view.findAll('button').find(button => button.text() === 'Начать расследование')!.trigger('click');
+  const cells = () => view.findAll('.factory-cells button');
+  await view.get('.factory-cross-toggle').trigger('click');
+  await cells()[11]!.trigger('click');
+  await view.findAll('.factory-person')[0]!.trigger('click');
+  await cells()[11]!.trigger('click');
+  expect(cells()[11]!.find('img').exists()).toBe(false);
+  await cells()[6]!.trigger('click');
+  await view.findAll('.factory-person')[1]!.trigger('click');
+  await cells()[0]!.trigger('click');
+  await cells()[7]!.trigger('click');
+  expect(cells()[0]!.find('img').exists()).toBe(false);
+  expect(cells()[7]!.find('img').exists()).toBe(false);
+  await cells()[10]!.trigger('click');
+  expect(cells()[10]!.find('img').exists()).toBe(true);
+});

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from 'vue';
 import AppButton from './ui/AppButton.vue';
-import musicUrl from '../assets/cipher/winter-loop.mp3';
+import defaultMusic from '../assets/cipher/winter-loop.mp3';
+
+withDefaults(defineProps<{ src?: string }>(), { src: defaultMusic });
 
 const audio = ref<HTMLAudioElement>();
 const playing = ref(false);
@@ -30,7 +32,7 @@ onBeforeUnmount(() => audio.value?.pause());
       <span aria-hidden="true">♫</span>
       {{ playing ? 'Выключить музыку' : 'Включить музыку' }}
     </AppButton>
-    <audio ref="audio" :src="musicUrl" preload="none" loop
+    <audio ref="audio" :src="src" preload="none" loop
       @playing="playing = true" @pause="playing = false"
       @error="playing = false; error = 'Не удалось загрузить музыку.'" />
     <p v-if="error" class="task-music-error" role="status">{{ error }}</p>

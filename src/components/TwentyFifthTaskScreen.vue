@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -143,10 +145,10 @@ async function saveCard() {
     <div class="fortune-sky" aria-hidden="true">
       <img v-for="(shape, index) in fortuneSky" :key="index" :src="shape.src" :style="{ left: shape.left, top: shape.top }" alt="" />
     </div>
-    <div class="fortune-layout">
+    <TaskContainer class="fortune-layout">
       <AppHeader class="fortune-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard class="fortune-panel" aria-labelledby="fortune-title">
         <TaskDateLabel class="fortune-date" :available-date="assignment?.available_date" :day="day" />
@@ -204,15 +206,16 @@ async function saveCard() {
               <AppButton class="fortune-action" type="button" :disabled="exporting" @click="saveCard">
                 {{ exporting ? 'Готовим открытку…' : 'Сохранить пожелание' }}
               </AppButton>
-              <AppButton class="fortune-action fortune-calendar-button" type="button" @click="emit('back')">К календарю</AppButton>
+              <CalendarReturnButton class="fortune-action fortune-calendar-button" @click="emit('back')" :completed="completed" />
             </div>
             <p v-if="actionMessage" class="fortune-message" role="status">{{ actionMessage }}</p>
           </div>
+          <CalendarReturnButton v-if="stage !== 'open'" class="task-content-return" @click="emit('back')" />
           <p v-if="saveError" class="fortune-message" role="alert">{{ saveError }}</p>
         </template>
       </AppCard>
       <footer class="fortune-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
   </TaskLayout>
 </template>
 
@@ -361,4 +364,6 @@ button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   [data-stage='opening'] .fortune-artwork { transition: none; }
   .is-revealing .fortune-card, .is-revealing .fortune-actions { animation: none; }
 }
+
+.task-content-return { margin-top: 16px; }
 </style>

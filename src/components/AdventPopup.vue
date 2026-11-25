@@ -2,7 +2,7 @@
 import { ref, useId } from 'vue';
 import PopupDialog from './PopupDialog.vue';
 import popupArt from '../assets/film/popup.svg';
-import popupButton from '../assets/film/popup-button.svg';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import closeArt from '../assets/film/close.svg';
 
 // Based on the existing December 12 popup artwork and layout.
@@ -20,9 +20,10 @@ defineExpose({ showModal, close });
 <template>
   <PopupDialog ref="dialog" class="advent-popup" :style="{ '--popup-art': cssUrl(popupArt) }" :aria-labelledby="`${id}-title`" :aria-describedby="`${id}-copy`" @close="emit('close')">
     <button class="advent-popup-close" type="button" aria-label="Закрыть окно" @click="close"><img :src="closeArt" alt="" /></button>
-    <h2 :id="`${id}-title`">{{ title }}</h2>
+    <h2 :id="`${id}-title`" tabindex="-1" autofocus>{{ title }}</h2>
     <p :id="`${id}-copy`" class="advent-popup-copy">{{ message }}</p>
-    <button class="advent-popup-action" :style="{ backgroundImage: cssUrl(popupButton) }" type="button" @click="action">{{ buttonText }}</button>
+    <CalendarReturnButton v-if="buttonText === 'К календарю'" class="advent-popup-action" completed @click="action" />
+    <button v-else class="advent-popup-action task-action" type="button" @click="action">{{ buttonText }}</button>
   </PopupDialog>
 </template>
 
@@ -43,4 +44,7 @@ defineExpose({ showModal, close });
 .advent-popup-close { cursor: pointer; }
 .advent-popup :is(h2, p, button) { overflow-wrap: anywhere; }
 @media (max-width: 360px) { .advent-popup { padding-inline: 20px; } }
+
+.advent-popup-close:focus:not(:focus-visible) { outline: none; }
+.advent-popup h2:focus { outline: none; }
 </style>
