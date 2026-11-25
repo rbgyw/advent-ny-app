@@ -38,18 +38,28 @@ test('team sport reveals the carousel and photo upload together', async ({ page 
   await expect(page.getByText('Фотография попадет в подборку ГЕРОФАРМ LIFE в Telegram и Max.', { exact: false })).toBeVisible();
 });
 
-test('stereogram opens fullscreen without changing its proportions and closes with Escape', async ({ page }) => {
+test('stereogram uses mobile artwork on phones and desktop artwork on tablets and computers, including fullscreen', async ({ page }) => {
   await mockBackend(page);
   await page.goto('/task/11');
-  for (const width of [320, 393, 1440]) {
+  for (const width of [320, 393, 767, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 852 });
+    const expectedImage = width < 768 ? /stereo_mobile.*\.png/ : /stereo_desktop.*\.png/;
+    const expectedRatio = width < 768 ? 1080 / 1350 : 1586 / 1148;
+    const inlineImage = page.locator('.stereo-photo img');
+    await expect.poll(() => inlineImage.evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(expectedImage);
+    await expect.poll(() => inlineImage.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    const inlineRect = (await inlineImage.boundingBox())!;
+    expect(inlineRect.width / inlineRect.height).toBeCloseTo(expectedRatio, 2);
     const title = page.locator('#stereo-title');
     expect(await title.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await page.getByRole('button', { name: 'Открыть на весь экран', exact: false }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
+    await expect.poll(() => dialog.locator('img').evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(expectedImage);
     const rect = (await dialog.locator('img').boundingBox())!;
-    expect(rect.width / rect.height).toBeCloseTo(314 / 201, 2);
+    expect(rect.width / rect.height).toBeCloseTo(expectedRatio, 2);
+    expect(rect.width).toBeLessThanOrEqual(width);
+    expect(rect.height).toBeLessThanOrEqual(852 - 88);
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
   }

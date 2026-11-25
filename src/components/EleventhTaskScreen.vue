@@ -20,7 +20,8 @@ import panelArt from '../assets/stereogram/panel.svg';
 import wreath from '../assets/stereogram/wreath.svg';
 import badge from '../assets/stereogram/badge.svg';
 import instructions from '../assets/stereogram/instructions.svg';
-import stereogram from '../assets/stereogram/heart.webp';
+import stereogramDesktop from '../assets/stereogram/stereo_desktop.png';
+import stereogramMobile from '../assets/stereogram/stereo_mobile.png';
 import cell from '../assets/stereogram/cell.svg';
 import button from '../assets/stereogram/button.svg';
 import errorArt from '../assets/stereogram/error.svg';
@@ -119,7 +120,10 @@ onBeforeUnmount(() => observer?.disconnect());
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора.</li><li>Если изображение не появилось, немного приблизьте или отодвиньте картинку и попробуйте снова.</li></ol>
           </section>
-          <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" @error="imageFailed = true" />
+          <picture class="stereo-photo">
+            <source media="(min-width: 768px)" :srcset="stereogramDesktop" width="1586" height="1148" />
+            <img :src="stereogramMobile" width="1080" height="1350" alt="Стереокартинка с повторяющимся разноцветным узором" @load="imageFailed = false" @error="imageFailed = true" />
+          </picture>
           <AppButton v-if="!imageFailed" class="stereo-enlarge" type="button" @click="imageExpanded = true">Открыть на весь экран ↗</AppButton>
           <FeedbackState v-if="imageFailed" kind="error">Не удалось загрузить изображение задания.</FeedbackState>
           <AppButton v-if="imageFailed" type="button" @click="retryImage">Попробовать снова</AppButton>
@@ -143,7 +147,10 @@ onBeforeUnmount(() => observer?.disconnect());
     <AdventPopup ref="resultPopup" title="Изображение раскрыто!" message="Вы увидели, что скрывалось за узором. Обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
     <PopupDialog v-model:open="imageExpanded" class="stereo-fullscreen" aria-label="Стереокартинка на весь экран">
       <button class="stereo-fullscreen-close" type="button" aria-label="Закрыть стереокартинку" @click="imageExpanded = false">×</button>
-      <img :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" />
+      <picture class="stereo-fullscreen-picture">
+        <source media="(min-width: 768px)" :srcset="stereogramDesktop" width="1586" height="1148" />
+        <img :src="stereogramMobile" width="1080" height="1350" alt="Стереокартинка с повторяющимся разноцветным узором" />
+      </picture>
     </PopupDialog>
   </TaskLayout>
 </template>
@@ -176,6 +183,7 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .stereo-instructions li { position: relative; counter-increment: stereo-step; padding-left: 22px; }
 .stereo-instructions li::before { position: absolute; left: 0; top: 0; content: counter(stereo-step) '.'; color: var(--color-action); font-weight: 700; }
 .stereo-photo { display: block; width: min(100%, 500px); height: auto; margin: 21px auto 0; }
+.stereo-photo img { display: block; width: 100%; height: auto; }
 .stereo-form { margin-top: 25px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend { padding: 0; font-size: 14px; line-height: 17px; font-weight: 700; }
@@ -201,6 +209,8 @@ button:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2
 .stereo-enlarge { display: block; margin: 12px auto 0; min-height: 44px; padding: 8px; border: 0; background: transparent; color: #a7280b; font: inherit; }
 .stereo-fullscreen { box-sizing: border-box; position: fixed; inset: 0; width: 100vw; max-width: none; height: 100svh; max-height: none; margin: 0; padding: 64px 16px 24px; border: 0; background: #fff5e3; overflow: auto; }
 .stereo-fullscreen[open] { display: grid; place-items: center; }
-.stereo-fullscreen img { display: block; width: min(100%, 1200px, calc((100svh - 88px) * 314 / 201)); height: auto; object-fit: contain; }
+.stereo-fullscreen-picture { display: block; width: min(100%, 1200px, calc((100svh - 88px) * 1080 / 1350)); }
+.stereo-fullscreen-picture img { display: block; width: 100%; height: auto; }
+@media (min-width: 768px) { .stereo-fullscreen-picture { width: min(100%, 1200px, calc((100svh - 88px) * 1586 / 1148)); } }
 .stereo-fullscreen-close { position: absolute; top: 8px; right: 12px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fcf6e8; color: #a7280b; font-size: 28px; }
 </style>
