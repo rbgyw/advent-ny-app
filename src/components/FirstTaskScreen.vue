@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import AppButton from './ui/AppButton.vue';
 import TaskLayout from './ui/TaskLayout.vue';
@@ -28,7 +30,7 @@ function cssUrl(url: string) {
 
 <template>
   <TaskLayout class="first-task-page">
-    <div class="first-task-layout">
+    <TaskContainer class="first-task-layout">
       <AppHeader class="first-task-header">
         <img
           class="first-task-wordmark"
@@ -36,9 +38,7 @@ function cssUrl(url: string) {
           alt="ГЕРОФАРМ"
           data-figma-node="39:14"
         />
-        <AppButton type="button" class="first-task-back" @click="emit('back')">
-          ← К календарю
-        </AppButton>
+        <CalendarReturnButton class="first-task-back" placement="header" @click="emit('back')" />
       </AppHeader>
 
       <AppCard
@@ -124,13 +124,13 @@ function cssUrl(url: string) {
               </AppButton>
             </template>
           </div>
-          <AppButton type="button" class="first-task-button first-task-secondary first-task-return" @click="emit('back')">К календарю</AppButton>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="assignment.status === 'completed'" @click="emit('back')" />
       </AppCard>
       <footer class="first-task-footer">
         1 / {{ total || 25 }} · Новогодний адвент
       </footer>
-    </div>
+    </TaskContainer>
   </TaskLayout>
 </template>
 
@@ -172,7 +172,7 @@ function cssUrl(url: string) {
   box-sizing: border-box;
   position: relative;
   width: 100%;
-  max-width: 960px;
+  max-width: 760px;
   margin-inline: auto;
   padding: 0 clamp(12px, 4vw, 24px) 31px;
 }
@@ -209,7 +209,7 @@ function cssUrl(url: string) {
   isolation: isolate;
   box-sizing: border-box;
   width: 100%;
-  padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px);
+  padding: 29px 24px;
   border-radius: 24px;
 }
 .first-task-card::before {
@@ -343,4 +343,8 @@ function cssUrl(url: string) {
 }
 .first-task-return { margin-top: 16px; }
 @media (min-width: 768px) { .first-task-layout { padding-inline: 32px; } .first-task-card { padding: 32px; } .first-task-actions { align-items: stretch; } }
+
+.task-content-return { margin-top: 24px; }
+
+@media (max-width: 360px) { .first-task-layout { padding-inline: 12px; } .first-task-card { padding-inline: 18px; } }
 </style>

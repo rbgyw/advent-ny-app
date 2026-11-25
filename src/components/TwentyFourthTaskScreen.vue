@@ -63,7 +63,7 @@ function markViewed() {
         <p class="december-error" role="alert">{{ saveError }}</p>
         <button class="december-link" type="button" :disabled="saving" @click="markViewed">Повторить сохранение прогресса</button>
       </div>
-      <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+
     </div>
   </DecemberTaskLayout>
 </template>

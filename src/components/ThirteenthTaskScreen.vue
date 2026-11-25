@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import AdventPopup from './AdventPopup.vue';
+import TaskContainer from './ui/TaskContainer.vue';
+import music from '../assets/music/13_dec.mp3';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import LoadingState from './ui/LoadingState.vue';
@@ -19,8 +21,6 @@ import buttonArt from '../assets/wish/button.svg';
 
 const props = defineProps<{ assignment?: CalendarTask; day: number; total?: number; loading: boolean; saving: boolean; error?: string | null; saveError?: string | null }>();
 const emit = defineEmits<{ back: []; retry: []; confirm: []; edit: [] }>();
-const wishPopup = ref<InstanceType<typeof AdventPopup>>();
-const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const started = ref(false), confirmed = ref(false);
 const completed = computed(() => props.assignment?.status === 'completed');
 const stage = computed(() => completed.value ? 'accepted' : started.value ? 'wishing' : 'intro');
@@ -35,14 +35,13 @@ async function focusHeading() { await nextTick(); if (!disposed) { window.scroll
 async function activate() {
   if (props.loading || props.saving || !props.assignment?.task || props.error || completed.value) return;
   started.value = true; confirmed.value = false; emit('edit'); void focusHeading();
-  await nextTick(); wishPopup.value?.showModal();
 }
 function confirmWish() {
   if (props.loading || props.saving || !props.assignment?.task || stage.value !== 'wishing') return;
   // User action is the only in-page event that stops the endless snowfall.
   confirmed.value = true; emit('edit'); emit('confirm');
 }
-watch(completed, async (value, previous) => { if (value) { void focusHeading(); if (previous === false) { await nextTick(); resultPopup.value?.showModal(); } } });
+watch(completed, value => { if (value) void focusHeading(); });
 watch(() => props.saveError, error => { if (error) confirmed.value = false; });
 watch(() => props.assignment?.id, () => { started.value = false; confirmed.value = false; });
 onMounted(() => {
@@ -55,7 +54,7 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
 <template>
   <TaskLayout class="wish-page" :data-stage="stage">
     <div ref="background" class="wish-background" aria-hidden="true"><div class="wish-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="wish-layout">
+    <TaskContainer class="wish-layout">
       <AppHeader variant="task" class="wish-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <TaskDateLabel class="wish-date" :available-date="assignment?.available_date" :day="day" />
@@ -74,20 +73,19 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
           <div v-else class="wish-copy" role="status"><p>Пусть задуманное сбудется!</p></div>
           <p v-if="stage === 'accepted'" class="wish-note">Сохраните это настроение с собой</p>
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
-          <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" />
+          <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" :src="music" />
           <AppButton v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Запустить снегопад</span></AppButton>
-          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="wishPopup?.showModal()"><span>{{ saving ? 'Принимаем желание…' : 'Загадать желание' }}</span></AppButton>
-          <AppButton v-else class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="emit('back')"><span>К календарю</span></AppButton>
+          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
+          <CalendarReturnButton v-else class="wish-button" @click="emit('back')" :completed="completed" />
+          <CalendarReturnButton v-if="stage !== 'accepted'" class="task-content-return" @click="emit('back')" />
           <p v-if="stage !== 'accepted'" class="wish-note">{{ stage === 'intro' ? 'Маленький момент — только для вас' : 'Ваше желание останется только вашим' }}</p>
         </template>
       </AppCard>
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <div v-if="snowfall && !loading && !error && assignment?.task" class="wish-snow" aria-hidden="true">
       <span v-for="(flake, index) in wishSnow" :key="index" class="wish-flake" :style="{ left: `${flake.x}%`, '--rest-y': `${flake.y}svh`, animationDuration: `${flake.duration}s`, animationDelay: `${flake.delay}s`, '--drift': `${flake.drift}px`, '--turn': `${flake.turn}deg` }"><img decoding="async" :src="flake.src" alt="" /></span>
     </div>
-    <AdventPopup ref="wishPopup" title="Загадайте желание" message="Пока снежинки не растаяли, загадайте желание. Произнесите его про себя — записывать ничего не нужно" button-text="Желание загадано" @action="confirmWish" />
-    <AdventPopup ref="resultPopup" title="Пусть задуманное сбудется!" message="" button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
 
@@ -133,4 +131,8 @@ button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px;
 @media (prefers-reduced-motion: reduce) { .wish-flake { top: var(--rest-y); animation: none; } }
 @media (max-width: 360px) { .wish-layout { padding-inline: 12px; } .wish-panel { padding-inline: 18px; } .wish-panel h1 { font-size: 26px; } }
 @media (min-width: 768px) { .wish-layout { padding-inline: 32px; } .wish-panel { padding-inline: 32px; } }
+
+.task-content-return { margin-top: 16px; }
+
+.calendar-return:not(.calendar-return--header) { left: auto; transform: none; max-width: none; }
 </style>

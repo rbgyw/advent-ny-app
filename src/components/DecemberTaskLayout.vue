@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import wordmark from '../assets/first-task/wordmark.svg';
 import wreath from '../assets/sports/wreath.svg';
 import { formatDate } from '../utils/date';
@@ -16,22 +18,26 @@ defineProps<{
   title: string;
   mandatory?: boolean;
   brandSrc?: string;
+  result?: boolean;
+  finished?: boolean;
 }>();
 const emit = defineEmits<{ back: []; retry: [] }>();
 </script>
 
 <template>
   <main class="december-page" :class="{ 'december-mandatory': mandatory }">
-    <div class="december-layout">
+    <TaskContainer class="december-layout">
       <header class="december-header">
         <img :src="brandSrc ?? wordmark" width="108" height="13" alt="ГЕРОФАРМ" />
-        <button class="december-back" type="button" @click="emit('back')">← К календарю</button>
+        <CalendarReturnButton placement="header" @click="emit('back')" />
       </header>
-      <article class="december-card" aria-labelledby="december-title">
-        <slot name="decoration"><img v-if="mandatory" class="december-wreath" :src="wreath" alt="" /></slot>
-        <TaskDateLabel class="december-date" :available-date="assignment?.available_date" :day="day" />
-        <h1 id="december-title">{{ title }}</h1>
-        <p v-if="mandatory" class="december-badge">Обязательное задание</p>
+      <article class="december-card" :class="{ 'december-card--result': result }" :aria-labelledby="result ? undefined : 'december-title'">
+        <template v-if="!result">
+          <slot name="decoration"><img v-if="mandatory" class="december-wreath" :src="wreath" alt="" /></slot>
+          <TaskDateLabel class="december-date" :available-date="assignment?.available_date" :day="day" />
+          <h1 id="december-title"><slot name="title">{{ title }}</slot></h1>
+          <p v-if="mandatory" class="december-badge">Обязательное задание</p>
+        </template>
         <div class="december-content">
           <p v-if="loading" role="status">Загружаем задание…</p>
           <div v-else-if="error" class="december-stack">
@@ -41,10 +47,11 @@ const emit = defineEmits<{ back: []; retry: [] }>();
           <p v-else-if="!assignment" role="status">Задание не найдено.</p>
           <p v-else-if="!assignment.task" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
           <slot v-else />
+          <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="december-calendar" :completed="result || finished || assignment.status === 'completed'" @click="emit('back')" />
         </div>
       </article>
       <footer>{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
   </main>
 </template>
 
@@ -70,10 +77,9 @@ const emit = defineEmits<{ back: []; retry: [] }>();
   text-align: left;
 }
 .december-mandatory { background: linear-gradient(to bottom right, #090807, #291209 22%, #743012 48%, #cf5515 73%, #ff941f); color: #70492c; }
-.december-layout { max-width: 680px; margin-inline: auto; padding: 0 16px 24px; }
+.december-layout { box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 24px; }
 .december-header { padding: 34px 8px 0; }
 .december-header img { display: block; margin-inline: auto; }
-.december-back { min-height: 47px; padding: 0; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
 .december-card { position: relative; border-radius: 24px; padding: 29px clamp(16px, 6.1vw, 24px) 28px; background: #fff5e3; overflow-wrap: anywhere; }
 .december-mandatory .december-card { background: var(--dec-gold); }
 .december-mandatory .december-card::before {
@@ -95,6 +101,8 @@ const emit = defineEmits<{ back: []; retry: [] }>();
 .december-mandatory h1 { padding-right: 16px; }
 .december-badge { display: inline-block; margin-top: 12px; padding: 5px 8px; border-radius: 5px; background: var(--dec-red); color: #fff0d2; font-size: 11px; line-height: 15px; }
 .december-content { margin-top: 24px; }
+.december-card--result .december-content { margin-top: 0; }
+.december-calendar { margin-top: 24px; }
 .december-layout > footer { margin-top: 27px; color: var(--dec-ink); font-size: 12px; text-align: center; }
 .december-mandatory footer { color: #fff1cf; }
 .december-stack { display: grid; min-width: 0; gap: 16px; }
@@ -114,5 +122,6 @@ const emit = defineEmits<{ back: []; retry: [] }>();
 .december-dialog::backdrop { background: rgb(66 35 19 / 55%); }
 .december-dialog h2 { padding-right: 24px; }
 .december-dialog-close { position: absolute; top: 5px; right: 7px; width: 42px; height: 42px; border: 0; background: transparent; color: var(--dec-red); font-size: 24px; cursor: pointer; }
-@media (min-width: 700px) { .december-card { padding-inline: 32px; } }
+@media (min-width: 768px) { .december-layout { padding-inline: 32px; } .december-card { padding-inline: 32px; } }
+@media (max-width: 360px) { .december-layout { padding-inline: 12px; } .december-card { padding-inline: 18px; } }
 </style>

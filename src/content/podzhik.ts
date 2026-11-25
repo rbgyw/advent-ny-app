@@ -1,20 +1,21 @@
 import type { SearchBounds, SearchCircle } from '../utils/podzhik';
 
-// Coordinates are measured inside the 316 × 419 px illustration in Figma.
+// User-provided coordinates in the 4096 × 3102 reference panorama:
+// 1200 px from the left and 462 px from the bottom, with a 30 px hit radius.
 export const podzhikTarget: SearchCircle = {
-  x: 153,
-  y: 65,
-  radius: 20,
-  width: 316,
-  height: 419,
+  x: 1200,
+  y: 3102 - 462,
+  radius: 30,
+  width: 4096,
+  height: 3102,
 };
 
 const centerX = podzhikTarget.x / podzhikTarget.width;
 const centerY = podzhikTarget.y / podzhikTarget.height;
-const characterWidth = 0.06;
-const characterHeight = (characterWidth * 626 * 159 / 104) / 838;
+const characterWidth = 60 / podzhikTarget.width;
+const characterHeight = (60 * 159 / 104) / podzhikTarget.height;
 
-// Keep the character artwork centered on the accepted point.
+// Keep the character overlay centered on the user-provided hit point.
 export const podzhikBounds: SearchBounds = {
   left: centerX - characterWidth / 2,
   top: centerY - characterHeight / 2,

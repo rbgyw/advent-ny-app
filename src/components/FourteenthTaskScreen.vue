@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
@@ -133,10 +135,10 @@ function submit() {
 
 <template>
   <TaskLayout class="raskobki-page">
-    <div class="raskobki-layout">
+    <TaskContainer class="raskobki-layout">
       <AppHeader class="raskobki-header">
         <img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard :ref="bindPanel" class="raskobki-panel" aria-labelledby="raskobki-title">
         <div class="raskobki-dots" aria-hidden="true">
@@ -168,7 +170,7 @@ function submit() {
             <p>Чтобы увидеть целую картину, нужно разобраться в деталях. Разгадайте зашифрованное позиционирование компании в игре «ра[скобки]» — рекурсивном кроссворде, где за одной загадкой прячется следующая.</p>
             <p>Ответы на подсказки становятся словами в подсказках следующего уровня. Разгадывайте их слой за слоем, пока не раскроете всю цепочку.</p>
             <p>Если вы знаете любое слово, загаданное в квадратных скобках, — введите его в строку, и оно встанет на своё место. Когда разгадаете все слова, на экране появится зашифрованная фраза — позиционирование компании.</p>
-            <p>Если какое-то слово не получается разгадать, загляните в ГЕРОФАРМ LIFE в  Telegram и MAX.  — сегодня там появятся подсказки.</p>
+            <p>Если какое-то слово не получается разгадать, загляните в ГЕРОФАРМ LIFE в <a href="https://t.me/+7ZwglYFwmIU3OGRi" target="_blank" rel="noopener noreferrer">Telegram</a> и <a href="https://max.ru/join/d-gd069xb3KizIdnYoydwqaBFBRk5kmEGGfmVGK5YMc" target="_blank" rel="noopener noreferrer">MAX</a> — сегодня там появятся подсказки.</p>
             <p>Это обязательное задание для получения подарка.</p>
           </div>
           <section class="raskobki-chain" aria-labelledby="raskobki-chain-title">
@@ -204,9 +206,10 @@ function submit() {
             </AppButton>
           </form>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="raskobki-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup ref="resultPopup" title="Все скобки раскрыты — история разгадана!" message="Обязательное задание выполнено." button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
@@ -421,4 +424,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid currentColor; out
   .raskobki-layout { padding-inline: 32px; }
   .raskobki-panel { padding-inline: 32px; }
 }
+
+.task-content-return { margin-top: 24px; }
 </style>

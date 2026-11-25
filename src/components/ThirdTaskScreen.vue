@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useCampaignClock } from '../composables/useCampaignClock';
 import AppButton from './ui/AppButton.vue';
@@ -85,10 +87,10 @@ onBeforeUnmount(() => {
 <template>
   <TaskLayout class="memory-page">
     <div ref="gradient" class="memory-background" aria-hidden="true"><div class="memory-gradient" :style="{ transform: gradientTransform }"></div></div>
-    <div class="memory-layout">
+    <TaskContainer class="memory-layout">
       <AppHeader class="memory-header">
         <img class="memory-wordmark" :src="wordmark" alt="ГЕРОФАРМ" data-figma-node="39:14" />
-        <AppButton class="memory-back" type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton class="memory-back" @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard class="memory-card" :style="{ '--card-art': cssUrl(card) }" aria-labelledby="memory-title" data-figma-node="28:40847">
         <TaskDateLabel class="memory-date" :available-date="assignment?.available_date" :day="day" />
@@ -123,14 +125,15 @@ onBeforeUnmount(() => {
             <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться воспоминанием' }}</AppButton>
           </form>
         </template>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="memory-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <PopupDialog v-model:open="popupOpen" class="memory-thanks" :style="{ '--thank-you-art': cssUrl(thankYou) }" aria-labelledby="memory-thanks-title" aria-describedby="memory-thanks-copy">
       <AppButton class="memory-close" type="button" aria-label="Закрыть окно благодарности" @click="popupOpen = false">×</AppButton>
       <h2 id="memory-thanks-title">Спасибо,<br />что поделились!</h2>
       <p id="memory-thanks-copy">В конце адвента соберём воспоминания коллег в праздничную подборку.</p>
-      <AppButton class="memory-button memory-calendar" type="button" @click="popupOpen = false; emit('back')"><span>К календарю</span></AppButton>
+      <CalendarReturnButton class="memory-button memory-calendar" @click="popupOpen = false; emit('back')" completed />
     </PopupDialog>
   </TaskLayout>
 </template>
@@ -143,11 +146,11 @@ onBeforeUnmount(() => {
 .memory-page { position: relative; isolation: isolate; overflow: clip; box-sizing: border-box; width: 100%; min-height: 100svh; color-scheme: light; color: #623c28; background: #c63d0f; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .memory-background { position: absolute; top: 0; left: 0; width: 100%; height: 127.0%; z-index: -1; overflow: hidden; pointer-events: none; }
 .memory-gradient { position: absolute; top: 56.53241251%; left: 46.0559869%; width: 100%; aspect-ratio: 1; transform-origin: center; background: radial-gradient(circle closest-side at center, #ffb451 0%, #f78028 51.442307%, #c63d0f 100%); }
-.memory-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 27px; }
+.memory-layout { position: relative; box-sizing: border-box; width: 100%; max-width: 760px; margin-inline: auto; padding: 0 16px 27px; }
 .memory-header { position: relative; box-sizing: border-box; height: 94px; padding-top: 34px; }
 .memory-wordmark { display: block; margin-inline: auto; }
 .memory-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; margin: 0; border: 0; background: transparent; color: #fff1cf; font: 400 12px/15px 'Advent Inter', sans-serif; cursor: pointer; }
-.memory-card { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; }
+.memory-card { position: relative; isolation: isolate; box-sizing: border-box; width: 100%; padding: 29px 24px 28px; }
 .memory-card::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 24px solid transparent; border-image: var(--card-art) 24 fill / 24px stretch; }
 .memory-date { margin: 0 0 14px; color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
 .memory-card h1 { margin: 0 0 21px; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; letter-spacing: 0; }
@@ -175,7 +178,7 @@ onBeforeUnmount(() => {
 .memory-footer { margin-top: 27px; font-size: 12px; line-height: 15px; text-align: center; }
 .memory-notice { min-height: 120px; margin: 0; color: #836045; overflow-wrap: anywhere; }
 .memory-notice .memory-button { margin-top: 24px; }
-.memory-thanks { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px clamp(16px, calc((100vw - 345px) / 2), 24px) 26px; border: 0; background: transparent; overflow-y: auto; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
+.memory-thanks { position: fixed; isolation: isolate; box-sizing: border-box; top: clamp(16px, 17svh, 145px); left: 50%; transform: translateX(-50%); width: 345px; max-width: calc(100vw - 16px); max-height: calc(100svh - clamp(16px, 17svh, 145px) - 16px); margin: 0; padding: 44px 24px 26px; border: 0; background: transparent; overflow-y: auto; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; letter-spacing: 0; text-align: left; }
 .memory-thanks::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border: 23px solid transparent; border-image: var(--thank-you-art) 23 fill / 23px stretch; }
 .memory-thanks::backdrop { background: rgb(66 35 19 / 55%); }
 .memory-close { position: absolute; top: 0; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: #623c28; font: 400 25px/30px 'Advent Inter', sans-serif; cursor: pointer; }
@@ -184,4 +187,8 @@ onBeforeUnmount(() => {
 .memory-calendar { width: 100%; min-width: 0; max-width: 100%; margin-top: 23px; }
 .memory-calendar span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, #fff0d2 72.836%, #efc087 99.465%); }
 @media (min-width: 768px) { .memory-layout { padding-inline: 32px; } .memory-card { padding-inline: 32px; } }
+
+.task-content-return { margin-top: 24px; }
+
+@media (max-width: 360px) { .memory-layout { padding-inline: 12px; } .memory-card { padding-inline: 18px; } }
 </style>

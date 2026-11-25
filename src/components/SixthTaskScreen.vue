@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
@@ -142,8 +144,8 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 <template>
   <TaskLayout background-variant="night" :ref="bindPage" class="tarot-page" :class="`tarot-state-${stage}`">
     <div class="tarot-decorations" aria-hidden="true"><img decoding="async" v-for="item in decorations" :key="item.id" :src="tarotDecorationImage(item.asset)" :style="{ left: `${item.x / 393 * 100}%`, top: `${item.y / decorHeight * pageHeight}px` }" alt="" /></div>
-    <div class="tarot-layout">
-      <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="tarot-back" type="button" @click="emit('back')">← К календарю</AppButton><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
+    <TaskContainer class="tarot-layout">
+      <AppHeader class="tarot-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton class="tarot-back" @click="emit('back')" placement="header" /><AppButton v-if="stage === 'result'" class="tarot-result-close" type="button" aria-label="Закрыть карту и вернуться к календарю" @click="emit('back')"><img decoding="async" :src="closeRing" alt="" />×</AppButton></AppHeader>
       <section v-if="loading || error || !assignment || !assignment.task || inaccessibleResult" class="tarot-notice tarot-surface" :style="{ '--surface-art': cssUrl(introPanel) }">
         <TaskDateLabel class="tarot-date" :available-date="assignment?.available_date" :day="day" />
         <h1>Что подскажет карта?</h1>
@@ -167,6 +169,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <p>Обратите внимание: вытянуть карту можно только один раз за весь адвент.</p>
         </div>
         <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">Вытянуть карту</AppButton>
+        <CalendarReturnButton class="tarot-calendar" @click="emit('back')" />
       </AppCard>
       <AppCard v-else-if="stage === 'choose'" :ref="bindChoosePanel" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
         <AppButton class="tarot-close" type="button" :disabled="saving || selectedId !== null" aria-label="Вернуться к описанию задания" @click="changeStage('intro')">×</AppButton>
@@ -179,6 +182,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
           <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id, $event)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
         </div>
+        <CalendarReturnButton class="tarot-calendar" @click="emit('back')" />
       </AppCard>
       <AppCard v-else-if="selectedCard" class="tarot-result" :class="{ 'tarot-reveal': revealOnDraw }" aria-labelledby="tarot-card-title" :aria-busy="saving">
         <div class="tarot-chosen-frame"><img decoding="async" :key="imageKey" class="tarot-chosen-image" :src="selectedCard.image" :alt="`Карта «${selectedCard.name}»`" @error="imageError = true" @load="imageError = false" /></div>
@@ -192,11 +196,11 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <p v-if="saving" class="tarot-status" role="status">Сохраняем результат…</p>
           <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>
           <AppButton v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</AppButton>
-          <AppButton class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="emit('back')">✦ К календарю ✦</AppButton>
+          <CalendarReturnButton class="tarot-button tarot-finish" @click="emit('back')" :completed="completed" />
         </section>
       </AppCard>
       <footer class="tarot-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
   </TaskLayout>
 </template>
 
@@ -205,14 +209,14 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-page { position: relative; isolation: isolate; overflow: clip; width: 100%; min-height: 100svh; color-scheme: dark; color: #fff3df; font: 400 14px/20px var(--font-ui); letter-spacing: 0; text-align: left;  }
 .tarot-decorations { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
 .tarot-decorations img { position: absolute; }
-.tarot-layout { position: relative; box-sizing: border-box; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 27px; }
+.tarot-layout { position: relative; box-sizing: border-box; max-width: 760px; margin-inline: auto; padding: 0 16px 27px; }
 .tarot-state-choose .tarot-layout, .tarot-state-result .tarot-layout { padding-bottom: 25px; }
 .tarot-header { position: relative; box-sizing: border-box; height: 95px; padding-top: 34px; }
 .tarot-header > img { display: block; margin-inline: auto; }
 .tarot-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; margin: 0; border: 0; background: transparent; color: #fff0c4; font: 400 12px/15px var(--font-ui); cursor: pointer; }
 .tarot-surface { position: relative; isolation: isolate; box-sizing: border-box; }
 .tarot-surface::before { content: ''; position: absolute; inset: 0 -.5px; z-index: -1; border: 24px solid transparent; border-image: var(--surface-art) 24 fill / 24px stretch; pointer-events: none; }
-.tarot-intro-panel { padding: 34px clamp(16px, calc((100vw - 345px) / 2), 24px) 32px; }
+.tarot-intro-panel { padding: 34px 24px 32px; }
 .tarot-date { margin: 0 0 8px; color: #ffe0a0; font-size: 11px; line-height: 13px; font-weight: 700; text-align: center; }
 .tarot-date-left { text-align: left; }
 .tarot-intro-panel h1 { margin: 0; color: #ffe3a7; font: 400 28px/35px var(--font-display); letter-spacing: 0; text-align: center; }
@@ -245,7 +249,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-result { margin-top: 2px; }
 .tarot-chosen-frame { width: min(100%, 303px); aspect-ratio: 303 / 474; margin: 0 auto 16px; }
 .tarot-chosen-image { display: block; width: 100%; height: 100%; object-fit: fill; }
-.tarot-reading { width: calc(100% - 2px); margin-left: 1px; padding: 36px clamp(16px, calc((100vw - 345px) / 2), 24px) 35px clamp(16px, calc((100vw - 343px) / 2), 25px); }
+.tarot-reading { width: calc(100% - 2px); margin-left: 1px; padding: 36px 24px 35px clamp(16px, calc((100vw - 343px) / 2), 25px); }
 .tarot-handle { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); }
 .tarot-reading h1 { margin: 0 0 14px; color: #ffe3a7; font: 400 26px/33px var(--font-display); letter-spacing: 0; }
 .tarot-reading-copy p { margin: 0 0 20px; }
@@ -272,4 +276,12 @@ h1:focus { outline: 0; }
   .tarot-reveal .tarot-reading { animation: tarot-reveal 420ms 80ms cubic-bezier(.22,.61,.36,1) both; }
 }
 @media (prefers-reduced-motion: reduce) { .tarot-deck-card { transition: none; } .tarot-deck-card:not(:disabled):hover { transform: none; } }
+
+.tarot-calendar { margin-top: 24px; }
+
+@media (max-width: 360px) { .tarot-layout { padding-inline: 12px; } .tarot-intro-panel { padding-inline: 18px; } }
+
+.calendar-return:not(.calendar-return--header) { left: auto; transform: none; max-width: none; }
+
+.tarot-button { left: auto; transform: none; width: 100%; min-width: 0; max-width: none; }
 </style>

@@ -8,6 +8,7 @@ import { solvedNonogram, filled } from '../src/content/nonogram';
 
 test('cipher validates saves and reopens the confirmed result', async ({ page }) => {
   const backend = await mockBackend(page); await page.goto('/task/2');
+  await expect(page.locator('.task-music audio')).toHaveAttribute('src', /2_dec.*\.mp3/);
   for (const [index, letter] of CIPHER_LETTERS.entries()) await page.locator(`#cipher-letter-${index}`).fill(letter);
   await page.getByRole('button', { name: 'Проверить ответ', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -92,6 +93,8 @@ test('wish hides snow on confirmation and keeps it off on the saved screen', asy
   await page.goto('/task/13');
   await page.getByRole('button', { name: 'Запустить снегопад', exact: true }).click();
   await expect(page.locator('.wish-snow')).toBeVisible();
+  await expect(page.locator('.task-music audio')).toHaveAttribute('src', /13_dec.*\.mp3/);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   try {
     await page.getByRole('button', { name: 'Желание загадано', exact: true }).click();
     await expect(page.locator('main')).toHaveAttribute('data-stage', 'wishing');

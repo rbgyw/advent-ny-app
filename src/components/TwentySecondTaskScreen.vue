@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
         <p>{{ error }}</p>
         <button class="december-link" type="button" :disabled="busy" @click="refreshState">Обновить рейтинг</button>
       </div>
-      <button class="december-button video-calendar video-ranking-back" type="button" @click="emit('back')"><span>К календарю</span></button>
+
     </template>
     <template v-else>
       <div class="december-copy video-intro">
@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
         <p>{{ error }}</p>
         <button v-if="!state" class="december-link" type="button" @click="load">Попробовать ещё раз</button>
       </div>
-      <button class="december-button video-calendar" type="button" @click="emit('back')"><span>К календарю</span></button>
+
     </template>
   </DecemberTaskLayout>
 </template>

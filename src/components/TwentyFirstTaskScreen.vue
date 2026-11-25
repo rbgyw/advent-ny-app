@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import { useElementRef } from '../composables/useElementRef';
 import AppButton from './ui/AppButton.vue';
@@ -154,10 +156,10 @@ function backFromResult() {
 
 <template>
   <TaskLayout class="nonogram-page">
-    <div class="nonogram-layout">
+    <TaskContainer class="nonogram-layout">
       <AppHeader class="nonogram-header">
         <img :src="wordmark" alt="ГЕРОФАРМ" width="108" height="13" />
-        <AppButton type="button" @click="emit('back')">← К календарю</AppButton>
+        <CalendarReturnButton @click="emit('back')" placement="header" />
       </AppHeader>
       <AppCard :ref="bindPanel" class="nonogram-panel" aria-labelledby="nonogram-title">
         <div class="nonogram-dots" aria-hidden="true">
@@ -222,23 +224,24 @@ function backFromResult() {
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
           </section>
-          <AppButton class="nonogram-primary" type="button" :disabled="saving" @click="check">
-            {{ completed ? 'К календарю' : saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
+          <AppButton v-if="!completed" class="nonogram-primary" type="button" :disabled="saving" @click="check">
+            {{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
           </AppButton>
           <p v-if="completed" class="nonogram-feedback nonogram-success" role="status">Нонограм разгадан!</p>
           <p v-else-if="validation || saveError" class="nonogram-feedback nonogram-error" role="alert">
             {{ validation || saveError }}
           </p>
+          <CalendarReturnButton class="nonogram-return" :completed="completed" @click="emit('back')" />
         </template>
       </AppCard>
       <footer class="nonogram-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
 
     <PopupDialog ref="dialog" class="nonogram-popup" aria-labelledby="nonogram-result-title" aria-describedby="nonogram-result-copy">
       <AppButton class="nonogram-close" type="button" aria-label="Закрыть окно результата" @click="dialog?.close()">×</AppButton>
       <h2 id="nonogram-result-title">Нонограм разгадан!</h2>
       <p id="nonogram-result-copy">Поздравляем, кроссворд полностью разгадан! Обязательное задание выполнено.</p>
-      <AppButton class="nonogram-primary" type="button" @click="backFromResult">К календарю</AppButton>
+      <CalendarReturnButton class="nonogram-primary" @click="backFromResult" completed />
     </PopupDialog>
   </TaskLayout>
 </template>
@@ -465,4 +468,6 @@ button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; o
   .nonogram-panel { padding-inline: 32px; }
 }
 @media (min-width: 700px) { .nonogram-heading h1 { max-width: none; } }
+
+.nonogram-return { margin-top: 16px; }
 </style>

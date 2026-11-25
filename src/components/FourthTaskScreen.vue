@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import AdventPopup from './AdventPopup.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
@@ -63,7 +65,7 @@ const art = (url: string) => ({ '--surface-art': cssUrl(url) });
 let observer: ResizeObserver | undefined;
 let resizeFrame = 0;
 const pendingSizes = new Map<Element, { width: number; height: number }>();
-function readWord() { bulk.value = path.value.map(key => values.value[key] || '').join(''); lengthError.value = false; inserted.value = false; }
+function readWord() { bulk.value = path.value.every(key => values.value[key]) ? path.value.map(key => values.value[key]).join('') : ''; lengthError.value = false; inserted.value = false; }
 watch([storageKey, completed], () => {
   values.value = {}; started.value = false; checked.value = false; selected.value = 1;
   if (completed.value) { values.value = { ...crosswordSolution }; started.value = true; checked.value = true; }
@@ -152,8 +154,8 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 
 <template>
   <TaskLayout background-variant="night" class="crossword-page">
-    <div class="crossword-layout">
-      <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><AppButton class="calendar-back" @click="emit('back')">← К календарю</AppButton></AppHeader>
+    <TaskContainer class="crossword-layout">
+      <AppHeader class="crossword-header"><img decoding="async" :src="wordmark" alt="ГЕРОФАРМ" /><CalendarReturnButton class="calendar-back" @click="emit('back')" placement="header" /></AppHeader>
       <AppCard :ref="bindCard" class="crossword-card" :class="{ 'is-playing': started }" aria-labelledby="crossword-title">
         <div class="card-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="crossword-wreath" :src="wreath" alt="" />
@@ -219,9 +221,10 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <p v-if="saveError" class="result invalid" role="alert">{{ saveError }}</p>
           <p v-else-if="checked && !isCrosswordSolution(values)" class="result invalid" role="alert">Не все ответы совпали. Проверьте вопросы и пересечения слов — и попробуйте еще раз</p>
         </div>
+        <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
       </AppCard>
       <footer class="crossword-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup ref="resultPopup" title="Все слова на своих местах!" message="Кроссворд разгадан, обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
   </TaskLayout>
 </template>
@@ -229,12 +232,12 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 <style scoped>
 :global(#app:has(.crossword-page)) { width: 100%; border: 0; }
 .crossword-page { min-height: 100svh; width: 100%; overflow: clip; color-scheme: light; color: #70492c;  font: 400 14px/20px var(--font-ui); text-align: left; letter-spacing: 0; }
-.crossword-layout { box-sizing: border-box; max-width: 960px; margin-inline: auto; padding: 0 clamp(0px, calc((100vw - 313px) / 2), 16px) 39px; }
+.crossword-layout { box-sizing: border-box; max-width: 760px; margin-inline: auto; padding: 0 16px 39px; }
 .crossword-header { position: relative; height: 94px; box-sizing: border-box; padding-top: 34px; }
 .crossword-header > img { display: block; margin-inline: auto; }
 button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .calendar-back { display: flex; align-items: center; position: absolute; top: 48px; left: 0; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: #fff1cf; font-size: 12px; font-weight: 400; }
-.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px clamp(16px, calc((100vw - 345px) / 2), 24px) 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, var(--color-cream) 73.0769%, #efc087 100%); }
+.crossword-card { position: relative; isolation: isolate; box-sizing: border-box; padding: 29px 24px 28px; border-radius: 24px; background: linear-gradient(90deg, #e8b77e 0%, #ffe6bc 19.2308%, var(--color-cream) 73.0769%, #efc087 100%); }
 .crossword-card.is-playing { padding-bottom: 42px; }
 .card-dots { position: absolute; pointer-events: none; inset: 0; }
 .card-dots img { position: absolute; }
@@ -310,4 +313,8 @@ button:focus-visible, .grid-viewport:focus-visible { outline: 2px solid var(--co
 .success { color: #447047; }
 .crossword-footer { margin-top: 27px; color: #fff1cf; font-size: 12px; line-height: 15px; font-weight: 400; text-align: center; }
 @media (min-width: 768px) { .crossword-layout { padding-inline: 32px; } .crossword-card { padding-inline: 32px; } }
+
+.task-content-return { margin-top: 24px; }
+
+@media (max-width: 360px) { .crossword-layout { padding-inline: 12px; } .crossword-card { padding-inline: 18px; } }
 </style>

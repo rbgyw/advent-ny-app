@@ -219,19 +219,19 @@ test('warm gradient remains responsive while an optional font is pending', async
   font.release();
 });
 
-test('a completed task prepares its initial dialog before opening the modal', async ({ page }) => {
+test('a completed task waits for readiness before showing its full result screen', async ({ page }) => {
   await mockBackend(page, { completed: true });
   await page.route('**/rest/v1/task_responses?*', route => route.fulfill({ json: [{ id: 'response-20', task_id: 20, response: { result: 'wished' } }] }));
   const data = barrier(), requested = barrier();
   await page.route('**/rest/v1/rpc/is_admin', async route => { requested.release(); await data.wait; await route.fallback(); });
   await page.goto('/task/20', { waitUntil: 'domcontentloaded' });
   await requested.wait;
-  await expect(page.locator('dialog[data-screen-dialog-pending]')).toBeAttached();
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('.screen-loader')).toBeVisible();
   data.release();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.locator('.guiding-result')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('night boot loader fills non-iPhone aspect ratios without SVG side bars', async ({ page }) => {

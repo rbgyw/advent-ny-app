@@ -49,24 +49,22 @@ describe('Podzhik local progress', () => {
   });
 });
 
-describe('20 px circular hit area in the design image', () => {
-  const point = (x: number, y: number) => ({ x: x / 316, y: y / 419 });
-  it('uses the specified image coordinates and centers the character there', () => {
-    expect(podzhikTarget).toEqual({ x: 153, y: 65, radius: 20, width: 316, height: 419 });
-    expect(isSearchHit(point(153, 65), podzhikTarget)).toBe(true);
-    expect((podzhikBounds.left + podzhikBounds.right) / 2).toBeCloseTo(153 / 316);
-    expect((podzhikBounds.top + podzhikBounds.bottom) / 2).toBeCloseTo(65 / 419);
+describe('30 px circular hit area in the 4096 × 3102 panorama', () => {
+  const point = (x: number, y: number) => ({ x: x / 4096, y: y / 3102 });
+  it('uses the supplied distance from the bottom and centers the character there', () => {
+    expect(podzhikTarget).toEqual({ x: 1200, y: 2640, radius: 30, width: 4096, height: 3102 });
+    expect(isSearchHit(point(1200, 2640), podzhikTarget)).toBe(true);
+    expect((podzhikBounds.left + podzhikBounds.right) / 2).toBeCloseTo(1200 / 4096);
+    expect((podzhikBounds.top + podzhikBounds.bottom) / 2).toBeCloseTo(1 - 462 / 3102);
   });
-  it.each([[173, 65], [133, 65], [153, 85], [153, 45], [165, 81]])('accepts the radius boundary at (%s, %s)', (x, y) => {
+  it.each([[1230, 2640], [1170, 2640], [1200, 2670], [1200, 2610], [1218, 2664]])('accepts the radius boundary at (%s, %s)', (x, y) => {
     expect(isSearchHit(point(x, y), podzhikTarget)).toBe(true);
   });
-  it.each([[173.01, 65], [153, 85.01], [168, 80], [192, 511]])('rejects points outside the circle at (%s, %s)', (x, y) => {
+  it.each([[1230.01, 2640], [1200, 2670.01], [1222, 2662], [192, 511]])('rejects points outside the circle at (%s, %s)', (x, y) => {
     expect(isSearchHit(point(x, y), podzhikTarget)).toBe(false);
   });
-  it.each([0.75, 1, 1.5, 2, 3])('keeps the same acceptance area at display scale %s', scale => {
-    const renderedWidth = 316 * scale;
-    const renderedHeight = 419 * scale;
-    const selected = { x: (163 * scale) / renderedWidth, y: (75 * scale) / renderedHeight };
+  it.each([0.075, .25, 0.75, 1, 1.5, 2, 3, 6])('keeps the same acceptance area at display scale %s', scale => {
+    const selected = { x: (1210 * scale) / (4096 * scale), y: (2650 * scale) / (3102 * scale) };
     expect(isSearchHit(selected, podzhikTarget)).toBe(true);
   });
   it('rejects distant clicks and invalid coordinates', () => {

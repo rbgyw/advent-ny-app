@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
-import PopupDialog from './PopupDialog.vue';
 import TaskAttachments from './TaskAttachments.vue';
 import officeMeeting from '../assets/dec-17/1.png';
 import officePortrait from '../assets/dec-17/2.png';
@@ -25,16 +24,11 @@ const index = ref(-1);
 const files = ref<readonly TaskAttachment[]>([]);
 const attachmentBusy = ref(false);
 const invalid = ref(false);
-const sent = ref(false);
 const response = computed(() => props.assignment?.response?.response);
 const completed = computed(() => props.assignment?.status === 'completed');
 const pending = computed(() => response.value?.submitted_for_review === true);
 const reference = computed(() => references[index.value]);
 const busy = computed(() => props.saving || attachmentBusy.value);
-
-watch(pending, (now, before) => {
-  if (now && before === false) sent.value = true;
-});
 
 function chooseFrame() {
   index.value = (index.value + 1) % references.length;
@@ -59,8 +53,8 @@ function submit() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" mandatory @back="emit('back')" @retry="emit('retry')">
-    <div class="december-copy">
+  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" :finished="completed || pending" mandatory @back="emit('back')" @retry="emit('retry')">
+    <div v-if="!completed && !pending" class="december-copy">
             <p>В середине декабря список рабочих задач и домашних дел обычно растет быстрее, чем сокращается. За отчетами, встречами и подготовкой к праздникам не всегда найдется время на фотографии с коллегами. Сегодня это можно исправить!</p>
             <p>Нажмите «Сделать фото», соберите желающих и повторите предложенный кадр: позу, выражение лица или композицию. Не подходит референс? Нажмите «Другой кадр», появится новое фото.</p>
             <p>Если фотографировались вместе с коллегами, каждый участник снимка может загрузить его в свою форму — общее фото зачтется каждому, кто его отправит.</p>
@@ -69,7 +63,7 @@ function submit() {
     <div v-if="completed || pending" class="december-stack photo-form">
       <h2>{{ completed ? 'Задание выполнено' : 'Фото отправлено!' }}</h2>
       <p v-if="!completed" role="status">После проверки результат появится в вашем прогрессе.</p>
-      <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+
     </div>
     <div v-else-if="!reference" class="photo-form">
       <button class="december-button" type="button" @click="chooseFrame">Сделать фото</button>
@@ -84,14 +78,7 @@ function submit() {
       <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Прикрепите готовую фотографию.' : saveError }}</p>
       <button class="december-button" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить' }}</button>
     </form>
-    <PopupDialog v-model:open="sent" class="december-dialog" aria-labelledby="photo-sent-title">
-      <div class="december-stack">
-        <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="sent = false">×</button>
-        <h2 id="photo-sent-title">Фото отправлено!</h2>
-        <p>После проверки результат появится в вашем прогрессе.</p>
-        <button class="december-button" type="button" @click="emit('back')">К календарю</button>
-      </div>
-    </PopupDialog>
+
   </DecemberTaskLayout>
 </template>
 

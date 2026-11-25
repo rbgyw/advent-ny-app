@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
-import TaskDateLabel from './ui/TaskDateLabel.vue';
-import PopupDialog from './PopupDialog.vue';
 import type { DecemberTaskEvents, DecemberTaskProps } from '../types/december';
 import { guidingSky, guidingStars, guidingStarOverlay, guidingStarExhaustedText, guidingStarFoundText, guidingStarHints, guidingStarWishText } from '../content/guiding-star';
 import { chooseGuidingStar, createGuidingStarProgress, guidingStarPhase, restoreGuidingStarProgress, serializeGuidingStarProgress, type GuidingStarResult } from '../utils/guiding-star';
@@ -17,7 +15,6 @@ const skyScale = ref(1);
 const loadedAssets = ref(new Set<string>());
 const assetError = ref(false);
 const assetRetry = ref(0);
-const popupOpen = ref(false);
 const animatedStar = ref<string | null>(null);
 const storageWarning = ref(false);
 const awaitingSave = ref(false);
@@ -58,7 +55,6 @@ function saveCompletion() {
 }
 
 watch(storageKey, key => {
-  popupOpen.value = false;
   animatedStar.value = null;
   pendingResult.value = null;
   awaitingSave.value = false;
@@ -76,21 +72,15 @@ watch([serverResult, ready, storageKey], ([result, isReady]) => {
   clearStoredSearch();
   pendingResult.value = null;
   awaitingSave.value = false;
-  popupOpen.value = true;
 }, { immediate: true });
 watch([() => props.saving, () => props.saveError], ([saving, error]) => {
   if (!saving || error) awaitingSave.value = false;
 });
-watch([phase, ready, storageKey], ([current, isReady], _, onCleanup) => {
-  if (!isReady || current === 'searching') { popupOpen.value = false; return; }
-  if (serverResult.value) { popupOpen.value = true; return; }
-  if (current === 'exhausted') {
+watch([phase, ready, storageKey], ([current, isReady]) => {
+  if (isReady && current === 'exhausted' && !serverResult.value) {
     pendingResult.value = 'exhausted';
     saveCompletion();
   }
-  // Let the selected star twinkle before showing the result.
-  const timeout = window.setTimeout(() => { popupOpen.value = true; }, current === 'wished' ? 0 : 420);
-  onCleanup(() => window.clearTimeout(timeout));
 }, { immediate: true });
 watch(animatedStar, (id, _, onCleanup) => {
   if (!id) return;
@@ -129,14 +119,13 @@ function confirmWish() {
   pendingResult.value = 'wished';
   saveCompletion();
 }
-function onDialogClose() { if (serverResult.value) emit('back'); }
 function markLoaded(id: string) { loadedAssets.value.add(id); }
 function retryAssets() { loadedAssets.value = new Set(); assetError.value = false; assetRetry.value++; }
 function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${assetRetry.value}` : src; }
 </script>
 
 <template>
-  <DecemberTaskLayout v-if="!serverResult || !ready" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
+  <DecemberTaskLayout v-if="phase === 'searching' || !ready" :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
     title="Путеводная звезда" @back="emit('back')" @retry="emit('retry')">
     <p class="guiding-poem"><em>Звезд на небе тьма.<br />Но попробуй отыскать<br />ту, что светит вам.</em></p>
     <div class="december-copy">
@@ -170,25 +159,23 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
         <button class="december-button secondary" type="button" @click="retryAssets">Загрузить небо</button>
       </div>
       <p v-if="phase === 'searching'" class="guiding-message" role="status">{{ feedback || 'Ваша звезда уже здесь. Найдите её!' }}</p>
-      <button v-else class="december-link guiding-message" type="button" @click="popupOpen = true">Открыть результат</button>
       <p v-if="storageWarning" class="guiding-message" role="status">Браузер не разрешил сохранить поиск. Не закрывайте страницу до завершения.</p>
     </section>
   </DecemberTaskLayout>
-  <main v-else class="december-page guiding-completed" aria-label="Результат задания" />
-  <PopupDialog v-model:open="popupOpen" class="december-dialog guiding-dialog" aria-labelledby="guiding-result-title" @close="onDialogClose">
-    <button class="december-dialog-close" type="button" aria-label="Закрыть окно" @click="popupOpen = false">×</button>
-    <div class="guiding-dialog-star" aria-hidden="true">✦</div>
-    <TaskDateLabel v-if="serverResult" class="guiding-date" :available-date="assignment?.available_date" :day="day" />
-    <h2 id="guiding-result-title">{{ phase === 'exhausted' ? 'Поиски завершены' : phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
-    <p>{{ phase === 'exhausted' ? guidingStarExhaustedText : phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
-    <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
-    <div v-if="saveError && pendingResult && !serverResult" class="guiding-message december-stack" role="alert">
-      <p>{{ saveError }}</p>
-      <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
-    </div>
-    <button v-if="phase === 'found'" class="december-button" type="button" :disabled="saving || awaitingSave" @click="confirmWish">Загадать желание</button>
-    <button v-else class="december-button" type="button" :disabled="saving || awaitingSave" @click="emit('back')">К календарю</button>
-  </PopupDialog>
+  <DecemberTaskLayout v-else :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
+    title="" result @back="emit('back')" @retry="emit('retry')">
+    <section class="guiding-result" aria-labelledby="guiding-result-title" role="status">
+      <div class="guiding-dialog-star" aria-hidden="true">✦</div>
+      <h2 id="guiding-result-title">{{ phase === 'exhausted' ? 'Поиски завершены' : phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
+      <p>{{ phase === 'exhausted' ? guidingStarExhaustedText : phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
+      <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
+      <div v-if="saveError && pendingResult && !serverResult" class="guiding-message december-stack" role="alert">
+        <p>{{ saveError }}</p>
+        <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
+      </div>
+      <button v-if="phase === 'found'" class="december-button guiding-confirm" type="button" :disabled="saving || awaitingSave" @click="confirmWish">Загадать желание</button>
+    </section>
+  </DecemberTaskLayout>
 </template>
 
 <style scoped>
@@ -209,16 +196,15 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 .guiding-star:hover:not(:disabled) .guiding-star-art { filter: drop-shadow(0 0 5px #ffe3a7); }
 .guiding-star:focus-visible { outline: 2px solid #ffe3a7; outline-offset: 1px; }
 .guiding-message { margin-top: 14px; font-size: 13px; line-height: 19px; }
-.guiding-date { color: #a7280b; font-size: 12px; line-height: 15px; font-weight: 700; }
-.guiding-dialog { --dec-red: #a7280b; --dec-paper: #fcf6e8; color: #623c28; font: 400 14px/20px 'Advent Inter', sans-serif; color-scheme: light; text-align: left; letter-spacing: 0; width: min(345px, calc(100% - 32px)); padding: 24px; border: 0; background: #fff5e3; overflow-y: auto; }
 .guiding-dialog-star { margin: 3px 0 18px; color: #c69b3c; font-size: 44px; line-height: 53px; text-align: center; }
-.guiding-dialog h2 { margin: 0; padding: 0; color: #623c28; font: 500 28px/30px 'Advent STIX', serif; }
-.guiding-dialog > p { margin-top: 24px; color: #836045; font: 400 14px/20px 'Advent Inter', sans-serif; }
-.guiding-dialog > .december-button { margin-top: 24px; }
 @keyframes guiding-star-twinkle {
   0%, 100% { transform: scale(1); }
   45% { transform: scale(1.35) rotate(12deg); filter: drop-shadow(0 0 10px #ffe3a7); }
 }
 @media (prefers-reduced-motion: reduce) { .guiding-star.is-twinkling .guiding-star-art { animation: none; } }
 @media (min-width: 700px) { .guiding-sky { max-width: min(480px, calc((100svh - 96px) * 313 / 557)); } :deep(h1) { max-width: none; } }
+
+.guiding-result > p { margin-top: 24px; }
+.guiding-confirm { margin-top: 24px; }
+.guiding-result h2 { font-size: 28px; line-height: 32px; }
 </style>

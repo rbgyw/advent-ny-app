@@ -35,10 +35,11 @@ function submit() {
 
 <template>
   <DecemberTaskLayout v-bind="props" :title="completed ? 'Ваше напутствие на 2027 год' : 'Найдите свое предсказание на Новый год'" @back="emit('back')" @retry="emit('retry')">
+    <template v-if="!completed" #title><span class="word-heading-line">Найдите свое предсказание</span> <span class="word-heading-line">на Новый год</span></template>
     <section v-if="completed" ref="result" class="december-panel word-result december-stack" tabindex="-1" aria-label="Напутствие">
       <strong v-if="prediction">{{ savedWord }}</strong>
       <p>{{ prediction ?? 'Напутствие не удалось восстановить.' }}</p>
-      <button class="december-button" type="button" @click="emit('back')">К календарю</button>
+
     </section>
     <template v-else>
       <div class="december-copy">
@@ -79,7 +80,8 @@ function submit() {
 </template>
 
 <style scoped>
-:deep(h1) { max-width: 225px; }
+:deep(h1) { max-width: none; font-size: clamp(20px, 5.5vw, 28px); line-height: 1.15; }
+.word-heading-line { display: block; white-space: nowrap; }
 .word-panel, .word-result { margin-top: 24px; }
 .word-panel { padding: 10px; font-size: 12px; }
 .word-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
@@ -93,5 +95,5 @@ function submit() {
 .word-scroll { max-height: 65svh; overflow: auto; }
 .word-scroll .word-grid { width: 648px; }
 .word-scroll .word-grid > span { font-size: 20px; }
-@media (min-width: 700px) { :deep(.december-layout) { max-width: 960px; } :deep(h1) { max-width: none; font-size: clamp(22px, 2.1vw, 28px); white-space: nowrap; } }
+@media (min-width: 768px) { .word-heading-line { display: inline; } }
 </style>

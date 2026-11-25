@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import TaskContainer from './ui/TaskContainer.vue';
+import CalendarReturnButton from './ui/CalendarReturnButton.vue';
 import AdventPopup from './AdventPopup.vue';
+import PopupDialog from './PopupDialog.vue';
 import TaskDateLabel from './ui/TaskDateLabel.vue';
 import FeedbackState from './ui/FeedbackState.vue';
 import { useElementRef } from '../composables/useElementRef';
@@ -27,6 +30,7 @@ const props = defineProps<{ assignment?: CalendarTask; day: number; total?: numb
 const emit = defineEmits<{ back: []; retry: []; submit: [letters: string[]]; edit: [] }>();
 const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const imageFailed = ref(false);
+const imageExpanded = ref(false);
 function retryImage() { window.location.reload(); }
 const letters = ref<string[]>(STEREOGRAM_LETTERS.map(() => ''));
 const incorrect = ref(false), inputRefs = ref<HTMLInputElement[]>([]);
@@ -96,13 +100,13 @@ onBeforeUnmount(() => observer?.disconnect());
 
 <template>
   <TaskLayout background-variant="night" class="stereo-page">
-    <div class="stereo-layout">
+    <TaskContainer class="stereo-layout">
       <AppHeader variant="task" class="stereo-header" :wordmark="wordmark" @back="emit('back')" />
       <AppCard :ref="bindPanel" class="stereo-panel" :class="{ 'has-error': incorrect || saveError, 'is-complete': completed }" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="stereo-title">
         <div class="stereo-dots" aria-hidden="true"><img decoding="async" v-for="(point, index) in borderDots" :key="index" :src="dot" :style="point" alt="" /></div>
         <img decoding="async" class="stereo-wreath" :src="wreath" alt="" />
         <TaskDateLabel class="stereo-date" :available-date="assignment?.available_date" :day="day" />
-        <h1 id="stereo-title">Что скрывается <br class="stereo-heading-break" />за узором?</h1>
+        <h1 id="stereo-title">Что скрывается за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="stereo-notice"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
@@ -116,6 +120,7 @@ onBeforeUnmount(() => observer?.disconnect());
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора.</li><li>Если изображение не появилось, немного приблизьте или отодвиньте картинку и попробуйте снова.</li></ol>
           </section>
           <img class="stereo-photo" :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" @error="imageFailed = true" />
+          <AppButton v-if="!imageFailed" class="stereo-enlarge" type="button" @click="imageExpanded = true">Открыть на весь экран ↗</AppButton>
           <FeedbackState v-if="imageFailed" kind="error">Не удалось загрузить изображение задания.</FeedbackState>
           <AppButton v-if="imageFailed" type="button" @click="retryImage">Попробовать снова</AppButton>
           <form class="stereo-form" @submit.prevent="submit">
@@ -130,12 +135,16 @@ onBeforeUnmount(() => observer?.disconnect());
             <AppButton :loading="saving" class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
             <p v-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
           </form>
-          <AppButton v-if="completed" class="stereo-calendar" type="button" @click="emit('back')">К календарю</AppButton>
+          <CalendarReturnButton class="stereo-calendar" @click="emit('back')" :completed="completed" />
         </template>
       </AppCard>
       <footer class="stereo-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
-    </div>
+    </TaskContainer>
     <AdventPopup ref="resultPopup" title="Изображение раскрыто!" message="Вы увидели, что скрывалось за узором. Обязательное задание выполнено" button-text="К календарю" @action="emit('back')" />
+    <PopupDialog v-model:open="imageExpanded" class="stereo-fullscreen" aria-label="Стереокартинка на весь экран">
+      <button class="stereo-fullscreen-close" type="button" aria-label="Закрыть стереокартинку" @click="imageExpanded = false">×</button>
+      <img :src="stereogram" width="314" height="201" alt="Стереокартинка с повторяющимся разноцветным узором" />
+    </PopupDialog>
   </TaskLayout>
 </template>
 
@@ -153,7 +162,7 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .stereo-dots img { position: absolute; }
 .stereo-wreath { position: absolute; right: 25.46px; top: 24.93px; }
 .stereo-date { margin: 0 0 14px; color: var(--color-action); font-size: 12px; line-height: 15px; font-weight: 700; }
-.stereo-panel h1 { margin: 0; color: var(--color-ink); font: 500 28px/30px var(--font-display); letter-spacing: 0; }
+.stereo-panel h1 { margin: 0; color: var(--color-ink); font: 500 clamp(18px, 4.6vw, 28px)/1.2 var(--font-display); letter-spacing: 0; white-space: nowrap; }
 .stereo-badge { display: flex; align-items: center; justify-content: center; width: 140px; height: 25px; margin-top: 11px; font-size: 11px; line-height: 13px; }
 .stereo-badge span, .stereo-check span { color: transparent; background-clip: text; background-image: linear-gradient(77.653deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
 .stereo-copy { margin: 23px 0 0 4px; min-height: 125px; }
@@ -187,7 +196,11 @@ legend { padding: 0; font-size: 14px; line-height: 17px; font-weight: 700; }
 .stereo-panel.has-error:not(.is-complete) + .stereo-footer { margin-top: 23px; }
 .stereo-notice { min-height: 140px; margin-top: 24px; }
 button:focus-visible { outline: 2px solid var(--color-action); outline-offset: 2px; }
-@media (max-width: 360px) { .stereo-layout { padding-inline: 12px; } .stereo-panel { padding-inline: 18px; } .stereo-cells { gap: 4px; } .stereo-panel h1 { font-size: 26px; } .stereo-wreath { right: 19px; } .stereo-instructions { padding-inline: 12px; } .stereo-instructions h2 { font-size: 18px; } }
-@media (min-width: 768px) { .stereo-layout { padding-inline: 32px; } .stereo-panel { padding-inline: 32px; } .stereo-photo { height: auto; min-height: 240px; aspect-ratio: 313 / 200; } }
-@media (min-width: 700px) { .stereo-heading-break { display: none; } }
+@media (max-width: 360px) { .stereo-layout { padding-inline: 12px; } .stereo-panel { padding-inline: 18px; } .stereo-cells { gap: 4px; } .stereo-wreath { right: 19px; } .stereo-instructions { padding-inline: 12px; } .stereo-instructions h2 { font-size: 18px; } }
+@media (min-width: 768px) { .stereo-layout { padding-inline: 32px; } .stereo-panel { padding-inline: 32px; } }
+.stereo-enlarge { display: block; margin: 12px auto 0; min-height: 44px; padding: 8px; border: 0; background: transparent; color: #a7280b; font: inherit; }
+.stereo-fullscreen { box-sizing: border-box; position: fixed; inset: 0; width: 100vw; max-width: none; height: 100svh; max-height: none; margin: 0; padding: 64px 16px 24px; border: 0; background: #fff5e3; overflow: auto; }
+.stereo-fullscreen[open] { display: grid; place-items: center; }
+.stereo-fullscreen img { display: block; width: min(100%, 1200px, calc((100svh - 88px) * 314 / 201)); height: auto; object-fit: contain; }
+.stereo-fullscreen-close { position: absolute; top: 8px; right: 12px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fcf6e8; color: #a7280b; font-size: 28px; }
 </style>

@@ -98,7 +98,7 @@ function pairStyle(place: number) {
       <p v-if="checked && !completed && !links.every((value, index) => value === solution[index])" class="december-error" role="alert">Некоторые волшебники заблудились. Проверьте пары и попробуйте еще раз.</p>
       <p v-if="saveError" class="december-error" role="alert">{{ saveError }}</p>
       <p v-if="completed" role="status">Все волшебники нашли дорогу домой! Теперь вы знаете, кого ждут на Новый год в разных уголках мира.</p>
-      <button v-if="completed" class="december-button" type="button" @click="emit('back')">К календарю</button>
+
       <button v-else class="december-button" type="button" :disabled="saving || totalPairs < places.length" @click="check">Проверить пары</button>
     </section>
   </DecemberTaskLayout>
