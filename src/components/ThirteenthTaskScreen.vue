@@ -59,11 +59,11 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
       <AppCard class="wish-panel" :class="`wish-${stage}`" :style="{ '--panel-art': cssUrl(panelArt) }" aria-labelledby="wish-title">
         <TaskDateLabel class="wish-date" :available-date="assignment?.available_date" :day="day" />
         <LoadingState v-if="loading" class="wish-notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="wish-notice"><p>{{ error }}</p><AppButton class="wish-button" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
+        <FeedbackState v-else-if="error" kind="error" class="wish-notice"><p>{{ error }}</p><AppButton class="wish-button task-action" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="wish-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="wish-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
-          <h1 id="wish-title" ref="heading" tabindex="-1"><template v-if="stage === 'intro'">А снег идет, а снег идет…</template><template v-else-if="stage === 'wishing'">Загадайте желание</template><template v-else>Пусть желание<br />сбудется!</template></h1>
+          <h1 id="wish-title" ref="heading" tabindex="-1"><template v-if="stage === 'intro'">А снег идет, а снег идет…</template><template v-else-if="stage === 'wishing'">Загадайте желание</template><template v-else>Пусть желание <br class="wish-result-break" />сбудется!</template></h1>
           <WishGlobe v-if="stage !== 'accepted'" class="wish-illustration" />
           <div v-if="stage === 'intro'" class="wish-copy">
             <p>В Новый год принято загадывать желание на снежинке. Погода в регионах переменчива, и не всегда это возможно. Но в нашем новогоднем адвенте свои правила — мы гарантируем волшебный снегопад каждому сотруднику ГЕРОФАРМ.</p>
@@ -71,14 +71,12 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
           </div>
           <div v-else-if="stage === 'wishing'" class="wish-copy" role="status"><p>Пока снежинки не растаяли, загадайте желание. Произнесите его про себя — записывать ничего не нужно.</p></div>
           <div v-else class="wish-copy" role="status"><p>Пусть задуманное сбудется!</p></div>
-          <p v-if="stage === 'accepted'" class="wish-note">Сохраните это настроение с собой</p>
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
           <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" :src="music" />
-          <AppButton v-if="stage === 'intro'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Запустить снегопад</span></AppButton>
-          <AppButton v-else-if="stage === 'wishing'" class="wish-button" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
+          <AppButton v-if="stage === 'intro'" class="wish-button task-action" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Запустить снегопад</span></AppButton>
+          <AppButton v-else-if="stage === 'wishing'" class="wish-button task-action" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" :disabled="saving" @click="confirmWish"><span>{{ saving ? 'Принимаем желание…' : 'Желание загадано' }}</span></AppButton>
           <CalendarReturnButton v-else class="wish-button" @click="emit('back')" :completed="completed" />
           <CalendarReturnButton v-if="stage !== 'accepted'" class="task-content-return" @click="emit('back')" />
-          <p v-if="stage !== 'accepted'" class="wish-note">{{ stage === 'intro' ? 'Маленький момент — только для вас' : 'Ваше желание останется только вашим' }}</p>
         </template>
       </AppCard>
       <footer class="wish-footer">{{ day }} / {{ total || 25 }} · Новогодний адвент</footer>
@@ -131,6 +129,7 @@ button:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px;
 @media (prefers-reduced-motion: reduce) { .wish-flake { top: var(--rest-y); animation: none; } }
 @media (max-width: 360px) { .wish-layout { padding-inline: 12px; } .wish-panel { padding-inline: 18px; } .wish-panel h1 { font-size: 26px; } }
 @media (min-width: 768px) { .wish-layout { padding-inline: 32px; } .wish-panel { padding-inline: 32px; } }
+@media (min-width: 768px) { .wish-result-break { display: none; } }
 
 .task-content-return { margin-top: 16px; }
 

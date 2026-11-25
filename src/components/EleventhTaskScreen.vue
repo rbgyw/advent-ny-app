@@ -109,7 +109,7 @@ onBeforeUnmount(() => observer?.disconnect());
         <h1 id="stereo-title">Что скрывается за узором?</h1>
         <p class="stereo-badge" :style="{ backgroundImage: cssUrl(badge) }"><span>Обязательное задание</span></p>
         <LoadingState v-if="loading" class="stereo-notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="stereo-notice"><p>{{ error }}</p><AppButton class="stereo-check" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
+        <FeedbackState v-else-if="error" kind="error" class="stereo-notice"><p>{{ error }}</p><AppButton class="stereo-check task-action" @click="emit('retry')">Попробовать снова</AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="stereo-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -132,7 +132,7 @@ onBeforeUnmount(() => observer?.disconnect());
                 </div>
               </div>
             </fieldset>
-            <AppButton :loading="saving" class="stereo-check" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
+            <AppButton :loading="saving" class="stereo-check task-action" :style="{ backgroundImage: cssUrl(button) }" type="submit" :disabled="locked"><span>{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</span></AppButton>
             <p v-if="saveError || incorrect" id="stereo-feedback" class="stereo-feedback stereo-error stereo-surface" :style="{ '--surface-art': cssUrl(errorArt) }" role="alert">{{ saveError || 'Пока не совпало. Расслабьте взгляд и попробуйте еще раз' }}</p>
           </form>
           <CalendarReturnButton class="stereo-calendar" @click="emit('back')" :completed="completed" />

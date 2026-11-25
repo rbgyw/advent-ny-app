@@ -102,7 +102,7 @@ test('completion popups fit a narrow phone and a short landscape viewport', asyn
 });
 
 for (const width of [393, 1440]) {
-  test(`new Podzhik panorama checks the supplied location after zooming at ${width}px`, async ({ page }) => {
+  test(`new Podzhik panorama checks the built-in character after zooming at ${width}px`, async ({ page }) => {
     const backend = await mockBackend(page);
     await page.setViewportSize({ width, height: 852 });
     await page.goto('/task/19');
@@ -112,13 +112,17 @@ for (const width of [393, 1440]) {
     expect(await scene.evaluate((img: HTMLImageElement) => img.naturalWidth / img.naturalHeight)).toBeCloseTo(4096 / 3102, 3);
     for (let step = 0; step < 10; step++) await page.getByRole('button', { name: 'Увеличить изображение', exact: true }).click();
     await expect(page.locator('.search-zoom output')).toHaveText('600%');
-    const target = page.locator('.search-target');
-    const imageRect = (await scene.boundingBox())!, targetRect = (await target.boundingBox())!;
-    expect((targetRect.x + targetRect.width / 2 - imageRect.x) / imageRect.width).toBeCloseTo(1200 / 4096, 3);
-    expect((targetRect.y + targetRect.height / 2 - imageRect.y) / imageRect.height).toBeCloseTo(1 - 462 / 3102, 3);
-    await target.scrollIntoViewIfNeeded();
-    const hitRect = (await target.boundingBox())!;
-    await page.mouse.click(hitRect.x + hitRect.width / 2, hitRect.y + hitRect.height / 2);
+    await expect(page.locator('.search-target')).toHaveCount(0);
+    // Click the built-in character's head, measured from the review screenshot,
+    // independently of the app's target coordinates.
+    const point = width === 393 ? { x: 1850 / 2617, y: 1655 / 1982 } : { x: 1849 / 2617, y: 1712 / 1982 };
+    await page.locator('.search-viewport').evaluate((el, point) => {
+      el.scrollLeft = point.x * el.scrollWidth - el.clientWidth / 2;
+      el.scrollTop = point.y * el.scrollHeight - el.clientHeight / 2;
+    }, point);
+    await page.locator('.search-viewport').scrollIntoViewIfNeeded();
+    const imageRect = (await scene.boundingBox())!;
+    await page.mouse.click(imageRect.x + point.x * imageRect.width, imageRect.y + point.y * imageRect.height);
     await page.getByRole('button', { name: 'Проверить выбор', exact: true }).click();
     await expect(page.locator('#podzhik-result-title')).toBeVisible();
     await expect(page.getByRole('dialog')).toHaveCount(0);

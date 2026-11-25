@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CalendarReturnButton from './ui/CalendarReturnButton.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import AppButton from './ui/AppButton.vue';
 import PopupDialog from './PopupDialog.vue';
@@ -51,6 +51,7 @@ const suspect = ref('');
 const dialog = ref(false);
 const success = ref(false);
 const invalid = ref(false);
+const boardHeading = ref<HTMLHeadingElement>();
 const completed = computed(() => props.assignment?.status === 'completed');
 const placed = computed(() => new Map(people.flatMap(person => {
   const cell = completed.value ? positions.value[person.id as MurdokuPerson] ?? person.cell : positions.value[person.id as MurdokuPerson];
@@ -78,6 +79,12 @@ function selectPerson(id: string) {
   if (completed.value || props.saving) return;
   selected.value = selected.value === id ? undefined : id as MurdokuPerson;
   crossMode.value = false;
+}
+async function startInvestigation() {
+  started.value = true;
+  await nextTick();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  boardHeading.value?.focus({ preventScroll: true });
 }
 function markCell(cell: number) {
   if (completed.value || props.saving) return;
@@ -119,11 +126,11 @@ function check() {
         <ol class="factory-rules"><li v-for="rule in rules" :key="rule">{{ rule }}</li></ol>
       </section>
       <p>Когда все персонажи окажутся на своих местах, найдите Филиппа — свидетеля происшествия. В одной зоне с ним находится только один другой человек. Именно он и подменил образцы!</p>
-      <button class="december-button" type="button" @click="started = true">Начать расследование</button>
+      <button class="december-button task-action" type="button" @click="startInvestigation">Начать расследование</button>
     </div>
     <div v-else class="december-stack">
       <div>
-        <h2>Схема завода</h2>
+        <h2 ref="boardHeading" tabindex="-1" class="factory-board-heading">Схема завода</h2>
         <div class="factory-toolbar">
           <button class="december-link" type="button" @click="started = false">← К описанию и правилам</button>
           <AppButton v-if="!completed" class="factory-cross-toggle" :variant="crossMode ? 'primary' : 'outline'" type="button"
@@ -162,7 +169,7 @@ function check() {
       </div>
       <p v-if="selected" role="status">Выберите клетку для персонажа.</p>
       <template v-if="!completed">
-        <button class="december-button" type="button" :disabled="saving" @click="dialog = true; invalid = false; emit('edit')">Проверить версию</button>
+        <button class="december-button task-action" type="button" :disabled="saving" @click="dialog = true; invalid = false; emit('edit')">Проверить версию</button>
         <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Кажется, мы что-то упустили. Проверьте подсказки и расположение персонажей — и попробуйте снова.' : saveError }}</p>
       </template>
       <div v-else class="december-panel"><strong>Дело раскрыто!</strong> Вы нашли виновника подмены образцов.</div>
@@ -173,8 +180,8 @@ function check() {
         <div class="factory-answers">
           <label v-for="person in people" :key="person.id"><input v-model="suspect" type="radio" name="suspect" :value="person.id" /> {{ person.name }}</label>
         </div>
-        <button class="december-button" :disabled="!suspect || saving">Проверить ответ</button>
-        <button class="december-button secondary" type="button" @click="dialog = false">Вернуться к полю</button>
+        <button class="december-button task-action" :disabled="!suspect || saving">Проверить ответ</button>
+        <button class="december-button secondary task-action" type="button" @click="dialog = false">Вернуться к полю</button>
       </form>
     </PopupDialog>
     <PopupDialog v-model:open="success" class="december-dialog" aria-labelledby="factory-success-title">
@@ -189,6 +196,7 @@ function check() {
 </template>
 
 <style scoped>
+.factory-board-heading:focus { outline: none; }
 .factory-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
 .factory-cross-toggle { margin-inline-start: auto; font-size: 12px; }
 .factory-rules { display: grid; gap: 12px; margin: 12px 0 0; padding-left: 23px; }

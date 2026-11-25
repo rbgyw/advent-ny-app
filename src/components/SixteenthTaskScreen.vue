@@ -79,7 +79,7 @@ function send() {
       </label>
       <p v-if="letterError" class="december-error" role="alert">Напишите письмо перед отправкой.</p>
       <p v-if="saveError" class="december-error" role="alert">{{ saveError }}</p>
-      <button class="december-button" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
+      <button class="december-button task-action" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
     </form>
     <PopupDialog v-model:open="success" class="december-dialog" aria-labelledby="future-success-title">
       <div class="december-stack">

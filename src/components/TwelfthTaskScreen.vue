@@ -72,7 +72,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
         <TaskDateLabel class="film-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="film-title">Новый год начинается<br />с любимого кино</h1>
         <LoadingState v-if="loading" class="film-notice" role="status" />
-        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button" @click="emit('retry')">Попробовать снова</AppButton></div>
+        <div v-else-if="error" class="film-notice" role="alert"><p>{{ error }}</p><AppButton class="film-button task-action" @click="emit('retry')">Попробовать снова</AppButton></div>
         <p v-else-if="!assignment" class="film-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="film-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -94,7 +94,7 @@ onBeforeUnmount(() => { observer?.disconnect(); closePopup(); });
             </div>
             <p v-if="validation || saveError" id="film-feedback" class="film-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" id="film-feedback" class="film-error" role="status">Приём рекомендаций завершён 17 декабря.</p>
-            <AppButton class="film-button film-submit" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
+            <AppButton class="film-button film-submit task-action" :style="{ backgroundImage: cssUrl(buttonArt) }" type="submit" :disabled="saving || (closed && !completed)"><span>{{ saving ? 'Сохраняем…' : 'Посоветовать фильм' }}</span></AppButton>
           </form>
         </template>
         <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />

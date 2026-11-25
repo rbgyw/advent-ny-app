@@ -54,7 +54,7 @@ function cssUrl(url: string) {
         <div v-else-if="error" class="first-task-notice">
           <p role="alert">{{ error }}</p>
           <AppButton
-            class="first-task-button first-task-primary"
+            class="first-task-button first-task-primary task-action"
             type="button"
             @click="emit('retry')"
           >
@@ -105,7 +105,7 @@ function cssUrl(url: string) {
                 :href="pack.href"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="first-task-button"
+                class="first-task-button task-action"
                 :class="
                   pack.primary ? 'first-task-primary' : 'first-task-secondary'
                 "
@@ -114,7 +114,7 @@ function cssUrl(url: string) {
               <AppButton
                 v-else
                 type="button"
-                class="first-task-button"
+                class="first-task-button task-action"
                 :class="
                   pack.primary ? 'first-task-primary' : 'first-task-secondary'
                 "

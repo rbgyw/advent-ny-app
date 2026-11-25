@@ -55,10 +55,14 @@ export function remainingSearchSeconds(progress: SearchProgress, now = Date.now(
 
 // Convert a normalized selection to the design image's pixels, so the circular
 // acceptance area follows the image at every viewport size and zoom level.
-export function isSearchHit(point: SearchPoint, target: SearchCircle): boolean {
+export function isSearchHit(point: SearchPoint, target: SearchCircle, bounds?: SearchBounds): boolean {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y) ||
     point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) return false;
-  const dx = point.x * target.width - target.x;
-  const dy = point.y * target.height - target.y;
+  // With character bounds, the radius is a tolerance around the whole figure,
+  // so clicks on the head and feet work as well as clicks on its center.
+  const nearestX = bounds ? Math.max(bounds.left, Math.min(bounds.right, point.x)) * target.width : target.x;
+  const nearestY = bounds ? Math.max(bounds.top, Math.min(bounds.bottom, point.y)) * target.height : target.y;
+  const dx = point.x * target.width - nearestX;
+  const dy = point.y * target.height - nearestY;
   return Math.hypot(dx, dy) <= target.radius + 1e-9;
 }

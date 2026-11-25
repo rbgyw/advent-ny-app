@@ -159,7 +159,7 @@ function submit() {
         <LoadingState v-if="loading" class="raskobki-notice" role="status" />
         <FeedbackState v-else-if="error" kind="error" class="raskobki-notice">
           <p>{{ error }}</p>
-          <AppButton class="raskobki-button" type="button" @click="emit('retry')">Попробовать снова</AppButton>
+          <AppButton class="raskobki-button task-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </FeedbackState>
         <FeedbackState v-else-if="!assignment" class="raskobki-notice" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="raskobki-notice">
@@ -201,7 +201,7 @@ function submit() {
               </div>
             </template>
             <p id="raskobki-feedback" class="raskobki-feedback" role="status">{{ saveError || feedback }}</p>
-            <AppButton :loading="saving" class="raskobki-button" type="submit" :disabled="saving">
+            <AppButton :loading="saving" class="raskobki-button task-action" type="submit" :disabled="saving">
               {{ saving ? 'Сохраняем…' : allSolved ? 'Сохранить результат' : 'Вставить слово' }}
             </AppButton>
           </form>

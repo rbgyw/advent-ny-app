@@ -1,7 +1,7 @@
 <template>
   <section class="attachments" aria-label="Фотографии">
     <template v-if="!readonly && photos.length < limit">
-      <AppButton class="photo-action" variant="outline" type="button" :aria-describedby="hintId"
+      <AppButton class="photo-action task-action" variant="outline" type="button" :aria-describedby="hintId"
         :disabled="controlsDisabled" @click="fileInput?.click()">
         {{ photos.length ? 'Добавить ещё фото' : attachLabel }}
       </AppButton>
@@ -17,7 +17,7 @@
     <LoadingState v-if="busy" compact :label="busyLabel" />
     <p v-if="message" class="photo-message" role="status">{{ message }}</p>
     <p v-if="errorMessage" class="photo-error" role="alert">{{ errorMessage }}</p>
-    <AppButton v-if="reloadNeeded && !busy" class="photo-action" variant="outline" type="button" @click="reload">
+    <AppButton v-if="reloadNeeded && !busy" class="photo-action task-action" variant="outline" type="button" @click="reload">
       Обновить фотографии
     </AppButton>
 
@@ -27,9 +27,9 @@
         <p v-else-if="!busy">Предпросмотр фотографии недоступен.</p>
         <figcaption>{{ photo.file_name }}</figcaption>
         <div v-if="!readonly" class="photo-actions">
-          <AppButton variant="outline" type="button" class="photo-action" :disabled="controlsDisabled"
+          <AppButton variant="outline" type="button" class="photo-action task-action" :disabled="controlsDisabled"
             @click="chooseReplacement(photo.id)">Заменить фото</AppButton>
-          <AppButton variant="outline" type="button" class="photo-action" :disabled="controlsDisabled"
+          <AppButton variant="outline" type="button" class="photo-action task-action" :disabled="controlsDisabled"
             @click="deletePhoto(photo.id)">Удалить фото</AppButton>
         </div>
       </figure>

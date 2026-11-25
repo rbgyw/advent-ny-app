@@ -125,7 +125,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
         <TaskDateLabel class="pairs-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="pairs-title">Что скрывают карточки?</h1>
         <LoadingState v-if="loading" class="pairs-notice" role="status" />
-        <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>
+        <FeedbackState v-else-if="error" kind="error" class="pairs-notice"><p>{{ error }}</p><AppButton type="button" class="pairs-button task-action" @click="emit('retry')"><span>Попробовать ещё раз</span></AppButton></FeedbackState>
         <FeedbackState v-else-if="!assignment" class="pairs-notice" role="status" message="Задание не найдено." />
         <p v-else-if="!assignment.task" class="pairs-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -146,7 +146,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
           <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <AppButton type="button" @click="loadImages">Попробовать ещё раз</AppButton></p>
           <p v-else-if="!ready" class="pairs-loading" role="status">Загружаем карточки…</p>
           <p v-if="saving" class="pairs-save-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
+          <div v-else-if="saveError" class="pairs-error" role="alert"><p>{{ saveError }}</p><AppButton v-if="won" type="button" class="pairs-button task-action" @click="submitWin"><span>Сохранить результат</span></AppButton></div>
           <p v-else-if="won && !completed" class="pairs-save-status">Результат ещё не сохранён. <AppButton type="button" @click="submitWin">Сохранить результат</AppButton></p>
           <p class="sr-only" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
         </template>

@@ -148,7 +148,7 @@ function checkSelection() {
   tick();
   const selected = selection.value;
   if (!ready.value || !active.value || props.saving || seconds.value === 0 || !selected) return;
-  if (!isSearchHit(selected, podzhikTarget)) {
+  if (!isSearchHit(selected, podzhikTarget, podzhikBounds)) {
     feedback.value = 'Здесь Поджика нет. Продолжайте искать!';
     return;
   }
@@ -187,8 +187,8 @@ function retryImage() {
           <div><p>Время</p><output role="timer" :aria-label="`Осталось ${seconds} секунд`">{{ timer }}</output></div>
           <div><p>Осталось попыток</p><strong>{{ progress.attemptsLeft }} / {{ searchAttempts }}</strong></div>
         </div>
-        <ImageSearchBoard :src="sceneSource" :target-src="found" :target="podzhikBounds" :scene-width="2617" :scene-height="1982" :max-zoom="6" :disabled="saving || !imagesReady" @choose="choose" />
-        <button class="december-button podzhik-check" type="button" :disabled="saving || !imagesReady || !selection" @click="checkSelection">Проверить выбор</button>
+        <ImageSearchBoard :src="sceneSource" :scene-width="2617" :scene-height="1982" :max-zoom="6" :disabled="saving || !imagesReady" @choose="choose" />
+        <button class="december-button podzhik-check task-action" type="button" :disabled="saving || !imagesReady || !selection" @click="checkSelection">Проверить выбор</button>
         <p v-if="feedback" class="podzhik-feedback" role="status">{{ feedback }}</p>
         <p v-else class="podzhik-note">Сначала выберите точку на картинке.</p>
         <p class="podzhik-note">Таймер продолжает идти, даже если свернуть или перезагрузить страницу. Промахи не расходуют попытку.</p>
@@ -198,7 +198,7 @@ function retryImage() {
         <h2>Время вышло</h2>
         <p>Минута пролетела, а Поджик все еще прячется! Попробуйте снова — теперь вы знаете, где уже искали.</p>
         <p class="podzhik-attempts">Осталось попыток: {{ progress.attemptsLeft }}</p>
-        <button class="december-button" type="button" :disabled="!imagesReady || saving" @click="begin">Попробовать еще раз</button>
+        <button class="december-button task-action" type="button" :disabled="!imagesReady || saving" @click="begin">Попробовать еще раз</button>
       </div>
 
       <template v-else>
@@ -223,14 +223,14 @@ function retryImage() {
         </section>
         <p class="podzhik-tip">На поиск — 1 минута и 5 попыток. Можно увеличивать и прокручивать изображение. Промах не останавливает таймер.</p>
         <p class="podzhik-attempts">Осталось попыток: {{ progress.attemptsLeft }}</p>
-        <button class="december-button podzhik-start" type="button" :disabled="!imagesReady || saving" @click="begin">
+        <button class="december-button podzhik-start task-action" type="button" :disabled="!imagesReady || saving" @click="begin">
           {{ imagesReady ? 'Начать' : imagesFailed ? 'Картинка недоступна' : 'Загружаем картинку…' }}
         </button>
       </template>
 
       <div v-if="imagesFailed" class="podzhik-image-error december-stack" role="alert">
         <p>Не удалось загрузить картинку для поиска.</p>
-        <button class="december-button secondary" type="button" @click="retryImage">Загрузить картинку ещё раз</button>
+        <button class="december-button secondary task-action" type="button" @click="retryImage">Загрузить картинку ещё раз</button>
       </div>
     </template>
     <p v-if="storageWarning && !completed" class="podzhik-note" role="status">Браузер не разрешил сохранить прогресс. Не закрывайте страницу до завершения игры.</p>
@@ -243,7 +243,7 @@ function retryImage() {
       <p v-else-if="saving || awaitingSave" role="status">Отличная работа! Сохраняем успешное прохождение…</p>
       <p v-else>Поджик найден. Сохраните успешное прохождение, чтобы задание было отмечено выполненным.</p>
       <p v-if="saveError && !completed" class="december-error" role="alert">{{ saveError }}</p>
-      <button v-if="!completed" class="december-button" type="button" :disabled="saving || awaitingSave" @click="sendSuccess">
+      <button v-if="!completed" class="december-button task-action" type="button" :disabled="saving || awaitingSave" @click="sendSuccess">
         {{ saving || awaitingSave ? 'Сохраняем…' : 'Повторить сохранение' }}
       </button>
     </section>

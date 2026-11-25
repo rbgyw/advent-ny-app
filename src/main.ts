@@ -4,6 +4,7 @@ import App from './App.vue'
 import './assets/fonts.css'
 import './style.css'
 import './tokens.css'
+import './assets/task-actions.css'
 import { reportResourceFailure } from './utils/resource-diagnostics'
 
 async function bootstrap() {

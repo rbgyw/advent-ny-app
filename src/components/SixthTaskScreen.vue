@@ -20,7 +20,6 @@ import wordmark from '../assets/first-task/wordmark.svg';
 import introPanel from '../assets/tarot/intro-panel.svg';
 import choosePanel from '../assets/tarot/choose-panel.svg';
 import resultPanel from '../assets/tarot/result-panel.svg';
-import goldButton from '../assets/tarot/gold-button.svg';
 import cardBack from '../assets/tarot/card-back.webp';
 import fanBorder from '../assets/tarot/fan-border.svg';
 import fanBorderLeft from '../assets/tarot/fan-border-left.svg';
@@ -168,7 +167,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <p>Трактовка зависит от гадающего: какие образы привлекут ваше внимание и как вы свяжете их со своим вопросом. Пусть послание станет поводом для размышлений, а решения остаются за вами.</p>
             <p>Обратите внимание: вытянуть карту можно только один раз за весь адвент.</p>
         </div>
-        <AppButton class="tarot-button tarot-draw" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="changeStage('choose')">Вытянуть карту</AppButton>
+        <AppButton class="tarot-button tarot-draw" type="button" @click="changeStage('choose')">Вытянуть карту</AppButton>
         <CalendarReturnButton class="tarot-calendar" @click="emit('back')" />
       </AppCard>
       <AppCard v-else-if="stage === 'choose'" :ref="bindChoosePanel" class="tarot-choose-panel tarot-surface" :style="{ '--surface-art': cssUrl(choosePanel) }" aria-labelledby="tarot-choose-title" :aria-busy="saving">
@@ -178,7 +177,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
         <p class="tarot-instruction">Нажмите на любую карту в колоде.</p>
         <p class="tarot-once">Выбрать можно только один раз за весь адвент.</p>
         <p v-if="saving" class="tarot-status" role="status">Сохраняем вашу карту…</p>
-        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
+        <div v-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><AppButton class="tarot-button" type="button" :disabled="saving" @click="retryDraw">Повторить сохранение</AppButton></div>
         <div class="tarot-deck" role="group" aria-label="Колода из 78 карт">
           <AppButton v-for="(id, index) in deck" :key="index" class="tarot-deck-card" :class="{ 'is-pending': pending === id }" type="button" :aria-label="`Выбрать карту ${index + 1}`" :disabled="!canChoose" @click="choose(id, $event)"><img decoding="async" :src="cardBack" alt="" /></AppButton>
         </div>
@@ -194,8 +193,8 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
           <div class="tarot-reading-copy"><p v-for="(paragraph, index) in selectedCard.paragraphs" :key="index">{{ paragraph }}</p></div>
           <p class="tarot-disclaimer">Это игра, а не точный прогноз. Какой смысл найти в карте — решать вам.</p>
           <p v-if="saving" class="tarot-status" role="status">Сохраняем результат…</p>
-          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>
-          <AppButton v-else-if="!completed" class="tarot-button tarot-finish" :style="{ backgroundImage: cssUrl(goldButton) }" type="button" @click="retryDraw">Сохранить результат</AppButton>
+          <div v-else-if="saveError" class="tarot-error" role="alert"><p>{{ saveError }}</p><p>Выбранная карта сохранена. Повторная попытка не изменит её.</p><AppButton class="tarot-button" type="button" @click="retryDraw">Повторить сохранение</AppButton></div>
+          <AppButton v-else-if="!completed" class="tarot-button tarot-finish" type="button" @click="retryDraw">Сохранить результат</AppButton>
           <CalendarReturnButton class="tarot-button tarot-finish" @click="emit('back')" :completed="completed" />
         </section>
       </AppCard>
@@ -232,7 +231,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
 .tarot-intro-copy { width: calc(100% + 7px); color: #fff7e8; }
 .tarot-intro-copy p { margin: 0 0 20px; }
 .tarot-intro-copy p:last-child { margin-bottom: 0; }
-.tarot-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 60px; min-height: 60px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 18px; background-color: #e0b965; background-size: 100% 100%; color: #663319; font: 700 15px/18px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
+.tarot-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 60px; min-height: 60px; padding: 0 16px; margin-inline: 0; border: 1px solid #ffdf9d; border-radius: 18px; background: linear-gradient(90deg, #e0b965, #f5d99d 50%, #ddb15d); color: #663319; font: 700 15px/18px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
 .tarot-button:disabled { opacity: .7; cursor: default; }
 .tarot-button:not(:disabled):hover { filter: brightness(1.06); }
 .tarot-draw { margin-top: 38px; }

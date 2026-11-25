@@ -13,7 +13,7 @@ import PopupDialog from './PopupDialog.vue';
 import type { CalendarTask } from '../types/models';
 import { formatDate } from '../utils/date';
 import {
-  crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked,
+  crossed, filled, isNonogramSolution, nonogramSize, solvedNonogram, unmarked, withCompletedLineCrosses,
   type CellMark, type MarkingTool,
 } from '../content/nonogram';
 import NonogramBoard from './NonogramBoard.vue';
@@ -48,6 +48,7 @@ const dotCount = ref(0);
 let awaitingCompletion = false;
 
 const completed = computed(() => props.assignment?.status === 'completed');
+const displayedCells = computed(() => withCompletedLineCrosses(completed.value ? solvedNonogram : cells.value));
 const draftKey = computed(() => {
   const assignment = props.assignment;
   return assignment?.task ? `advent:nonogram:v1:${assignment.user_id}:${assignment.id}` : null;
@@ -59,6 +60,7 @@ const rules = [
   'Между соседними группами должна оставаться хотя бы одна пустая клетка.',
   'Группы не обязательно начинаются у края поля. Пустые клетки могут быть и перед первой группой, и после последней.',
   'Отмечайте крестиками клетки, которые точно должны остаться пустыми: так будет проще находить решение.',
+  'Когда строка или столбец закрашены правильно, оставшиеся пустые клетки в них автоматически отмечаются крестиками.',
   'Сверяйте подсказки строк и столбцов. Когда все клетки окажутся на своих местах, появится изображение!',
 ];
 
@@ -181,7 +183,7 @@ function backFromResult() {
         <LoadingState v-if="loading" class="nonogram-notice" role="status" />
         <div v-else-if="error" class="nonogram-notice" role="alert">
           <p>{{ error }}</p>
-          <AppButton class="nonogram-primary" type="button" @click="emit('retry')">Попробовать снова</AppButton>
+          <AppButton class="nonogram-primary task-action" type="button" @click="emit('retry')">Попробовать снова</AppButton>
         </div>
         <p v-else-if="!assignment" class="nonogram-notice">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="nonogram-notice">
@@ -216,7 +218,7 @@ function backFromResult() {
               </AppButton>
             </div>
             <NonogramBoard
-              :cells="completed ? solvedNonogram : cells"
+              :cells="displayedCells"
               :tool="tool"
               :enlarged="enlarged"
               :disabled="completed || saving"
@@ -224,7 +226,7 @@ function backFromResult() {
             />
             <p v-if="!completed" class="nonogram-board-note">Повторное нажатие снимает отметку.</p>
           </section>
-          <AppButton v-if="!completed" class="nonogram-primary" type="button" :disabled="saving" @click="check">
+          <AppButton v-if="!completed" class="nonogram-primary task-action" type="button" :disabled="saving" @click="check">
             {{ saving ? 'Сохраняем…' : 'Проверить кроссворд' }}
           </AppButton>
           <p v-if="completed" class="nonogram-feedback nonogram-success" role="status">Нонограм разгадан!</p>

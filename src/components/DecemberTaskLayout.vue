@@ -42,7 +42,7 @@ const emit = defineEmits<{ back: []; retry: [] }>();
           <p v-if="loading" role="status">Загружаем задание…</p>
           <div v-else-if="error" class="december-stack">
             <p role="alert">{{ error }}</p>
-            <button class="december-button" type="button" @click="emit('retry')">Попробовать ещё раз</button>
+            <button class="december-button task-action" type="button" @click="emit('retry')">Попробовать ещё раз</button>
           </div>
           <p v-else-if="!assignment" role="status">Задание не найдено.</p>
           <p v-else-if="!assignment.task" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>

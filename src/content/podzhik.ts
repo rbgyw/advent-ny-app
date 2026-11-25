@@ -1,24 +1,20 @@
 import type { SearchBounds, SearchCircle } from '../utils/podzhik';
 
-// User-provided coordinates in the 4096 × 3102 reference panorama:
-// 1200 px from the left and 462 px from the bottom, with a 30 px hit radius.
+// Matched to the character already embedded in podzic_new.png and the review screenshot.
+// In the 4096 × 3102 reference, the landmark is 1200 px from the RIGHT edge.
 export const podzhikTarget: SearchCircle = {
-  x: 1200,
+  x: 4096 - 1200,
   y: 3102 - 462,
   radius: 30,
   width: 4096,
   height: 3102,
 };
 
-const centerX = podzhikTarget.x / podzhikTarget.width;
-const centerY = podzhikTarget.y / podzhikTarget.height;
-const characterWidth = 60 / podzhikTarget.width;
-const characterHeight = (60 * 159 / 104) / podzhikTarget.height;
-
-// Keep the character overlay centered on the user-provided hit point.
+// Measured silhouette bounds in search-panorama.webp (2617 × 1982).
+// These follow the embedded character, rather than a separately positioned overlay.
 export const podzhikBounds: SearchBounds = {
-  left: centerX - characterWidth / 2,
-  top: centerY - characterHeight / 2,
-  right: centerX + characterWidth / 2,
-  bottom: centerY + characterHeight / 2,
+  left: 1832 / 2617,
+  top: 1651 / 1982,
+  right: 1874 / 2617,
+  bottom: 1716 / 1982,
 };

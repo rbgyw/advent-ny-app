@@ -53,7 +53,7 @@ function submit() {
 </script>
 
 <template>
-  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" :finished="completed || pending" mandatory @back="emit('back')" @retry="emit('retry')">
+  <DecemberTaskLayout v-bind="props" title="Повтори, если сможешь!" :result="completed || pending" :finished="completed || pending" mandatory @back="emit('back')" @retry="emit('retry')">
     <div v-if="!completed && !pending" class="december-copy">
             <p>В середине декабря список рабочих задач и домашних дел обычно растет быстрее, чем сокращается. За отчетами, встречами и подготовкой к праздникам не всегда найдется время на фотографии с коллегами. Сегодня это можно исправить!</p>
             <p>Нажмите «Сделать фото», соберите желающих и повторите предложенный кадр: позу, выражение лица или композицию. Не подходит референс? Нажмите «Другой кадр», появится новое фото.</p>
@@ -66,17 +66,17 @@ function submit() {
 
     </div>
     <div v-else-if="!reference" class="photo-form">
-      <button class="december-button" type="button" @click="chooseFrame">Сделать фото</button>
+      <button class="december-button task-action" type="button" @click="chooseFrame">Сделать фото</button>
     </div>
     <form v-else-if="assignment" class="december-stack photo-form" :aria-busy="busy" @submit.prevent="submit">
       <img class="photo-reference" :src="reference.url" :alt="reference.alt" />
-      <button class="december-button secondary" type="button" :disabled="busy" @click="chooseFrame">Другой кадр</button>
+      <button class="december-button secondary task-action" type="button" :disabled="busy" @click="chooseFrame">Другой кадр</button>
       <div>
         <TaskAttachments :task-id="assignment.task_id" :readonly="false" :disabled="saving" :limit="1"
           @busy="attachmentBusy = $event" @change="updatePhotos" />
       </div>
       <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Прикрепите готовую фотографию.' : saveError }}</p>
-      <button class="december-button" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить' }}</button>
+      <button class="december-button task-action" :disabled="busy">{{ saving ? 'Отправляем…' : 'Отправить' }}</button>
     </form>
 
   </DecemberTaskLayout>
@@ -84,6 +84,7 @@ function submit() {
 
 <style scoped>
 .photo-form { margin-top: 28px; }
+:deep(.december-card--result) .photo-form { margin-top: 0; }
 :deep(h1) { max-width: 230px; }
 .photo-reference { display: block; width: auto; height: auto; max-width: 100%; max-height: min(480px, 65svh); margin-inline: auto; object-fit: contain; border-radius: 13px; background: transparent; }
 .photo-required { color: var(--dec-red); }

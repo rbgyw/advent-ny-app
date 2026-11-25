@@ -23,7 +23,7 @@ defineExpose({ showModal, close });
     <h2 :id="`${id}-title`" tabindex="-1" autofocus>{{ title }}</h2>
     <p :id="`${id}-copy`" class="advent-popup-copy">{{ message }}</p>
     <CalendarReturnButton v-if="buttonText === 'К календарю'" class="advent-popup-action" completed @click="action" />
-    <button v-else class="advent-popup-action" type="button" @click="action">{{ buttonText }}</button>
+    <button v-else class="advent-popup-action task-action" type="button" @click="action">{{ buttonText }}</button>
   </PopupDialog>
 </template>
 

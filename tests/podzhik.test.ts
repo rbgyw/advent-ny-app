@@ -52,19 +52,18 @@ describe('Podzhik local progress', () => {
 describe('30 px circular hit area in the 4096 × 3102 panorama', () => {
   const point = (x: number, y: number) => ({ x: x / 4096, y: y / 3102 });
   it('uses the supplied distance from the bottom and centers the character there', () => {
-    expect(podzhikTarget).toEqual({ x: 1200, y: 2640, radius: 30, width: 4096, height: 3102 });
-    expect(isSearchHit(point(1200, 2640), podzhikTarget)).toBe(true);
-    expect((podzhikBounds.left + podzhikBounds.right) / 2).toBeCloseTo(1200 / 4096);
-    expect((podzhikBounds.top + podzhikBounds.bottom) / 2).toBeCloseTo(1 - 462 / 3102);
+    expect(podzhikTarget).toEqual({ x: 2896, y: 2640, radius: 30, width: 4096, height: 3102 });
+    expect(isSearchHit(point(2896, 2640), podzhikTarget)).toBe(true);
+    expect(isSearchHit({ x: 1850 / 2617, y: 1672 / 1982 }, podzhikTarget, podzhikBounds)).toBe(true);
   });
-  it.each([[1230, 2640], [1170, 2640], [1200, 2670], [1200, 2610], [1218, 2664]])('accepts the radius boundary at (%s, %s)', (x, y) => {
+  it.each([[2926, 2640], [2866, 2640], [2896, 2670], [2896, 2610], [2914, 2664]])('accepts the radius boundary at (%s, %s)', (x, y) => {
     expect(isSearchHit(point(x, y), podzhikTarget)).toBe(true);
   });
-  it.each([[1230.01, 2640], [1200, 2670.01], [1222, 2662], [192, 511]])('rejects points outside the circle at (%s, %s)', (x, y) => {
+  it.each([[2926.01, 2640], [2896, 2670.01], [2918, 2662], [1200, 2640]])('rejects points outside the circle at (%s, %s)', (x, y) => {
     expect(isSearchHit(point(x, y), podzhikTarget)).toBe(false);
   });
   it.each([0.075, .25, 0.75, 1, 1.5, 2, 3, 6])('keeps the same acceptance area at display scale %s', scale => {
-    const selected = { x: (1210 * scale) / (4096 * scale), y: (2650 * scale) / (3102 * scale) };
+    const selected = { x: (2906 * scale) / (4096 * scale), y: (2650 * scale) / (3102 * scale) };
     expect(isSearchHit(selected, podzhikTarget)).toBe(true);
   });
   it('rejects distant clicks and invalid coordinates', () => {
@@ -72,4 +71,13 @@ describe('30 px circular hit area in the 4096 × 3102 panorama', () => {
     expect(isSearchHit({ x: NaN, y: 0.6 }, podzhikTarget)).toBe(false);
     expect(isSearchHit({ x: -0.1, y: 0.6 }, podzhikTarget)).toBe(false);
   });
+});
+
+it('accepts the embedded character from head to feet, with a 30px tolerance, and rejects the mirrored location', () => {
+  for (const [x, y] of [[1850, 1655], [1847, 1680], [1849, 1712]]) {
+    expect(isSearchHit({ x: x / 2617, y: y / 1982 }, podzhikTarget, podzhikBounds)).toBe(true);
+  }
+  expect(isSearchHit({ x: podzhikBounds.right + 30 / 4096, y: podzhikBounds.top }, podzhikTarget, podzhikBounds)).toBe(true);
+  expect(isSearchHit({ x: podzhikBounds.right + 30.01 / 4096, y: podzhikBounds.top }, podzhikTarget, podzhikBounds)).toBe(false);
+  expect(isSearchHit({ x: 1200 / 4096, y: 2640 / 3102 }, podzhikTarget, podzhikBounds)).toBe(false);
 });

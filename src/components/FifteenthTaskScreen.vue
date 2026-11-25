@@ -63,7 +63,7 @@ function submit() {
           <input v-model="answer" autocomplete="off" placeholder="Введите слово" :aria-invalid="invalid" :disabled="saving" @input="invalid = false; emit('edit')" />
         </label>
         <p v-if="invalid || saveError" class="december-error" role="alert">{{ invalid ? 'Кажется, это слово пока прячется даже от нас. Проверьте написание: введите одно из слов, спрятанных в сетке.' : saveError }}</p>
-        <button class="december-button" :disabled="saving">Сверить курс</button>
+        <button class="december-button task-action" :disabled="saving">Сверить курс</button>
       </form>
       <PopupDialog v-model:open="enlarged" class="december-dialog word-dialog december-stack" aria-labelledby="word-dialog-title">
         <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="enlarged = false">×</button>

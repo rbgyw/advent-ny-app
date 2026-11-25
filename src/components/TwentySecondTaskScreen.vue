@@ -59,8 +59,8 @@ onBeforeUnmount(() => {
         </div>
         <VideoSwipeCard :key="current?.id ?? 'placeholder'" :video="current" :busy="busy || !current" :swipe="swipe" class="video-deck" @vote="vote" @settled="finishSwipe" />
         <div class="video-choices" aria-label="Оценить ролик">
-          <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(false)">Пропустить</button>
-          <button class="december-button secondary" type="button" :disabled="busy || !current" @click="vote(true)">Понравилось <span aria-hidden="true">❤</span></button>
+          <button class="december-button secondary task-action" type="button" :disabled="busy || !current" @click="vote(false)">Пропустить</button>
+          <button class="december-button secondary task-action" type="button" :disabled="busy || !current" @click="vote(true)">Понравилось <span aria-hidden="true">❤</span></button>
         </div>
         <p v-if="busy && !swipe" class="video-saving" role="status">Сохраняем оценку…</p>
       </template>

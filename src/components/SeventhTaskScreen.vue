@@ -115,7 +115,7 @@ function submit() {
         <p v-if="loading" class="sport-notice" role="status">Загружаем задание…</p>
         <div v-else-if="error" class="sport-notice">
           <p role="alert">{{ error }}</p>
-          <button class="sport-button" type="button" @click="emit('retry')">Попробовать ещё раз</button>
+          <button class="sport-button task-action" type="button" @click="emit('retry')">Попробовать ещё раз</button>
         </div>
         <p v-else-if="!assignment" class="sport-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="sport-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
@@ -134,7 +134,7 @@ function submit() {
             <p v-for="paragraph in selected.instructions" :key="paragraph">{{ paragraph }}</p>
           </div>
 
-          <button v-if="level === 'team' && !posesVisible" class="sport-button sport-get-task" type="button" @click="posesVisible = true">Получить задание</button>
+          <button v-if="level === 'team' && !posesVisible" class="sport-button sport-get-task task-action" type="button" @click="posesVisible = true">Получить задание</button>
           <section v-if="level === 'team' && posesVisible" class="sport-poses" aria-label="Выбор командной позы">
             <div class="sport-pose">
               <img :src="poseImages[pose]" :alt="`Командная поза ${poseIndex + 1}`" />
@@ -163,7 +163,7 @@ function submit() {
               {{ level === 'advanced' ? 'Загружая фотографию, вы соглашаетесь на её публикацию в подборке ГЕРОФАРМ LIFE в Telegram и MAX' : 'Фотография попадет в подборку ГЕРОФАРМ LIFE в Telegram и Max. Убедитесь, что все участники снимка согласны на публикацию.' }}
             </p>
             <p v-if="validation || saveError" class="sport-error" role="alert">{{ validation || saveError }}</p>
-            <button class="sport-button" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : level === 'basic' ? 'Отправить фотографию' : 'Отправить на проверку' }}</button>
+            <button class="sport-button task-action" type="submit" :disabled="busy">{{ saving ? 'Отправляем…' : level === 'basic' ? 'Отправить фотографию' : 'Отправить на проверку' }}</button>
           </form>
         </template>
 
@@ -178,7 +178,7 @@ function submit() {
             <section v-for="(item, key) in sportLevels" :key="key" class="sport-level">
               <h2>{{ item.name }}</h2>
               <p>{{ item.summary }}</p>
-              <button class="sport-button" type="button" :disabled="saving" @click="openConfirmation(key)">{{ item.button }}</button>
+              <button class="sport-button task-action" type="button" :disabled="saving" @click="openConfirmation(key)">{{ item.button }}</button>
             </section>
           </div>
         </template>
@@ -196,8 +196,8 @@ function submit() {
       <button class="sport-close" type="button" aria-label="Закрыть" @click="confirmOpen = false">×</button>
       <h2 id="sport-confirm-title">Подтвердите уровень</h2>
       <p id="sport-confirm-copy">Вы выбираете {{ sportLevels[choice].name }}. После подтверждения изменить выбор не получится.</p>
-      <button class="sport-button" type="button" autofocus @click="confirmLevel">Подтвердить выбор</button>
-      <button class="sport-button sport-secondary" type="button" @click="confirmOpen = false">Я передумал(а)</button>
+      <button class="sport-button task-action" type="button" autofocus @click="confirmLevel">Подтвердить выбор</button>
+      <button class="sport-button sport-secondary task-action" type="button" @click="confirmOpen = false">Я передумал(а)</button>
     </PopupDialog>
   </main>
 </template>

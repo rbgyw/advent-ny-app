@@ -17,8 +17,9 @@ it('keeps a crossing letter out of an unanswered word field while the grid still
   await view.get('form').trigger('submit');
   await view.get('[data-cell="1:1"]').trigger('click');
   expect(view.get<HTMLInputElement>('#crossword-answer').element.value).toBe('');
-  expect(view.get<HTMLInputElement>('[data-cell="1:2"]').element.value).toBe('А');
-  expect(view.get<HTMLInputElement>('[data-cell="1:2"]').element.readOnly).toBe(true);
+  expect(view.get('[data-cell="1:2"]').text()).toBe('А');
+  expect(view.get('[data-cell="1:2"]').element.tagName).toBe('BUTTON');
+  expect(view.find('.crossword-cell input').exists()).toBe(false);
   await view.get('[data-cell="0:2"]').trigger('click');
   expect(view.get<HTMLInputElement>('#crossword-answer').element.value).toBe('КАРАНТИН');
 });

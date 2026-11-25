@@ -141,7 +141,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
         <TaskDateLabel class="cipher-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="cipher-title">Дело о спортивных человечках</h1>
         <LoadingState v-if="loading" class="cipher-notice" role="status" />
-        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
+        <div v-else-if="error" class="cipher-notice"><p role="alert">{{ error }}</p><AppButton type="button" class="cipher-button task-action" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="cipher-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task" class="cipher-notice" role="status">Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
@@ -178,7 +178,7 @@ onBeforeUnmount(() => { observer?.disconnect() })
             </fieldset>
             <p v-if="incorrect" class="cipher-warning cipher-incorrect" role="alert">В шифре еще осталась загадка.<br />Сверьтесь с алфавитом и попробуйте снова!</p>
             <p v-else-if="saveError" class="cipher-warning cipher-incorrect" role="alert">{{ saveError }}</p>
-            <AppButton class="cipher-button cipher-check" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
+            <AppButton class="cipher-button cipher-check task-action" type="submit" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Проверить ответ' }}</AppButton>
           </form>
           <CalendarReturnButton class="cipher-button cipher-calendar" @click="emit('back')" :completed="completed" />
         </template>

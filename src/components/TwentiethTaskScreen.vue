@@ -156,7 +156,7 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
       <p v-if="!imagesReady && !assetError" class="guiding-message" role="status">Загружаем звёздное небо…</p>
       <div v-if="assetError" class="december-stack guiding-message" role="alert">
         <p>Не удалось загрузить звёздное небо. Попробуйте ещё раз.</p>
-        <button class="december-button secondary" type="button" @click="retryAssets">Загрузить небо</button>
+        <button class="december-button secondary task-action" type="button" @click="retryAssets">Загрузить небо</button>
       </div>
       <p v-if="phase === 'searching'" class="guiding-message" role="status">{{ feedback || 'Ваша звезда уже здесь. Найдите её!' }}</p>
       <p v-if="storageWarning" class="guiding-message" role="status">Браузер не разрешил сохранить поиск. Не закрывайте страницу до завершения.</p>
@@ -171,9 +171,9 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
       <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
       <div v-if="saveError && pendingResult && !serverResult" class="guiding-message december-stack" role="alert">
         <p>{{ saveError }}</p>
-        <button class="december-button secondary" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
+        <button class="december-button secondary task-action" type="button" :disabled="saving || awaitingSave" @click="saveCompletion">Повторить сохранение</button>
       </div>
-      <button v-if="phase === 'found'" class="december-button guiding-confirm" type="button" :disabled="saving || awaitingSave" @click="confirmWish">Загадать желание</button>
+      <button v-if="phase === 'found'" class="december-button guiding-confirm task-action" type="button" :disabled="saving || awaitingSave" @click="confirmWish">Загадать желание</button>
     </section>
   </DecemberTaskLayout>
 </template>

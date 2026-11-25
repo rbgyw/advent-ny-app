@@ -96,14 +96,14 @@ onBeforeUnmount(() => {
         <TaskDateLabel class="memory-date" :available-date="assignment?.available_date" :day="day" />
         <h1 id="memory-title">Момент, который хочется сохранить</h1>
         <LoadingState v-if="loading" class="memory-notice" role="status" />
-        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
+        <div v-else-if="error" class="memory-notice"><p role="alert">{{ error }}</p><AppButton class="memory-button task-action" type="button" @click="emit('retry')">Попробовать ещё раз</AppButton></div>
         <p v-else-if="!assignment" class="memory-notice" role="status">Задание не найдено.</p>
         <p v-else-if="!assignment.task && assignment.available_date > today" class="memory-notice" role="status">
           Задание пока закрыто. Откроется {{ formatDate(assignment.available_date) }}.
         </p>
         <div v-else-if="!assignment.task" class="memory-notice">
           <p role="alert">Дата открытия уже наступила. Не удалось получить задание.</p>
-          <AppButton class="memory-button" type="button" @click="emit('retry')">Обновить задание</AppButton>
+          <AppButton class="memory-button task-action" type="button" @click="emit('retry')">Обновить задание</AppButton>
         </div>
         <template v-else>
           <div class="memory-copy" data-figma-node="28:40850">
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
             <input id="memory-author" ref="authorInput" v-model="author" class="memory-author" name="author" type="text" autocomplete="name" maxlength="150" placeholder="Имя и фамилия" :readonly="completed || closed" :disabled="saving" required @input="validation = ''; emit('edit')" />
             <p v-if="validation || saveError" class="memory-error" role="alert">{{ validation || saveError }}</p>
             <p v-else-if="closed && !completed" class="memory-error" role="status">Приём воспоминаний завершён 10 декабря.</p>
-            <AppButton class="memory-button memory-share" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться воспоминанием' }}</AppButton>
+            <AppButton class="memory-button memory-share task-action" type="submit" :disabled="busy || (closed && !completed)">{{ saving ? 'Отправляем…' : 'Поделиться воспоминанием' }}</AppButton>
           </form>
         </template>
         <CalendarReturnButton v-if="!loading && !error && assignment?.task" class="task-content-return" :completed="completed" @click="emit('back')" />
