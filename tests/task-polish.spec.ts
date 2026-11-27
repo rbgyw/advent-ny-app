@@ -72,6 +72,16 @@ for (const reduced of [false, true]) {
     await page.goto('/task/20');
     const progress = createGuidingStarProgress(`${userId}:20`, guidingStars.map(star => star.id));
     await page.locator(`[data-star-id="${progress.targetStarId}"]`).click();
+    if (reduced) {
+      await expect(page.locator('.guiding-search.is-celebrating')).toHaveCount(0);
+    } else {
+      const celebration = page.locator('.guiding-search.is-celebrating');
+      await expect(celebration).toBeVisible();
+      await expect(page.locator('.guiding-result')).toHaveCount(0);
+      await expect(celebration.locator('.guiding-star-image')).toHaveCount(24);
+      await expect(celebration.locator('.is-guiding .guiding-star-art')).toHaveCSS('animation-name', /^guiding-discovery(?:-[a-z0-9]+)?$/);
+      await page.screenshot({ path: test.info().outputPath('star-discovery.png'), fullPage: true });
+    }
     await expect(page.getByRole('heading', { name: 'Ваша звезда найдена!' })).toBeVisible();
     const star = page.locator('.guiding-dialog-star');
     await expect(star).toHaveClass(/is-found/);
