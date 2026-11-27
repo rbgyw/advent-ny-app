@@ -31,17 +31,20 @@ describe.each(['true', 'false'])('forms with corporate policy %s', flag => {
     expect(view.emitted('submit')?.length ?? 0).toBe(count);
     expect(view.get('[role=alert]').text()).toContain('корректный');
   });
-  it('applies policy to a future letter without changing payload or completion', async () => {
-    const view = mount(SixteenthTaskScreen, { props, global });
-    await view.get('input[type=email]').setValue('qa@example.org');
+  it('uses the confirmed account recipient and sends only the letter body', async () => {
+    const recipientEmail = flag === 'true' ? 'account@geropharm.com' : 'qa@example.org';
+    const view = mount(SixteenthTaskScreen, { props: { ...props, recipientEmail }, global });
+    expect(view.get<HTMLInputElement>('input[type=email]').element.value).toBe(recipientEmail);
+    expect(view.get('input[type=email]').attributes()).toHaveProperty('readonly');
+    expect(view.text()).toContain(flag === 'true' ? 'Моя корпоративная почта' : 'Мой email');
     await view.get('textarea').setValue('Письмо в будущее');
     await view.get('form').trigger('submit');
-    if (flag === 'false') expect(view.emitted('save')).toEqual([[{ response: { email: 'qa@example.org', text: 'Письмо в будущее', deliver_on: '2027-12-31' }, complete: true }]]);
-    else expect(view.emitted('save')).toBeUndefined();
-    const count = view.emitted('save')?.length ?? 0;
-    await view.get('input[type=email]').setValue('invalid@');
+    expect(view.emitted('submit')).toEqual([['Письмо в будущее']]);
+    expect(view.emitted('save')).toBeUndefined();
+    await view.setProps({ recipientEmail: '' });
     await view.get('form').trigger('submit');
-    expect(view.emitted('save')?.length ?? 0).toBe(count);
+    expect(view.emitted('submit')).toHaveLength(1);
+    expect(view.get('[role=alert]').text()).toContain('Подтвердите почту');
   });
   it('applies policy to gratitude without sending a real email', async () => {
     const send = vi.fn().mockResolvedValue(undefined);

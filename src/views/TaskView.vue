@@ -154,14 +154,15 @@
     :key="`task-16:${assignment?.id ?? day}`"
     :assignment="assignment"
     :day="day"
+    :recipient-email="authStore.user?.email_confirmed_at ? authStore.user.email ?? '' : ''"
     :total="calendarStore.totalCount"
     :loading="calendarStore.loading"
     :saving="calendarStore.saving"
     :error="calendarStore.error"
-    :save-error="calendarStore.saveError"
+    :save-error="taskSaveError"
     @back="goBack"
     @retry="reloadFirstTask"
-    @save="saveDecemberTask(16, $event)"
+    @submit="submitFutureLetter"
     @edit="calendarStore.saveError = null"
   />
   <SeventeenthTaskScreen
@@ -632,6 +633,11 @@ async function completeFortune(
     assignment.value.task_id,
     fortuneIndex,
   );
+}
+
+async function submitFutureLetter(body: string) {
+  if (assignment.value?.task?.slug !== 'task-16') return;
+  await calendarStore.submitFutureLetter(assignment.value.task_id, body);
 }
 
 async function sendLetter(letter: GratitudeLetter, requestId: string) {

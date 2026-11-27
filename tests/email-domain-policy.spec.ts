@@ -43,21 +43,34 @@ for (const mode of ['login', 'register'] as const) {
   });
 }
 
-test('future letter validates an external recipient before saving', async ({ page }) => {
+test('future letter uses only the confirmed account address and atomic RPC', async ({ page }) => {
   const backend = await mockBackend(page);
+  const accountEmail = corporateOnly ? 'audit@geropharm.com' : email;
+  const due = '2026-11-27T12:15:00Z';
+  const metadata = { letter_id: 'letter-1', deliver_on: due, scheduled: true };
+  const submissions: Record<string, unknown>[] = [];
+  await page.route('**/auth/v1/user', route => route.fulfill({ json: {
+    id: userId, email: accountEmail, email_confirmed_at: '2026-01-01T00:00:00Z',
+    aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z',
+  } }));
+  await page.route('**/rest/v1/rpc/submit_future_letter', async route => {
+    submissions.push(route.request().postDataJSON());
+    backend.completed.add(16); backend.responses[16] = metadata;
+    await route.fulfill({ json: { letter_id: 'letter-1', task_id: 16, status: 'completed', due_at: due,
+      already_submitted: false, completed_at: '2026-11-27T12:00:00Z', response: metadata } });
+  });
   await page.goto('/task/16');
-  await page.locator('input[type=email]').fill(email);
+  await expect(page.locator('input[type=email]')).toHaveValue(accountEmail);
+  await expect(page.locator('input[type=email]')).toHaveAttribute('readonly', '');
   await page.locator('textarea').fill('Тестовое письмо в будущее');
   await page.getByRole('button', { name: 'Отправить в будущее', exact: true }).click();
-  if (corporateOnly) {
-    await expect(page.getByRole('alert')).toContainText('корпоративная почта');
-    expect(backend.responses[16]).toBeUndefined();
-  } else {
-    await expect.poll(() => backend.completed.has(16)).toBe(true);
-    expect(backend.responses[16]).toEqual({ email, text: 'Тестовое письмо в будущее', deliver_on: '2027-12-31' });
-    await page.reload();
-    await expect(page.getByText('Письмо сохранено.', { exact: true })).toBeVisible();
-  }
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect(submissions).toEqual([{ p_body: 'Тестовое письмо в будущее' }]);
+  expect(backend.responses[16]).toEqual(metadata);
+  expect(backend.calls.some(path => path.endsWith('/save_task_progress'))).toBe(false);
+  await page.reload();
+  await expect(page.getByText('Письмо сохранено.', { exact: true })).toBeVisible();
+  await expect(page.locator('.future-form')).toContainText('15:15 (МСК)');
 });
 
 test('gratitude validates an external recipient with a mocked Edge Function', async ({ page }) => {

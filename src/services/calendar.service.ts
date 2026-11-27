@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import type {
+  FutureLetterResult,
   Task,
   UserTask,
   TaskResponse,
@@ -90,6 +91,22 @@ export const calendarService = {
     if (assignment.error) throw assignment.error;
     if (response.error) throw response.error;
     return { assignment: readAssignment(assignment.data as StoredAssignment), response: response.data as TaskResponse | null };
+  },
+
+  async submitFutureLetter(body: string): Promise<FutureLetterResult> {
+    const { data, error } = await supabase.rpc("submit_future_letter", { p_body: body });
+    if (error) throw error;
+    if (!data || typeof data.letter_id !== 'string' || !data.letter_id ||
+      !Number.isSafeInteger(data.task_id) ||
+      data.status !== 'completed' ||
+      typeof data.due_at !== 'string' || !Number.isFinite(Date.parse(data.due_at)) ||
+      typeof data.already_submitted !== 'boolean' ||
+      (!data.already_submitted && (typeof data.completed_at !== 'string' ||
+        !Number.isFinite(Date.parse(data.completed_at)) || !data.response ||
+        typeof data.response !== 'object' || Array.isArray(data.response)))) {
+      throw new Error("Сервер не подтвердил сохранение письма. Повторите запрос.");
+    }
+    return data as FutureLetterResult;
   },
 
   async saveTaskProgress(

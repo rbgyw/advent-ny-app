@@ -60,3 +60,13 @@ export interface SaveTaskProgressResult {
   completed_at: ISODateTime | null;
   response: Record<string, unknown>;
 }
+
+export type FutureLetterResult = {
+  letter_id: UUID;
+  task_id: number;
+  status: 'completed';
+  due_at: ISODateTime;
+} & (
+  { already_submitted: false; completed_at: ISODateTime; response: Record<string, unknown> }
+  | { already_submitted: true }
+);

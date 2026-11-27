@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { mockBackend, userId } from './fixture';
+import { mockBackend, taskIdAtPosition, userId } from './fixture';
 
 const viewports = [
   { width: 320, height: 568 }, { width: 360, height: 740 },
@@ -91,7 +91,7 @@ test('mobile splash keeps the Figma artwork proportions and the start action wor
 test('calendar scales the artwork and hit areas together and keeps its menu usable', async ({ page }) => {
   await mockBackend(page);
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  await page.route('**/rest/v1/user_tasks?*', route => route.fulfill({ json: Array.from({ length: 25 }, (_, i) => ({ id: `assignment-${i + 1}`, user_id: userId, task_id: i + 1, position: i + 1, available_date: i === 0 ? today : '2026-12-25', status: i === 0 ? 'completed' : 'not_started', completed_at: i === 0 ? new Date().toISOString() : null })) }));
+  await page.route('**/rest/v1/user_tasks?*', route => route.fulfill({ json: Array.from({ length: 25 }, (_, i) => ({ id: `assignment-${i + 1}`, user_id: userId, task_id: taskIdAtPosition(i + 1), position: i + 1, available_date: i === 0 ? today : i === 2 ? '2026-11-01' : '2026-12-25', status: i === 2 ? 'completed' : 'not_started', completed_at: i === 2 ? new Date().toISOString() : null })) }));
   await page.goto('/calendar');
   for (const viewport of viewports) {
     await page.setViewportSize(viewport); await layoutReady(page); await noOverflow(page);
@@ -99,6 +99,7 @@ test('calendar scales the artwork and hit areas together and keeps its menu usab
     await expect(page.locator('.calendar-window').nth(1)).toBeDisabled();
     await expect(page.locator('.calendar-today-badge')).toHaveCount(1);
     await expect(page.locator('.calendar-completed')).toHaveCount(1);
+    await expect(page.locator('.calendar-window').nth(2).locator('.calendar-completed')).toHaveCount(1);
     for (const day of [1, 4, 14, 21, 24]) {
       const label = page.locator(`.calendar-illustration [data-name="window-${day}"] > p`);
       const labelBox = await label.boundingBox(), buttonBox = await page.locator('.calendar-window').nth(day - 1).boundingBox();
