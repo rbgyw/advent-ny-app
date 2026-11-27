@@ -70,7 +70,6 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); });
             <p>Нажмите на кнопку, чтобы увидеть снегопад из снежинок. А пока они не растаяли, загадайте желание.</p>
           </div>
           <div v-else-if="stage === 'wishing'" class="wish-copy" role="status"><p>Пока снежинки не растаяли, загадайте желание. Произнесите его про себя — записывать ничего не нужно.</p></div>
-          <div v-else class="wish-copy" role="status"><p>Пусть задуманное сбудется!</p></div>
           <p v-if="saveError" class="wish-error" role="alert">{{ saveError }}</p>
           <TaskMusicButton v-if="stage === 'wishing'" class="wish-music" :src="music" />
           <AppButton v-if="stage === 'intro'" class="wish-button task-action" :style="{ backgroundImage: cssUrl(buttonArt) }" type="button" @click="activate"><span>Запустить снегопад</span></AppButton>

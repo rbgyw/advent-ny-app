@@ -28,6 +28,13 @@ export function canOpenAssignment(assignment: CalendarTask | undefined, today: s
 
 const windowTitles = ['Стикеры', 'Спортивные человечки', 'Кроссворд', 'Фото-моменты', 'Перевертыши', 'Таро', 'Спорт', 'Благодарности', 'Мурдоку', 'Первое слово', 'Стереоизображение', 'Кино', 'Снегопад', 'Ра[скобки]', 'Деды Морозы', 'Письмо в будущее', 'Повтори фото', 'Рецепты', 'Поджик', 'Путеводная звезда', 'Нонограм', 'Видео', 'Воспоминания', 'Киноподборка', 'Предсказание'];
 
+/** Review flags remain in the response after approval: server completion wins. */
+export function isPhotoReviewPending(assignment: CalendarTask | undefined): boolean {
+  const slug = assignment?.task?.slug;
+  const photoTask = slug ? slug === 'task-07' || slug === 'task-17' : [7, 17].includes(assignment?.task_id ?? 0);
+  return photoTask && assignment?.status !== 'completed' && assignment?.response?.response.submitted_for_review === true;
+}
+
 export function calendarWindowLabel(day: number, assignment: CalendarTask | undefined, today: string): string {
   if (!canOpenAssignment(assignment, today)) return 'Пока не доступно'
   const status = assignment?.status === 'completed' ? 'Выполнено'

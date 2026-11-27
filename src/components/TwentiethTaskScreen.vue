@@ -165,7 +165,7 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
   <DecemberTaskLayout v-else :assignment="assignment" :day="day" :total="total" :loading="loading" :error="error"
     title="" result @back="emit('back')" @retry="emit('retry')">
     <section class="guiding-result" aria-labelledby="guiding-result-title" role="status">
-      <div class="guiding-dialog-star" aria-hidden="true">✦</div>
+      <div class="guiding-dialog-star" :class="{ 'is-found': phase === 'found' }" aria-hidden="true">✦</div>
       <h2 id="guiding-result-title">{{ phase === 'exhausted' ? 'Поиски завершены' : phase === 'wished' ? 'Желание загадано!' : 'Ваша звезда найдена!' }}</h2>
       <p>{{ phase === 'exhausted' ? guidingStarExhaustedText : phase === 'wished' ? guidingStarWishText : guidingStarFoundText }}</p>
       <p v-if="(saving || awaitingSave) && pendingResult" class="guiding-message" role="status">Сохраняем результат…</p>
@@ -197,11 +197,21 @@ function assetSource(src: string) { return assetRetry.value ? `${src}?retry=${as
 .guiding-star:focus-visible { outline: 2px solid #ffe3a7; outline-offset: 1px; }
 .guiding-message { margin-top: 14px; font-size: 13px; line-height: 19px; }
 .guiding-dialog-star { margin: 3px 0 18px; color: #c69b3c; font-size: 44px; line-height: 53px; text-align: center; }
+.guiding-dialog-star.is-found { animation: guiding-star-found 900ms cubic-bezier(.22, 1, .36, 1) both, guiding-star-glow 2s ease-in-out 900ms infinite; }
+@keyframes guiding-star-found {
+  0% { transform: scale(.25) rotate(-35deg); opacity: 0; }
+  55% { transform: scale(1.4) rotate(12deg); opacity: 1; filter: drop-shadow(0 0 18px #e8b77e); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes guiding-star-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px #e8b77e); }
+  50% { filter: drop-shadow(0 0 12px #e8b77e); }
+}
 @keyframes guiding-star-twinkle {
   0%, 100% { transform: scale(1); }
   45% { transform: scale(1.35) rotate(12deg); filter: drop-shadow(0 0 10px #ffe3a7); }
 }
-@media (prefers-reduced-motion: reduce) { .guiding-star.is-twinkling .guiding-star-art { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .guiding-star.is-twinkling .guiding-star-art, .guiding-dialog-star.is-found { animation: none; } }
 @media (min-width: 700px) { .guiding-sky { max-width: min(480px, calc((100svh - 96px) * 313 / 557)); } :deep(h1) { max-width: none; } }
 
 .guiding-result > p { margin-top: 24px; }

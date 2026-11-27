@@ -176,7 +176,7 @@ onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(resizeFrame
             <h2 id="rules-title">Правила</h2>
             <ol>
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">1</span><p>Номер вопроса соответствует номеру начальной клетки слова.</p></li>
-              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">2</span><p>Введите ответы в соответствующие поля. Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
+              <li><span :style="{ backgroundImage: cssUrl(numberArt) }">2</span><p>Введите загаданное слово в поле ответа и нажмите кнопку «Вставить в сетку». Если в вопросе не указано иначе, используйте существительное в именительном падеже и единственном числе.</p></li>
               <li><span :style="{ backgroundImage: cssUrl(numberArt) }">3</span><p>Когда заполните весь кроссворд, нажмите «Проверить кроссворд».</p></li>
             </ol>
           </section>

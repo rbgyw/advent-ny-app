@@ -23,9 +23,9 @@ describe('review 7 games', () => {
   });
   it('moves the chosen wizard opposite the country and keeps the cards unique', async () => {
     const view = mount(TenthTaskScreen, { props: { ...props, day: 15 } });
-    await view.findAll('.frost-pairs > div')[1]!.findAll('button')[1]!.trigger('click');
+    await view.get('.frost-wizards').findAll('button')[1]!.trigger('click');
     await view.findAll('.frost-pairs > div')[0]!.findAll('button')[3]!.trigger('click');
-    const names = view.findAll('.frost-pairs > div')[1]!.findAll('button').map(button => button.text());
+    const names = view.get('.frost-wizards').findAll('button').map(button => button.text());
     expect(names[3]).toContain('Сан-Николас');
     expect(new Set(names).size).toBe(4);
   });

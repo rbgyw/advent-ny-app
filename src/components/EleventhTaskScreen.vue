@@ -115,7 +115,7 @@ onBeforeUnmount(() => observer?.disconnect());
         <p v-else-if="!assignment.task" class="stereo-notice">Задание откроется {{ formatDate(assignment.available_date) }}.</p>
         <template v-else>
           <div class="stereo-copy">            <p>Среди пестрого узора спряталось объемное изображение. Чтобы его разглядеть, понадобится немного терпения и другой взгляд на привычную картинку.</p>
-            <p>Это обязательное задание для получения приза.</p></div>
+            <p class="stereo-required">Это обязательное задание для получения приза.</p></div>
           <section class="stereo-instructions stereo-surface" :style="{ '--surface-art': cssUrl(instructions) }" aria-labelledby="stereo-instructions-title">
             <h2 id="stereo-instructions-title">Как увидеть изображение</h2>
             <ol><li>Посмотрите на картинку так, будто смотрите сквозь нее, вдаль.</li><li>Расслабьте взгляд и не фокусируйтесь на отдельных деталях узора.</li><li>Если изображение не появилось, немного приблизьте или отодвиньте картинку и попробуйте снова.</li></ol>
@@ -172,6 +172,7 @@ button { cursor: pointer; font-family: inherit; letter-spacing: 0; }
 .stereo-panel h1 { margin: 0; color: var(--color-ink); font: 500 clamp(18px, 4.6vw, 28px)/1.2 var(--font-display); letter-spacing: 0; white-space: nowrap; }
 .stereo-badge { display: flex; align-items: center; justify-content: center; width: 140px; height: 25px; margin-top: 11px; font-size: 11px; line-height: 13px; }
 .stereo-badge span, .stereo-check span { color: transparent; background-clip: text; background-image: linear-gradient(77.653deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
+.stereo-required { color: var(--color-action); }
 .stereo-copy { margin: 23px 0 0 4px; min-height: 125px; }
 .stereo-copy p { margin: 0; }
 .stereo-copy p + p { margin-top: 20px; }

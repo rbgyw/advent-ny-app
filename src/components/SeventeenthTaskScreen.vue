@@ -62,7 +62,8 @@ function submit() {
     </div>
     <div v-if="completed || pending" class="december-stack photo-form">
       <h2>{{ completed ? 'Задание выполнено' : 'Фото отправлено!' }}</h2>
-      <p v-if="!completed" role="status">После проверки результат появится в вашем прогрессе.</p>
+      <p v-if="!completed" class="photo-status" role="status">На проверке</p>
+      <p v-if="!completed">После проверки результат появится в вашем прогрессе.</p>
 
     </div>
     <div v-else-if="!reference" class="photo-form">

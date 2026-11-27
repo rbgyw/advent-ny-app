@@ -11,7 +11,7 @@ import { storeToRefs } from 'pinia'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCalendarStore } from '../stores/calendar'
-import { shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds, calendarDesktopWindowBounds, isMandatoryCalendarDay } from '../utils/calendar'
+import { shortCalendarDate, canOpenAssignment, calendarWindowLabel, calendarWindowBounds, calendarDesktopWindowBounds, isMandatoryCalendarDay, isPhotoReviewPending } from '../utils/calendar'
 import '../assets/calendar/calendar-fonts.css'
 import completedCircle from '../assets/calendar/451730f3-8fe7-403b-be98-c03b022d0574.svg'
 import completedCheck from '../assets/calendar/e284dc00-d9d6-4583-a830-d4c8f80ee1c9.svg'
@@ -55,6 +55,7 @@ const windows = computed(() => Array.from({ length: 25 }, (_, index) => {
   return {
     day, assignment, mandatory: isMandatoryCalendarDay(day), bounds: desktop.value ? calendarDesktopWindowBounds(day) : calendarWindowBounds(day),
     completed: assignment?.status === 'completed',
+    reviewPending: isPhotoReviewPending(assignment),
     isToday: assignment?.available_date === today.value,
     available: canOpenAssignment(assignment, today.value),
     label: calendarWindowLabel(day, assignment, today.value),
@@ -170,7 +171,7 @@ onBeforeUnmount(() => {
                 <img class="calendar-today-outline" :src="todayOutline" alt="" width="70.3" height="61.3" />
                 <span class="calendar-today-badge"><img :src="todayBadge" alt="" width="48" height="14" />Сегодня</span>
               </template>
-              <span v-if="window.completed && window.mandatory" class="calendar-completed" aria-hidden="true">
+              <span v-if="(window.completed || window.reviewPending) && window.mandatory" :class="window.reviewPending ? 'calendar-review' : 'calendar-completed'" aria-hidden="true">
                 <img :src="completedCircle" alt="" width="12" height="12" />
                 <img :src="completedCheck" alt="" width="6.3" height="4.8" />
               </span>
@@ -277,11 +278,12 @@ onBeforeUnmount(() => {
 .calendar-window:disabled { cursor:default; }
 .calendar-window:not(:disabled):hover { box-shadow:inset 0 0 18px #fff2ce70; }
 .calendar-window:focus-visible,.calendar-daily:focus-visible,.calendar-brand-link:focus-visible,.calendar-menu summary:focus-visible,.calendar-menu-panel :focus-visible { outline:3px solid #2c624c; outline-offset:3px; }
-.calendar-completed { position:absolute; right:7.7px; bottom:5.9px; width:12px; height:12px; pointer-events:none; }
-.calendar-window.is-door .calendar-completed { right: 17px; bottom: 15px; }
-.calendar-layout-desktop .calendar-window.is-door .calendar-completed { bottom: 26px; }
-.calendar-completed img { position:absolute; left:0; top:0; }
-.calendar-completed img + img { left:2.45px; top:3px; }
+.calendar-review { filter: grayscale(1); opacity: .75; }
+.calendar-completed, .calendar-review { position:absolute; right:7.7px; bottom:5.9px; width:12px; height:12px; pointer-events:none; }
+.calendar-window.is-door .calendar-completed, .calendar-window.is-door .calendar-review { right: 17px; bottom: 15px; }
+.calendar-layout-desktop .calendar-window.is-door .calendar-completed, .calendar-layout-desktop .calendar-window.is-door .calendar-review { bottom: 26px; }
+.calendar-completed img, .calendar-review img { position:absolute; left:0; top:0; }
+.calendar-completed img + img, .calendar-review img + img { left:2.45px; top:3px; }
 .calendar-today-outline { position:absolute; left:.27px; top:1.05px; pointer-events:none; }
 .calendar-today-badge { position:absolute; width:48px; height:14px; top:-3.3px; left:11.9px; color:#fff8e1; font-size:9px; line-height:14px; font-weight:700; text-align:center; isolation:isolate; z-index:1; }
 .calendar-today-badge img { position:absolute; inset:0; z-index:-1; }
