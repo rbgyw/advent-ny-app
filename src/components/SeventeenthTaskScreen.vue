@@ -1,29 +1,43 @@
+
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import TaskAttachments from './TaskAttachments.vue';
-import officeMeeting from '../assets/dec-17/1.png';
-import officePortrait from '../assets/dec-17/2.png';
 import type { TaskAttachment } from '../services/attachments.service';
 import type { DecemberTaskProps, DecemberTaskEvents } from '../types/december';
 
 const props = defineProps<DecemberTaskProps>();
 const emit = defineEmits<DecemberTaskEvents>();
-const bankPhotos = import.meta.glob<string>('../assets/dec-17/bank-[0-9]*.jpg', {
-  eager: true, query: '?url', import: 'default',
-});
-const references = [
-  { id: 'office-meeting', url: officeMeeting, alt: 'Трое коллег за столом, один показывает рожки из-за спины другого' },
-  { id: 'office-portrait', url: officePortrait, alt: 'Кадр из «Офиса»: мужчина в кресле с ломтиками огурца на глазах' },
-  ...Object.entries(bankPhotos).filter(([path]) => /\/bank-\d+\.jpg$/.test(path)).map(([path, url]) => {
-    const name = path.split('/').at(-1)!.slice(5, -4);
-    return { id: 'bank-' + name, url, alt: /^\d+$/.test(name) ? 'Кадр из фотоподборки № ' + name : name };
-  }),
-];
+
+const photos = import.meta.glob<string>(
+  '../assets/dec-17/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP}',
+  {
+    eager: true,
+    query: '?url',
+    import: 'default',
+  },
+);
+
+const references = Object.entries(photos)
+  .filter(([path]) => /\/\d+\.(jpg|jpeg|png|webp)$/i.test(path))
+  .map(([path, url]) => {
+    const filename = path.split('/').at(-1)!;
+    const number = Number(filename.split('.')[0]);
+
+    return {
+      id: `photo-${number}`,
+      number,
+      url,
+      alt: `Кадр из фотоподборки № ${number}`,
+    };
+  })
+  .sort((a, b) => a.number - b.number);
+
 const index = ref(-1);
 const files = ref<readonly TaskAttachment[]>([]);
 const attachmentBusy = ref(false);
 const invalid = ref(false);
+
 const response = computed(() => props.assignment?.response?.response);
 const completed = computed(() => props.assignment?.status === 'completed');
 const pending = computed(() => response.value?.submitted_for_review === true);
@@ -31,22 +45,33 @@ const reference = computed(() => references[index.value]);
 const busy = computed(() => props.saving || attachmentBusy.value);
 
 function chooseFrame() {
+  if (!references.length) return;
+
   index.value = (index.value + 1) % references.length;
   emit('edit');
 }
+
 function updatePhotos(photos: readonly TaskAttachment[]) {
   files.value = photos;
   if (photos.length) invalid.value = false;
 }
+
 function submit() {
   if (busy.value || !reference.value || pending.value) return;
+
   const photo = files.value[0];
+
   if (!photo) {
     invalid.value = true;
     return;
   }
+
   emit('save', {
-    response: { attachment_id: photo.id, reference_id: reference.value.id, submitted_for_review: true },
+    response: {
+      attachment_id: photo.id,
+      reference_id: reference.value.id,
+      submitted_for_review: true,
+    },
     complete: false,
   });
 }
@@ -62,7 +87,8 @@ function submit() {
     </div>
     <div v-if="completed || pending" class="december-stack photo-form">
       <h2>{{ completed ? 'Задание выполнено' : 'Фото отправлено!' }}</h2>
-      <p v-if="!completed" role="status">После проверки результат появится в вашем прогрессе.</p>
+      <p v-if="!completed" class="photo-status" role="status">На проверке</p>
+      <p v-if="!completed">После проверки результат появится в вашем прогрессе.</p>
 
     </div>
     <div v-else-if="!reference" class="photo-form">

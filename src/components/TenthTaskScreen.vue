@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import frost from '../assets/dec-10/frost.svg';
 import location from '../assets/dec-10/location.svg';
@@ -22,12 +22,19 @@ const wizardOrder = computed(() => {
   return pairs.value.map(value => value >= 0 ? value : free.shift()!);
 });
 const draggedWizard = ref(-1);
+const pairingWizard = ref(-1);
+watch(pairingWizard, (wizard, _, onCleanup) => {
+  if (wizard < 0) return;
+  const timer = window.setTimeout(() => { pairingWizard.value = -1; }, 650);
+  onCleanup(() => window.clearTimeout(timer));
+});
 function connect(place: number, wizard: number) {
   if (completed.value || props.saving || wizard < 0 || wizard >= wizards.length) return;
   const previous = links.value.indexOf(wizard);
   const displaced = links.value[place]!;
   if (previous >= 0) links.value[previous] = previous === place ? -1 : displaced;
   links.value[place] = wizard;
+  pairingWizard.value = wizard;
   selectedPlace.value = selectedWizard.value = -1;
   checked.value = false;
   emit('edit');
@@ -77,7 +84,7 @@ function pairStyle(place: number) {
             <p>Помогите каждому найти дорогу домой: сопоставьте страну и имя ее новогоднего героя. Когда все пары будут готовы, проверьте себя!</p>
     </div>
     <section class="frost-game december-stack">
-      <div><h2>Найдите пары</h2><p>Перетащите имя волшебника к стране или нажмите на имя и страну. Выбранная карточка встанет напротив страны.</p></div>
+      <div><h2>Найдите пары</h2><p>Сначала нажмите на карточку с названием страны, затем нажмите на имя волшебника, который, по вашему мнению, связан с этой страной. Выбранная карточка встанет напротив страны.</p><p>Когда расставите всё по местам, нажмите кнопку «Проверить пары».</p></div>
       <div class="frost-pairs">
         <div>
           <h3>Территории</h3>
@@ -86,13 +93,13 @@ function pairStyle(place: number) {
             <img :src="location" alt="" />{{ place }}
           </button>
         </div>
-        <div>
-          <h3>Волшебники</h3>
-          <button v-for="wizard in wizardOrder" :key="wizard" type="button" :style="pairStyle(pairs.indexOf(wizard))"
+        <TransitionGroup tag="div" name="frost-card" class="frost-wizards">
+          <h3 key="wizard-heading">Волшебники</h3>
+          <button v-for="wizard in wizardOrder" :key="wizard" type="button" :class="{ 'is-pairing': pairingWizard === wizard }" :style="pairStyle(pairs.indexOf(wizard))"
             :aria-pressed="selectedWizard === wizard" :draggable="!completed && !saving" @dragstart="dragWizard($event, wizard)" @dragend="draggedWizard = -1" :disabled="completed || saving" @click="pick('wizard', wizard)">
             <img :src="star" alt="" />{{ wizards[wizard] }}
           </button>
-        </div>
+        </TransitionGroup>
       </div>
       <p aria-live="polite"><strong>{{ totalPairs }} из {{ places.length }} пар</strong></p>
       <p v-if="checked && !completed && !links.every((value, index) => value === solution[index])" class="december-error" role="alert">Некоторые волшебники заблудились. Проверьте пары и попробуйте еще раз.</p>
@@ -108,6 +115,7 @@ function pairStyle(place: number) {
 .frost-art { display: block; max-width: 100%; height: auto; margin: 16px auto 24px; }
 .frost-game, .frost-gifts { margin-top: 24px; }
 .frost-game h2 { margin-bottom: 4px; }
+.frost-game h2 ~ p + p { margin-top: 16px; }
 .frost-pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .frost-pairs > div { display: grid; grid-template-rows: auto repeat(4, 1fr); gap: 8px; }
 .frost-pairs h3 { margin: 0; font-size: 12px; }
@@ -115,4 +123,15 @@ function pairStyle(place: number) {
 .frost-pairs button[aria-pressed="true"] { border-color: var(--dec-red); outline: 1px solid var(--dec-red); }
 .frost-pairs button:disabled { cursor: default; }
 .frost-pairs img { flex: none; }
+.frost-card-move { transition: transform 600ms cubic-bezier(.22, 1, .36, 1); }
+.frost-wizards button.is-pairing { position: relative; z-index: 2; animation: frost-card-lift 650ms ease-in-out; }
+@keyframes frost-card-lift {
+  0%, 100% { translate: 0 0; scale: 1; box-shadow: 0 0 0 transparent; }
+  35% { translate: 0 -12px; scale: 1.04; box-shadow: 0 12px 20px #623c2838; }
+  70% { translate: 0 -4px; scale: 1.02; box-shadow: 0 6px 12px #623c2826; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frost-card-move { transition: none; }
+  .frost-wizards button.is-pairing { animation: none; }
+}
 </style>

@@ -81,16 +81,23 @@ describe('20 December guiding-star screen', () => {
     expect(view.findAll('.is-twinkling')).toHaveLength(0);
   });
 
-  it('shows the found message on a separate screen after selecting the target star', async () => {
+  it('celebrates on the sky before showing the found result, without extra attempts or saving', async () => {
     localProgress(2);
     const view = screen();
     await loadImages(view);
     await choose(view, 0);
     expect(view.find('[role="dialog"]').exists()).toBe(false);
     await choose(view, 1);
-    expect(view.text()).toContain('Ваша звезда найдена!');
+    expect(view.get('.guiding-search').attributes('data-phase')).toBe('celebrating');
+    expect(view.find('.guiding-result').exists()).toBe(false);
+    expect(view.findAll('.guiding-star-image')).toHaveLength(24);
+    expect(view.findAll<HTMLButtonElement>('.guiding-star').every(button => button.element.disabled)).toBe(true);
+    await choose(view, 2);
+    expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(2);
     expect(view.emitted('save')).toBeUndefined();
-    await vi.advanceTimersByTimeAsync(420);
+    await vi.advanceTimersByTimeAsync(1399);
+    expect(view.find('.guiding-result').exists()).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
     expect(view.get('.guiding-result').text()).toContain('Ваша звезда найдена!');
     expect(view.find('[role="dialog"]').exists()).toBe(false);
   });
@@ -101,11 +108,42 @@ describe('20 December guiding-star screen', () => {
     await loadImages(view);
     for (let index = 0; index < attempt - 1; index++) await choose(view, index);
     await choose(view, 15);
+    expect(view.get('.guiding-search').attributes('data-phase')).toBe('celebrating');
+    expect(view.emitted('save')).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(1400);
+    expect(view.get('.guiding-result').text()).toContain('Ваша звезда найдена!');
+  });
+
+  it('skips discovery motion when reduced motion is requested', async () => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    localProgress(1);
+    const view = screen();
+    await loadImages(view);
+    await choose(view, 0);
     expect(view.find('.guiding-sky').exists()).toBe(false);
     expect(view.get('.guiding-result').text()).toContain('Ваша звезда найдена!');
     expect(view.emitted('save')).toBeUndefined();
-    await vi.advanceTimersByTimeAsync(420);
+  });
+
+  it('does not replay discovery when an unfinished found search is reopened', async () => {
+    localProgress(1, 1);
+    const view = screen();
+    expect(view.find('.guiding-sky').exists()).toBe(false);
     expect(view.get('.guiding-result').text()).toContain('Ваша звезда найдена!');
+    expect(view.emitted('save')).toBeUndefined();
+  });
+
+  it('cancels discovery when switching accounts', async () => {
+    localProgress(1);
+    const view = screen();
+    await loadImages(view);
+    await choose(view, 0);
+    expect(view.get('.guiding-search').attributes('data-phase')).toBe('celebrating');
+    await view.setProps({ assignment: { ...task(), user_id: userForTarget(20) } });
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(view.find('.guiding-result').exists()).toBe(false);
+    expect(view.get('.guiding-search').attributes('data-phase')).toBe('searching');
+    expect(view.emitted('save')).toBeUndefined();
   });
 
   it('saves a wish only on confirmation and clears search data only after Supabase confirms completion', async () => {
@@ -113,7 +151,7 @@ describe('20 December guiding-star screen', () => {
     const view = screen();
     await loadImages(view);
     await choose(view, 0);
-    await vi.advanceTimersByTimeAsync(420);
+    await vi.advanceTimersByTimeAsync(1400);
     await wish(view);
     expect(view.emitted('save')).toEqual([[{ response: { wish_made: true }, complete: true }]]);
     expect(JSON.parse(localStorage.getItem(key())!)).toEqual({ attempts: 1, checkedStars: [guidingStars[0]!.id] });
@@ -133,7 +171,7 @@ describe('20 December guiding-star screen', () => {
     for (let index = 0; index < 15; index++) await choose(view, index);
     expect(view.emitted('save')).toEqual([[{ response: { search_exhausted: true }, complete: true }]]);
     expect(view.text()).toContain(guidingStarExhaustedText);
-    await vi.advanceTimersByTimeAsync(420);
+    await vi.advanceTimersByTimeAsync(1400);
     expect(view.get('.guiding-result').text()).toContain(guidingStarExhaustedText);
     expect(view.find('.guiding-sky').exists()).toBe(false);
     expect(JSON.parse(localStorage.getItem(key())!).attempts).toBe(15);
@@ -192,7 +230,7 @@ describe('20 December guiding-star screen', () => {
     const view = screen();
     await loadImages(view);
     await choose(view, exhausted ? guidingStarAttempts - 1 : 0);
-    await vi.advanceTimersByTimeAsync(420);
+    await vi.advanceTimersByTimeAsync(1400);
     if (!exhausted) await wish(view);
     await view.setProps({ saving: true });
     await view.setProps({ saving: false, saveError: 'Нет соединения с Supabase' });
@@ -207,7 +245,7 @@ describe('20 December guiding-star screen', () => {
     const view = screen();
     await loadImages(view);
     await choose(view, 0);
-    await vi.advanceTimersByTimeAsync(420);
+    await vi.advanceTimersByTimeAsync(1400);
     await wish(view);
     await view.setProps({ assignment: { ...task(), user_id: userForTarget(20) } });
     expect(view.find('[role="dialog"]').exists()).toBe(false);
