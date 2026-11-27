@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mockBackend } from './fixture';
 
-for (const width of [393, 551, 1440]) {
+for (const width of [393, 551, 1440, 2560]) {
   test(`locked windows preserve foreground decoration and warm colors at ${width}px`, async ({ page }) => {
     await page.clock.setFixedTime(new Date('2026-11-27T12:00:00Z'));
     const backend = await mockBackend(page, { lockedAfter: 25 });
@@ -19,6 +19,26 @@ for (const width of [393, 551, 1440]) {
     await expect(page.locator('.calendar-window').first()).toHaveCSS('mix-blend-mode', 'normal');
     await page.mouse.move(0, 0);
     const closed = await facade.screenshot({ scale: 'css', path: test.info().outputPath('all-closed.png') });
+    if (desktop) {
+      // The illustration is authoritative: a rounded CSS rectangle leaves gaps
+      // where its circular corners diverge from the SVG's elliptical glass arch.
+      const mismatches = await page.locator('.desktop-window').evaluateAll(async windows => {
+        const sources = new Map<string, Promise<Document>>();
+        const errors: string[] = [];
+        for (const window of windows) {
+          const image = window.querySelector('img')!;
+          if (!sources.has(image.src)) sources.set(image.src, fetch(image.src).then(response => response.text()).then(svg => new DOMParser().parseFromString(svg, 'image/svg+xml')));
+          const source = await sources.get(image.src)!;
+          const glass = [...source.querySelectorAll('path')].find(path => path.getAttribute('fill')?.startsWith('url(#paint2_linear_'))!;
+          const shade = window.querySelector('svg');
+          if (shade?.querySelector('path')?.getAttribute('d') !== glass.getAttribute('d') || shade?.getAttribute('viewBox') !== source.documentElement.getAttribute('viewBox')) errors.push(`${window.getAttribute('data-name')}: contour`);
+          const artBounds = image.getBoundingClientRect(), shadeBounds = shade?.getBoundingClientRect();
+          if (!shadeBounds || (['x', 'y', 'width', 'height'] as const).some(key => Math.abs(artBounds[key] - shadeBounds[key]) > .01)) errors.push(`${window.getAttribute('data-name')}: alignment`);
+        }
+        return errors;
+      });
+      expect(mismatches, 'every mask must cover the exact source glass contour').toEqual([]);
+    }
     const pixels = await page.evaluate(async ({ open, closed, desktop }) => {
       const decode = async (encoded: string) => {
         const img = new Image(); img.src = `data:image/png;base64,${encoded}`; await img.decode();
