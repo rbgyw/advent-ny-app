@@ -81,6 +81,13 @@ function closeMenu() {
     menu.value.querySelector('summary')?.focus()
   }
 }
+function dismissMenuOutside(event: PointerEvent) {
+  const panel = menu.value
+  if (panel?.open && event.target instanceof Node && !panel.contains(event.target)) {
+    // Do not move focus away from the outside control the user is activating.
+    panel.open = false
+  }
+}
 function openWindow(day: number) {
   if (canOpenAssignment(assignments.value.get(day), today.value)) {
     void router.push({ name: 'task', params: { id: day } })
@@ -99,10 +106,12 @@ async function handleLogout() {
 watch(() => user.value?.id, userId => { void track(loadCalendar(userId)) }, { immediate: true })
 onMounted(() => {
   document.addEventListener('visibilitychange', refreshVisibleCalendar)
+  document.addEventListener('pointerdown', dismissMenuOutside)
   desktopMedia.addEventListener('change', updateDesktop)
 })
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', refreshVisibleCalendar)
+  document.removeEventListener('pointerdown', dismissMenuOutside)
   desktopMedia.removeEventListener('change', updateDesktop)
 })
 </script>
@@ -275,8 +284,8 @@ onBeforeUnmount(() => {
 .calendar-menu-panel a:hover,.calendar-menu-panel button:hover { background:#f2dfbd; }
 .calendar-account { padding:8px 10px 12px; margin:0; overflow-wrap:anywhere; color:#846443; font-size:11px; }
 .calendar-window { position:absolute; padding:0; border:0; background:transparent; border-radius:36px 36px 0 0; cursor:pointer; -webkit-tap-highlight-color:#fff0d033; }
-.calendar-window:disabled { cursor:default; }
-.calendar-window:not(:disabled):hover { box-shadow:inset 0 0 18px #fff2ce70; }
+.calendar-window:disabled, .calendar-window.is-locked { cursor:default; }
+.calendar-window:not(:disabled):not(.is-locked):hover { box-shadow:inset 0 0 18px #fff2ce70; }
 .calendar-window:focus-visible,.calendar-daily:focus-visible,.calendar-brand-link:focus-visible,.calendar-menu summary:focus-visible,.calendar-menu-panel :focus-visible { outline:3px solid #2c624c; outline-offset:3px; }
 .calendar-review { filter: grayscale(1); opacity: .75; }
 .calendar-completed, .calendar-review { position:absolute; right:7.7px; bottom:5.9px; width:12px; height:12px; pointer-events:none; }
@@ -427,5 +436,4 @@ onBeforeUnmount(() => {
 .calendar-layout-desktop .calendar-today-outline { width:100%; height:100%; left:0; top:0; }
 .calendar-layout-desktop .calendar-today-badge { left:calc(50% - 24px); }
 .calendar-layout-desktop .calendar-notice { left:560px; }
-.calendar-window.is-locked { background: #a8a5a0; mix-blend-mode: saturation; border-radius: 40px 40px 0 0; }
 </style>
