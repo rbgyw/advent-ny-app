@@ -29,8 +29,13 @@ const resultPopup = ref<InstanceType<typeof AdventPopup>>();
 const deck = ref([...initialPairDeck]), matched = ref<number[]>([]), opened = ref<number[]>([]);
 const moves = ref(0), started = ref(true), resolving = ref(false), announcement = ref('');
 const ready = ref(false), imageError = ref(false);
-const board = ref<HTMLElement>(), background = ref<HTMLElement>();
-const cardScale = ref(1), ratio = ref(1477 / 393);
+const background = ref<HTMLElement>();
+const ratio = ref(1477 / 393);
+// Keep the supplied 73 × 101 layout, but render PNGs at their final CSS size.
+const productStyles = pairProducts.map(({ x, y, width, height }) => ({
+  left: `${x / 73 * 100}%`, top: `${y / 101 * 100}%`,
+  width: `${width / 73 * 100}%`, height: `${height / 101 * 100}%`,
+}));
 const completed = computed(() => props.assignment?.status === 'completed');
 watch(completed, async (value, previous) => { if (value && previous === false) { await nextTick(); resultPopup.value?.showModal(); } });
 const won = computed(() => isPairsSolution(matched.value));
@@ -63,7 +68,6 @@ watch([deck, matched, moves, started], () => {
     if (started.value && (!completed.value || won.value) && moves.value >= matched.value.length) sessionStorage.setItem(storageKey.value, JSON.stringify({ deck: deck.value, matched: matched.value, moves: moves.value }));
   } catch { /* Keep playing when storage is unavailable. */ }
 });
-watch(board, element => { if (element) observer?.observe(element); });
 function isOpen(index: number) { return opened.value.includes(index) || matched.value.includes(deck.value[index]!); }
 function backArt(index: number) { return index === 0 ? back : index === 1 ? backSecond : index % 4 === 3 ? backRight : backMiddle; }
 function submitWin() { if (won.value && !completed.value && !props.saving) emit('submit', [...matched.value]); }
@@ -104,14 +108,12 @@ onMounted(() => {
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
       for (const [element, size] of pendingSizes) {
-        if (element === board.value) cardScale.value = (size.width - 21) / 4 / 73;
-        else if (element === background.value && size.width) ratio.value = size.height / size.width;
+        if (element === background.value && size.width) ratio.value = size.height / size.width;
       }
       pendingSizes.clear();
     });
   });
   if (background.value) observer.observe(background.value);
-  if (board.value) observer.observe(board.value);
 });
 onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnimationFrame(resizeFrame); imageVersion++; cancelImageLoads(); });
 </script>
@@ -135,12 +137,12 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
             <p>Открывайте по две карточки за ход и запоминайте расположение упаковок. Если изображения совпадут, пара останется открытой. Если нет — карточки снова повернутся. Продолжайте, пока не найдете все пары!</p>
           </div>
           <div class="pairs-counters" aria-live="polite" aria-atomic="true"><p>Найдено пар: {{ matched.length }} / 8</p><p>Ходов: {{ completed && won && !moves ? '—' : moves }}</p></div>
-          <div ref="board" class="pairs-board" :style="{ '--card-scale': cardScale }" role="group" aria-label="Игровое поле: 16 карточек, 8 пар">
+          <div class="pairs-board" role="group" aria-label="Игровое поле: 16 карточек, 8 пар">
             <AppButton v-for="(id, index) in deck" :key="`${index}:${id}`" class="pair-card" :class="{ 'is-open': isOpen(index), 'is-matched': matched.includes(id) }" type="button" :disabled="!playable || isOpen(index)" :aria-label="`Карточка ${index + 1}. ${isOpen(index) ? pairProducts[id]!.name + (matched.includes(id) ? ', пара найдена' : '') : 'Закрыта'}`" :aria-pressed="isOpen(index)" @click="flip(index)">
-              <span class="pair-card-scale"><span class="pair-card-rotator">
-                <span class="pair-card-face pair-card-back" aria-hidden="true"><img decoding="async" class="pair-art" :src="backArt(index)" alt="" /><img decoding="async" v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
-                <span class="pair-card-face pair-card-front" aria-hidden="true"><img decoding="async" class="pair-art" :src="front" alt="" /><img decoding="async" class="pair-product" :src="pairProducts[id]!.image" :style="{ left: `${pairProducts[id]!.x}px`, top: `${pairProducts[id]!.y}px`, width: `${pairProducts[id]!.width}px`, height: `${pairProducts[id]!.height}px` }" alt="" /></span>
-              </span></span>
+              <Transition name="pair-flip">
+                <span v-if="isOpen(index)" key="front" class="pair-card-face pair-card-front" aria-hidden="true"><img decoding="async" class="pair-art" :src="front" alt="" /><img decoding="async" class="pair-product" :src="pairProducts[id]!.image" :style="productStyles[id]" alt="" /></span>
+                <span v-else key="back" class="pair-card-face pair-card-back" aria-hidden="true"><img decoding="async" class="pair-art" :src="backArt(index)" alt="" /><img decoding="async" v-if="index === 0" class="pair-sparkle" :src="sparkle" alt="" /></span>
+              </Transition>
             </AppButton>
           </div>
           <p v-if="imageError" class="pairs-error" role="alert">Не удалось загрузить изображения карточек. <AppButton type="button" @click="loadImages">Попробовать ещё раз</AppButton></p>
@@ -178,18 +180,18 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 .pairs-counters { display: flex; justify-content: space-between; gap: 16px; margin: 26px -2px 29px; color: var(--color-action); font-size: 12px; line-height: 15px; }
 .pairs-counters p { margin: 0; }
 .pairs-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; width: min(100%, 600px); margin-inline: auto; }
-.pair-card { position: relative; display: block; box-sizing: border-box; min-width: 0; width: 100%; aspect-ratio: 73 / 101; border: 0; border-radius: 10px; margin: 0; padding: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pair-card { position: relative; display: block; box-sizing: border-box; min-width: 0; width: 100%; aspect-ratio: 73 / 101; border: 0; border-radius: 13.69863% / 9.90099%; margin: 0; padding: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pair-card:disabled { opacity: 1; cursor: default; }
-.pair-card-scale { position: absolute; display: block; top: 0; left: 0; width: 73px; height: 101px; transform: scale(var(--card-scale)); transform-origin: top left; perspective: 650px; }
-.pair-card-rotator { position: relative; display: block; width: 73px; height: 101px; transform-style: preserve-3d; transform: rotateY(0deg); transition: transform 480ms cubic-bezier(.22,.65,.3,1); }
-.is-open .pair-card-rotator { transform: rotateY(180deg); }
-.pair-card-face { position: absolute; display: block; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.pair-card-back { transform: rotateY(0deg); }
-.pair-card-front { transform: rotateY(180deg); }
-.pair-art { position: absolute; left: -.5px; top: -.5px; pointer-events: none; }
-.pair-sparkle { position: absolute; left: 22.175px; top: 36.175px; pointer-events: none; }
+.pair-card-face { position: absolute; display: block; inset: 0; }
+/* Vue removes these classes when the flip ends, leaving PNGs in a flat layer. */
+.pair-flip-enter-active, .pair-flip-leave-active { backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform 480ms cubic-bezier(.22,.65,.3,1); }
+.pair-flip-enter-from, .pair-card-front.pair-flip-leave-to { transform: perspective(650px) rotateY(-180deg); }
+.pair-flip-leave-to, .pair-card-back.pair-flip-enter-from { transform: perspective(650px) rotateY(180deg); }
+.pair-flip-enter-to, .pair-flip-leave-from { transform: perspective(650px) rotateY(0deg); }
+.pair-art { position: absolute; left: calc(-.5 / 73 * 100%); top: calc(-.5 / 101 * 100%); width: calc(74 / 73 * 100%); height: calc(102 / 101 * 100%); max-width: none; pointer-events: none; }
+.pair-card-front .pair-art { width: calc(73.9855 / 73 * 100%); height: calc(101.985 / 101 * 100%); }
+.pair-sparkle { position: absolute; left: calc(22.175 / 73 * 100%); top: calc(36.175 / 101 * 100%); width: calc(28.7448 / 73 * 100%); height: calc(28.7448 / 101 * 100%); max-width: none; pointer-events: none; }
 .pair-product { position: absolute; max-width: none; object-fit: contain; pointer-events: none; }
-.pair-product-name { position: absolute; top: 80.6px; left: -4px; width: 81px; color: var(--color-ink); font: 400 7.884px/10px var(--font-ui); text-align: center; white-space: nowrap; }
 .pairs-button { position: relative; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 313px; min-width: 313px; max-width: 313px; height: 52px; min-height: 52px; padding: 0 16px; margin-inline: 0; border: 0; border-radius: 13px; background: var(--color-action); color: #fff7df; font: 700 14px/17px var(--font-ui); letter-spacing: 0; text-align: center; cursor: pointer; }
 .pairs-button > span { color: transparent; background-clip: text; background-image: linear-gradient(77.3594deg, #e8b77e .55732%, #ffe6bc 19.578%, var(--color-cream) 72.836%, #efc087 99.465%); }
 .pairs-button:disabled { opacity: .65; cursor: default; }
@@ -208,7 +210,7 @@ onBeforeUnmount(() => { clearTimeout(timer); observer?.disconnect(); cancelAnima
 .pairs-footer { margin-top: 28px; font-size: 12px; line-height: 15px; text-align: center; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 768px) { .pairs-layout { padding-inline: 32px; } .pairs-panel { padding-inline: 32px; } }
-@media (prefers-reduced-motion: reduce) { .pair-card-rotator { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .pair-flip-enter-active, .pair-flip-leave-active { transition: none; } }
 @media (min-width: 700px) { .pairs-board { width: min(100%, 420px, calc((100svh - 180px) * .72)); margin-inline: auto; } }
 
 .task-content-return { margin-top: 24px; }
