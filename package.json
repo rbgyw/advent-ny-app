@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && npm run typecheck:gratitude && npm run typecheck:auth-email-policy",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && npm run typecheck:gratitude && npm run typecheck:auth-email-policy && npm run typecheck:future-letters",
     "typecheck:gratitude": "tsc -p supabase/functions/send-gratitude/tsconfig.json",
     "typecheck:auth-email-policy": "tsc -p supabase/functions/auth-email-policy/tsconfig.json",
     "build": "vue-tsc -b && vite build",
@@ -19,7 +19,8 @@
     "measure": "node scripts/measure-performance.ts",
     "test:e2e": "node scripts/test.mjs",
     "test:future-letters:postgres": "node scripts/test-future-letters-postgres.mjs",
-    "typecheck:mail": "tsc -p supabase/functions/send-gratitude/tsconfig.json && tsc -p supabase/functions/send-future-letters/tsconfig.json"
+    "typecheck:mail": "npm run typecheck:gratitude && npm run typecheck:future-letters",
+    "typecheck:future-letters": "tsc -p supabase/functions/send-future-letters/tsconfig.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

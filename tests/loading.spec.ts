@@ -80,27 +80,33 @@ test('loader fits narrow, landscape, tablet and desktop screens and respects red
   await expect(page.locator('.screen-loader')).toHaveCount(0);
 });
 
-test('password login opens the calendar after RPC 204 and an optional illustration 404', async ({ page }) => {
+test('OTP login opens the calendar after RPC 204 and an optional illustration 404', async ({ page }) => {
   await mockBackend(page, { authenticated: false });
   const email = 'audit@geropharm.com';
   const messages = resourceDiagnostics(page);
-  await page.route('**/auth/v1/token?grant_type=password', route => route.fulfill({ json: {
-    access_token: 'local-audit-token', refresh_token: 'local-refresh-token', expires_in: 3600, token_type: 'bearer',
-    user: { id: userId, email, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' },
-  } }));
+  await page.route('**/auth/v1/otp', route => route.fulfill({ json: {} }));
+  await page.route('**/auth/v1/verify', async route => {
+    expect(route.request().postDataJSON()).toMatchObject({ email, token: '123456', type: 'email' });
+    await route.fulfill({ json: {
+      access_token: 'local-audit-token', refresh_token: 'local-refresh-token', expires_in: 3600, token_type: 'bearer',
+      user: { id: userId, email, email_confirmed_at: '2026-01-01T00:00:00Z', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' },
+    } });
+  });
   await page.route('**/rest/v1/rpc/prepare_advent_calendar', route => route.fulfill({ status: 204 }));
   await page.route('**/91-1115-*.svg', route => route.fulfill({ status: 404 }));
   const prepared = page.waitForResponse(response => response.url().endsWith('/rpc/prepare_advent_calendar') && response.status() === 204);
   await page.goto('/auth');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Пароль', { exact: true }).fill('test-only-password');
+  await expect(page.locator('input[type=password]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  await page.locator('#verification-digit-0').fill('123456');
+  await page.getByRole('button', { name: 'Подтвердить', exact: true }).click();
   await prepared;
   await expect(page).toHaveURL('/calendar');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('img[data-screen-image-fallback]').first()).toHaveCSS('opacity', '0');
   expect(messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image load: .*\/assets\/91-1115-.*\.svg$/)]));
-  expect(messages.join()).not.toMatch(/audit@|local-audit-token|test-only-password/);
+  expect(messages.join()).not.toMatch(/audit@|local-audit-token|123456/);
   await page.locator('.calendar-window').first().click();
   await expect(page).toHaveURL('/task/1');
 });
@@ -164,13 +170,13 @@ test('a stalled optional image times out without blocking the calendar', async (
 test('an unavailable game image offers a local retry without hiding the whole task', async ({ page }) => {
   await mockBackend(page);
   const messages = resourceDiagnostics(page);
-  const asset = '**/heart-*.webp';
+  const asset = '**/stereo_mobile-*.png';
   await page.route(asset, route => route.fulfill({ status: 404 }));
   await page.goto('/task/11');
   await expect(page.locator('.screen-loader')).toHaveCount(0);
   await expect(page.locator('.stereo-page')).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('Не удалось загрузить изображение задания');
-  await expect.poll(() => messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image load: .*\/assets\/heart-.*\.webp$/)]));
+  await expect.poll(() => messages).toEqual(expect.arrayContaining([expect.stringMatching(/optional image load: .*\/assets\/stereo_mobile-.*\.png$/)]));
   await page.unroute(asset);
   await page.getByRole('button', { name: 'Попробовать снова' }).click();
   await expect(page.locator('.screen-loader')).toHaveCount(0);
