@@ -79,3 +79,24 @@ describe('calendar service', () => {
     await expect(calendarService.saveTaskProgress(25, { solved: true, fortune_index: 1 }, true)).rejects.toThrow('Сервер не вернул результат сохранения');
   });
 });
+
+describe('future letter RPC contract', () => {
+  const common = { letter_id: 'letter-1', task_id: 16, status: 'completed', due_at: '2026-11-27T12:15:00Z' };
+  it.each([
+    { ...common, already_submitted: true },
+    { ...common, already_submitted: false, completed_at: '2026-11-27T12:00:00Z', response: { letter_id: 'letter-1', deliver_on: common.due_at, scheduled: true } },
+  ])('accepts both production response shapes', async data => {
+    vi.mocked(supabase.rpc).mockResolvedValue({ data, error: null } as never);
+    expect(await calendarService.submitFutureLetter('private')).toEqual(data);
+    expect(supabase.rpc).toHaveBeenCalledExactlyOnceWith('submit_future_letter', { p_body: 'private' });
+  });
+  it.each([null, {}, { ...common, already_submitted: false }, { ...common, due_at: 'invalid', already_submitted: true }])('rejects unconfirmed storage %j', async data => {
+    vi.mocked(supabase.rpc).mockResolvedValue({ data, error: null } as never);
+    await expect(calendarService.submitFutureLetter('private')).rejects.toThrow('Сервер не подтвердил');
+  });
+  it('propagates submission errors', async () => {
+    const error = { message: 'unavailable' };
+    vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error } as never);
+    await expect(calendarService.submitFutureLetter('private')).rejects.toBe(error);
+  });
+});

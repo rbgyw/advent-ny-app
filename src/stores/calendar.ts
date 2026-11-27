@@ -178,6 +178,11 @@ export const useCalendarStore = defineStore("calendar", {
         }
       }
 
+      if (assignment.task.slug === "task-16") {
+        this.saveError = "Письмо сохраняется только через форму письма в будущее.";
+        return false;
+      }
+
       if (assignment.task.slug === "task-06") {
         this.saveError = "Карта выбирается только один раз через колоду.";
         return false;
@@ -252,6 +257,44 @@ export const useCalendarStore = defineStore("calendar", {
         if (version === this.loadVersion && userId === this.currentUserId) {
           this.saving = false;
         }
+      }
+    },
+
+    async submitFutureLetter(taskId: number, body: string): Promise<boolean> {
+      const userId = this.currentUserId;
+      const version = this.loadVersion;
+      const assignment = this.tasks.find(item => item.task_id === taskId);
+      if (!userId || this.loading || this.saving || assignment?.task?.slug !== 'task-16') return false;
+      this.saveErrorTaskId = taskId;
+      if (!body.trim() || body.trim().length > 6000) {
+        this.saveError = 'Напишите письмо длиной до 6000 символов.';
+        return false;
+      }
+      this.saving = true;
+      this.saveError = null;
+      try {
+        const result = await calendarService.submitFutureLetter(body.trim());
+        if (version !== this.loadVersion || userId !== this.currentUserId) return false;
+        if (result.task_id !== taskId) throw new Error('Сервер вернул другое задание. Обновите календарь.');
+        const updated = await calendarService.getTaskProgress(userId, taskId);
+        if (version !== this.loadVersion || userId !== this.currentUserId) return false;
+        if (updated.assignment.status !== 'completed' || !updated.response) {
+          throw new Error('Не удалось подтвердить завершение. Повторите запрос.');
+        }
+        // Both RPC shapes confirm durable storage. A retry after a lost response
+        // refreshes the same assignment without ever resending private text via progress.
+        Object.assign(assignment, updated.assignment, { response: {
+          ...updated.response, response: { letter_id: result.letter_id, deliver_on: result.due_at, scheduled: true },
+        } });
+        return true;
+      } catch {
+        if (version === this.loadVersion && userId === this.currentUserId) {
+          this.saveErrorTaskId = taskId;
+          this.saveError = 'Не удалось подтвердить сохранение письма. Повторите запрос — копия не создастся.';
+        }
+        return false;
+      } finally {
+        if (version === this.loadVersion && userId === this.currentUserId) this.saving = false;
       }
     },
 

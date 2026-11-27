@@ -1,91 +1,87 @@
 <script setup lang="ts">
 import CalendarReturnButton from './ui/CalendarReturnButton.vue';
+import { corporateEmailRequired } from '../utils/email-policy';
 import { computed, ref, watch } from 'vue';
 import DecemberTaskLayout from './DecemberTaskLayout.vue';
 import PopupDialog from './PopupDialog.vue';
 import envelope from '../assets/dec-16/envelope.svg';
 import stamp from '../assets/dec-16/stamp.svg';
-import type { DecemberTaskProps, DecemberTaskEvents } from '../types/december';
-import { corporateEmailRequired, getEmailError } from '../utils/email-policy';
+import type { DecemberTaskProps } from '../types/december';
 
 const corporateOnly = corporateEmailRequired();
 
-const props = defineProps<DecemberTaskProps>();
-const emit = defineEmits<DecemberTaskEvents>();
-const email = ref('');
+const props = defineProps<DecemberTaskProps & { recipientEmail: string }>();
+const emit = defineEmits<{ back: []; retry: []; edit: []; submit: [body: string] }>();
 const letter = ref('');
-const emailInput = ref<HTMLInputElement>();
 const letterInput = ref<HTMLTextAreaElement>();
-const addressError = ref(false);
 const letterError = ref(false);
 const success = ref(false);
 const completed = computed(() => props.assignment?.status === 'completed');
 watch(completed, (done, before) => {
   if (done && before === false) {
     letter.value = '';
-    email.value = '';
     success.value = true;
   }
 });
 
 function send() {
   if (props.saving || completed.value) return;
-  const address = email.value.trim().toLowerCase();
-  addressError.value = Boolean(getEmailError(address));
+  if (!props.recipientEmail) return;
   letterError.value = !letter.value.trim();
-  if (addressError.value) {
-    emailInput.value?.focus();
-    return;
-  }
   if (letterError.value) {
     letterInput.value?.focus();
     return;
   }
-  emit('save', { response: { email: address, text: letter.value.trim(), deliver_on: '2027-12-31' }, complete: true });
+  emit('submit', letter.value.trim());
 }
+const scheduledDelivery = computed(() => {
+  const due = props.assignment?.response?.response.deliver_on;
+  return typeof due === 'string' && Number.isFinite(Date.parse(due))
+    ? new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Moscow' }).format(new Date(due)) + ' (МСК)'
+    : '';
+});
 </script>
 
 <template>
   <DecemberTaskLayout v-bind="props" title="Письмо себе в будущее" @back="emit('back')" @retry="emit('retry')">
     <img class="future-envelope" :src="envelope" alt="" />
     <div class="december-copy">
-            <p>За год многое может измениться: одни планы осуществятся, другие уступят место новым. Тем интереснее будет вспомнить, о чем вы думаете и мечтаете сейчас, в декабре 2026-го.</p>
-            <p>Напишите себе письмо — оно придет на вашу {{ corporateOnly ? 'корпоративную почту' : 'почту' }} в декабре 2027 года.</p>
-            <p>Расскажите, чем живете сейчас, за что себя благодарите и к чему хотите прийти. Может быть, это будет что-то амбициозное — то, на что вы давно не решались, или напоминание о любимом деле, для которого хочется сохранить побольше времени?</p>
-            <p>Укажите {{ corporateOnly ? 'свою корпоративную почту' : 'свой email' }} и в канун 2028 года оно вернется к вам.</p>
+      <p>Со временем многое может измениться: одни планы осуществятся, другие уступят место новым. Тем интереснее будет вспомнить, о чем вы думаете и мечтаете сейчас.</p>
+      <p>Напишите себе письмо — оно придет на подтверждённую {{ corporateOnly ? 'корпоративную почту' : 'почту' }} вашего аккаунта.</p>
+      <p>Расскажите, чем живете сейчас, за что себя благодарите и к чему хотите прийти. Может быть, это будет что-то амбициозное — то, на что вы давно не решались, или напоминание о любимом деле, для которого хочется сохранить побольше времени?</p>
+      <p>В тестовом режиме отправка запланирована через 15 минут после сохранения.</p>
     </div>
     <div v-if="completed" class="december-stack future-form">
       <p role="status">Письмо сохранено.</p>
-
+      <p v-if="scheduledDelivery">Запланированная отправка: {{ scheduledDelivery }}.</p>
     </div>
     <form v-else class="december-stack future-form" novalidate @submit.prevent="send">
       <label class="december-field">
         {{ corporateOnly ? 'Моя корпоративная почта' : 'Мой email' }}
-        <input ref="emailInput" v-model="email" type="email" autocomplete="email" maxlength="254" placeholder="ivan.ivanov@geropharm.com"
-          aria-describedby="future-email-help" :aria-invalid="addressError" :disabled="saving" required
-          @input="addressError = false; emit('edit')" />
+        <input :value="recipientEmail" type="email" autocomplete="email" readonly aria-describedby="future-email-help" />
       </label>
-      <p id="future-email-help">{{ corporateOnly ? 'Укажите свою корпоративную почту ГЕРОФАРМ. На другие адреса волшебное письмо отправить не получится.' : 'Укажите свой корректный email. Для тестирования разрешены любые домены.' }}</p>
-      <p v-if="addressError" class="december-error" role="alert">{{ corporateOnly ? 'Проверьте адрес: нужна ваша корпоративная почта ГЕРОФАРМ.' : 'Укажите корректный email-адрес.' }}</p>
+      <p id="future-email-help">Подтверждённая почта вашего аккаунта. Получатель выбирается автоматически.</p>
+      <p v-if="!recipientEmail" class="december-error" role="alert">Подтвердите почту аккаунта перед сохранением письма.</p>
       <label class="december-field">
         Письмо себе в будущее
         <span class="future-paper">
-          <span aria-hidden="true">СЕБЕ · В КАНУН 2028 ГОДА</span>
+          <span aria-hidden="true">СЕБЕ · В БУДУЩЕЕ</span>
           <img :src="stamp" alt="" />
           <textarea ref="letterInput" v-model="letter" :aria-invalid="letterError" :disabled="saving"
-            placeholder="О чем хотите напомнить себе через год?" maxlength="6000" required
+            placeholder="О чем хотите напомнить будущему себе?" maxlength="6000" required
             @input="letterError = false; emit('edit')" />
         </span>
       </label>
       <p v-if="letterError" class="december-error" role="alert">Напишите письмо перед отправкой.</p>
       <p v-if="saveError" class="december-error" role="alert">{{ saveError }}</p>
-      <button class="december-button task-action" :disabled="saving">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
+      <button class="december-button task-action" :disabled="saving || !recipientEmail">{{ saving ? 'Сохраняем…' : 'Отправить в будущее' }}</button>
     </form>
     <PopupDialog v-model:open="success" class="december-dialog" aria-labelledby="future-success-title">
       <div class="december-stack">
         <button class="december-dialog-close" type="button" aria-label="Закрыть" @click="success = false">×</button>
         <h2 id="future-success-title">Письмо отправилось в будущее!</h2>
-        <p>Письмо сохранено для отправки на указанную {{ corporateOnly ? 'корпоративную почту' : 'почту' }} в канун 2028 года.</p>
+        <p>Письмо сохранено для отправки на подтверждённую почту аккаунта.</p>
+        <p v-if="scheduledDelivery">Запланированная отправка: {{ scheduledDelivery }}.</p>
         <CalendarReturnButton class="december-button" @click="emit('back')" completed />
       </div>
     </PopupDialog>
